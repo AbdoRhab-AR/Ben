@@ -1,12 +1,12 @@
 ﻿@model IEnumerable<KOSS.Web.Models.InstallationOrder>
 @{
-    ViewData["Title"] = "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ØªØ±ÙƒÙŠØ¨Ø§Øª Ø§Ù„Ù…ÙŠØ¯Ø§Ù†ÙŠØ© Ø¨Ø§Ù„Ù…ÙˆÙ‚Ø¹";
+    ViewData["Title"] = "إدارة التركيبات الميدانية بالموقع";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold text-dark"><i class="fa-solid fa-truck-ramp-box text-warning me-2"></i> Ø¥Ø¯Ø§Ø±Ø© ÙˆØ¬Ø¯ÙˆÙ„Ø© Ø§Ù„ØªØ±ÙƒÙŠØ¨Ø§Øª Ø§Ù„Ù…ÙŠØ¯Ø§Ù†ÙŠØ©</h3>
-        <p class="text-muted mb-0">Ù…ØªØ§Ø¨Ø¹Ø© Ù…ÙˆØ§Ø¹ÙŠØ¯ Ø§Ù„ØªÙˆØµÙŠÙ„ØŒ ÙˆÙÙØ±Ù‚ Ø§Ù„ÙÙ†ÙŠÙŠÙ†ØŒ ÙˆØªÙˆÙ‚ÙŠØ¹ Ù…Ø­Ø§Ø¶Ø± Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù… ÙˆØ§Ù„ØªØ³Ù„ÙŠÙ…</p>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-truck-ramp-box text-warning me-2"></i> إدارة وجدولة التركيبات الميدانية</h3>
+        <p class="text-muted mb-0">متابعة مواعيد التوصيل، وفِرق الفنيين، وتوقيع محاضر الاستلام والتسليم</p>
     </div>
 </div>
 
@@ -16,19 +16,19 @@
             <table class="table table-custom table-hover align-middle mb-0">
                 <thead>
                     <tr>
-                        <th>Ø£Ù…Ø± Ø§Ù„ØªØ±ÙƒÙŠØ¨</th>
-                        <th>Ø·Ù„Ø¨ Ø§Ù„Ù…Ø·Ø¨Ø®</th>
-                        <th>Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„ ÙˆØ§Ù„Ù…ÙˆÙ‚Ø¹</th>
-                        <th>ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ±ÙƒÙŠØ¨</th>
-                        <th>Ø±Ø¦ÙŠØ³ ÙØ±ÙŠÙ‚ Ø§Ù„ØªØ±ÙƒÙŠØ¨</th>
-                        <th>Ø­Ø§Ù„Ø© Ø§Ù„ØªØ±ÙƒÙŠØ¨</th>
-                        <th>Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª</th>
+                        <th>أمر التركيب</th>
+                        <th>طلب المطبخ</th>
+                        <th>اسم العميل والموقع</th>
+                        <th>تاريخ التركيب</th>
+                        <th>رئيس فريق التركيب</th>
+                        <th>حالة التركيب</th>
+                        <th>الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
-                        <tr><td colspan="7" class="text-center py-5 text-muted">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£ÙˆØ§Ù…Ø± ØªØ±ÙƒÙŠØ¨ Ù…Ø¬Ø¯ÙˆÙ„Ø© Ø­Ø§Ù„ÙŠØ§Ù‹.</td></tr>
+                        <tr><td colspan="7" class="text-center py-5 text-muted">لا توجد أوامر تركيب مجدولة حالياً.</td></tr>
                     }
                     @foreach (var order in Model)
                     {
@@ -37,7 +37,7 @@
                             <td><strong class="text-primary font-monospace">@order.OrderNumber</strong></td>
                             <td>
                                 <a asp-controller="Requests" asp-action="Details" asp-route-id="@(req?.Id ?? 0)" class="fw-bold text-decoration-none">
-                                    @(req?.RequestNumber ?? $"Ø·Ù„Ø¨ #{order.WorkOrderId}")
+                                    @(req?.RequestNumber ?? $"طلب #{order.WorkOrderId}")
                                 </a>
                             </td>
                             <td>
@@ -49,7 +49,7 @@
                             <td><span class="badge bg-primary px-3 py-2">@order.Status</span></td>
                             <td>
                                 <a asp-controller="Requests" asp-action="Details" asp-route-id="@(req?.Id ?? 0)" class="btn btn-sm btn-outline-primary">
-                                    <i class="fa-solid fa-signature me-1"></i> Ù…Ø­Ø¶Ø± Ø§Ù„ØªØ³Ù„ÙŠÙ…
+                                    <i class="fa-solid fa-signature me-1"></i> محضر التسليم
                                 </a>
                             </td>
                         </tr>

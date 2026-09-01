@@ -1,12 +1,12 @@
 ﻿@model IEnumerable<KOSS.Web.Models.ItemMaster>
 @{
-    ViewData["Title"] = "Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹Ø§Øª ÙˆØ§Ù„Ø®Ø§Ù…Ø§Øª ÙˆØ§Ù„Ø£Ø±ØµØ¯Ø©";
+    ViewData["Title"] = "المستودعات والخامات والأرصدة";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold text-dark"><i class="fa-solid fa-boxes-stacked text-info me-2"></i> Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹Ø§Øª ÙˆØ®Ø§Ù…Ø§Øª Ø§Ù„Ø£Ù„ÙˆØ§Ø­ ÙˆØ§Ù„Ø¥ÙƒØ³Ø³ÙˆØ§Ø±Ø§Øª</h3>
-        <p class="text-muted mb-0">Ù…Ø±Ø§Ù‚Ø¨Ø© Ø®Ø§Ù…Ø§Øª Ø§Ù„Ø¥Ù†ØªØ§Ø¬ØŒ ÙˆØ§Ù„Ø£Ù„ÙˆØ§Ø­ØŒ ÙˆØ§Ù„Ù…Ù‚Ø§Ø¨Ø¶ØŒ ÙˆØ§Ù„Ù…ÙØµÙ„Ø§ØªØŒ ÙˆØ§Ù„Ø£Ø±ØµØ¯Ø© Ø§Ù„Ù…ØªØ§Ø­Ø©</p>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-boxes-stacked text-info me-2"></i> المستودعات وخامات الألواح والإكسسوارات</h3>
+        <p class="text-muted mb-0">مراقبة خامات الإنتاج، والألواح، والمقابض، والمفصلات، والأرصدة المتاحة</p>
     </div>
 </div>
 
@@ -16,19 +16,19 @@
             <table class="table table-custom table-hover align-middle mb-0">
                 <thead>
                     <tr>
-                        <th>ÙƒÙˆØ¯ Ø§Ù„ØµÙ†Ù</th>
-                        <th>Ø§Ø³Ù… Ø§Ù„Ø®Ø§Ù…Ø© / Ø§Ù„ØµÙ†Ù</th>
-                        <th>Ø§Ù„ÙØ¦Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©</th>
-                        <th>Ø§Ù„ÙˆØ­Ø¯Ø©</th>
-                        <th>Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„ÙØ¹Ù„ÙŠ Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ</th>
-                        <th>Ø§Ù„Ù…ØªØ§Ø­ Ù„Ù„ØµØ±Ù</th>
-                        <th>Ù…ØªÙˆØ³Ø· Ø§Ù„ØªÙƒÙ„ÙØ© (WAC)</th>
+                        <th>كود الصنف</th>
+                        <th>اسم الخامة / الصنف</th>
+                        <th>الفئة الرئيسية</th>
+                        <th>الوحدة</th>
+                        <th>الرصيد الفعلي الإجمالي</th>
+                        <th>المتاح للصرف</th>
+                        <th>متوسط التكلفة (WAC)</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
-                        <tr><td colspan="7" class="text-center py-5 text-muted">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø®Ø§Ù…Ø§Øª Ù…Ø³Ø¬Ù„Ø© ÙÙŠ Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹Ø§Øª.</td></tr>
+                        <tr><td colspan="7" class="text-center py-5 text-muted">لا توجد خامات مسجلة في المستودعات.</td></tr>
                     }
                     @foreach (var item in Model)
                     {
@@ -42,7 +42,7 @@
                             <td>@item.Unit</td>
                             <td><strong>@totalPhys @item.Unit</strong></td>
                             <td><span class="badge bg-success fs-6">@totalAvail @item.Unit</span></td>
-                            <td>@avgCost.ToString("N3") Ø¯.Ù„</td>
+                            <td>@avgCost.ToString("N3") د.ل</td>
                         </tr>
                     }
                 </tbody>

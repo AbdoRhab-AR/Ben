@@ -1,52 +1,52 @@
 ﻿@model KOSS.Web.Models.Customer
 @{
-    ViewData["Title"] = "Ø¥Ø¶Ø§ÙØ© Ø¹Ù…ÙŠÙ„ Ø¬Ø¯ÙŠØ¯";
+    ViewData["Title"] = "إضافة عميل جديد";
 }
 
 <div class="row justify-content-center">
     <div class="col-lg-7">
         <div class="card card-custom">
             <div class="card-header card-header-custom">
-                <i class="fa-solid fa-user-plus text-primary me-2"></i> ØªØ³Ø¬ÙŠÙ„ ÙˆØ¥Ø¶Ø§ÙØ© Ø¹Ù…ÙŠÙ„ Ø¬Ø¯ÙŠØ¯
+                <i class="fa-solid fa-user-plus text-primary me-2"></i> تسجيل وإضافة عميل جديد
             </div>
             <div class="card-body p-4">
                 <form asp-action="Create" method="post">
                     @Html.AntiForgeryToken()
 
                     <div class="mb-3">
-                        <label asp-for="Name" class="form-label fw-bold">Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø§Ù„ÙƒØ§Ù…Ù„</label>
-                        <input asp-for="Name" class="form-control" placeholder="Ø§Ù„Ø§Ø³Ù… Ø§Ù„Ø«Ù„Ø§Ø«ÙŠ Ø£Ùˆ Ø§Ø³Ù… Ø§Ù„Ø´Ø±ÙƒØ©..." required />
+                        <label asp-for="Name" class="form-label fw-bold">اسم العميل الكامل</label>
+                        <input asp-for="Name" class="form-control" placeholder="الاسم الثلاثي أو اسم الشركة..." required />
                         <span asp-validation-for="Name" class="text-danger small"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Phone" class="form-label fw-bold">Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ</label>
+                        <label asp-for="Phone" class="form-label fw-bold">رقم الهاتف الأساسي</label>
                         <input asp-for="Phone" class="form-control" placeholder="091XXXXXXX" required />
                         <span asp-validation-for="Phone" class="text-danger small"></span>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label asp-for="District" class="form-label fw-bold">Ø§Ù„Ù…Ø¯ÙŠÙ†Ø© / Ø§Ù„Ù…Ù†Ø·Ù‚Ø©</label>
-                            <input asp-for="District" class="form-control" placeholder="Ø·Ø±Ø§Ø¨Ù„Ø³ØŒ Ø¨Ù†ØºØ§Ø²ÙŠØŒ Ù…ØµØ±Ø§ØªØ©..." />
+                            <label asp-for="District" class="form-label fw-bold">المدينة / المنطقة</label>
+                            <input asp-for="District" class="form-control" placeholder="طرابلس، بنغازي، مصراتة..." />
                         </div>
                         <div class="col-md-6">
-                            <label asp-for="Address" class="form-label fw-bold">Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø§Ù„ØªÙØµÙŠÙ„ÙŠ</label>
-                            <input asp-for="Address" class="form-control" placeholder="Ø§Ù„Ø´Ø§Ø±Ø¹ØŒ Ø¹Ù„Ø§Ù…Ø© Ù…Ù…ÙŠØ²Ø©..." />
+                            <label asp-for="Address" class="form-label fw-bold">العنوان التفصيلي</label>
+                            <input asp-for="Address" class="form-control" placeholder="الشارع، علامة مميزة..." />
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label asp-for="Notes" class="form-label fw-bold">Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø¹Ø§Ù…Ø© Ø­ÙˆÙ„ Ø§Ù„Ø¹Ù…ÙŠÙ„</label>
-                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="ØªÙØ¶ÙŠÙ„Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„ØŒ Ø£ÙˆÙ‚Ø§Øª Ø§Ù„ØªÙˆØ§ØµÙ„ Ø§Ù„Ù…Ù†Ø§Ø³Ø¨Ø©..."></textarea>
+                        <label asp-for="Notes" class="form-label fw-bold">ملاحظات عامة حول العميل</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="تفضيلات العميل، أوقات التواصل المناسبة..."></textarea>
                     </div>
 
                     <div class="d-flex justify-content-between">
                         <a asp-action="Index" class="btn btn-outline-secondary px-4">
-                            <i class="fa-solid fa-arrow-right me-1"></i> Ø±Ø¬ÙˆØ¹
+                            <i class="fa-solid fa-arrow-right me-1"></i> رجوع
                         </a>
                         <button type="submit" class="btn btn-koss-primary px-4">
-                            <i class="fa-solid fa-save me-1"></i> Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„
+                            <i class="fa-solid fa-save me-1"></i> حفظ بيانات العميل
                         </button>
                     </div>
                 </form>

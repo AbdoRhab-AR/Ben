@@ -1,22 +1,22 @@
 ﻿@model KOSS.Web.Models.CustomerInquiry
 @{
-    ViewData["Title"] = "ØªØ³Ø¬ÙŠÙ„ Ø§Ø³ØªÙØ³Ø§Ø± ÙˆÙØ±ØµØ© Ø¨ÙŠØ¹ÙŠØ©";
+    ViewData["Title"] = "تسجيل استفسار وفرصة بيعية";
 }
 
 <div class="row justify-content-center">
     <div class="col-lg-7">
         <div class="card card-custom">
             <div class="card-header card-header-custom">
-                <i class="fa-solid fa-headset text-success me-2"></i> ØªØ³Ø¬ÙŠÙ„ Ø§Ø³ØªÙØ³Ø§Ø± ÙˆÙØ±ØµØ© Ø¨ÙŠØ¹ÙŠØ© Ø¬Ø¯ÙŠØ¯Ø©
+                <i class="fa-solid fa-headset text-success me-2"></i> تسجيل استفسار وفرصة بيعية جديدة
             </div>
             <div class="card-body p-4">
                 <form asp-action="Create" method="post">
                     @Html.AntiForgeryToken()
 
                     <div class="mb-3">
-                        <label asp-for="CustomerId" class="form-label fw-bold">Ø§Ù„Ø¹Ù…ÙŠÙ„</label>
+                        <label asp-for="CustomerId" class="form-label fw-bold">العميل</label>
                         <select asp-for="CustomerId" class="form-select" required>
-                            <option value="">-- Ø§Ø®ØªØ± Ø§Ù„Ø¹Ù…ÙŠÙ„ --</option>
+                            <option value="">-- اختر العميل --</option>
                             @if (ViewBag.Customers is IEnumerable<KOSS.Web.Models.Customer> customers)
                             {
                                 foreach (var c in customers)
@@ -29,32 +29,32 @@
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label asp-for="Location" class="form-label fw-bold">Ø§Ù„Ù…Ø¯ÙŠÙ†Ø© / Ø§Ù„Ù…Ù†Ø·Ù‚Ø©</label>
-                            <input asp-for="Location" class="form-control" placeholder="Ø·Ø±Ø§Ø¨Ù„Ø³ØŒ Ø§Ù„Ø³Ø±Ø§Ø¬ØŒ Ø­ÙŠ Ø§Ù„Ø£Ù†Ø¯Ù„Ø³..." />
+                            <label asp-for="Location" class="form-label fw-bold">المدينة / المنطقة</label>
+                            <input asp-for="Location" class="form-control" placeholder="طرابلس، السراج، حي الأندلس..." />
                         </div>
                         <div class="col-md-6">
-                            <label asp-for="PreferredLayout" class="form-label fw-bold">Ø§Ù„ØªØ®Ø·ÙŠØ· Ø§Ù„Ù…Ù‚ØªØ±Ø­</label>
+                            <label asp-for="PreferredLayout" class="form-label fw-bold">التخطيط المقترح</label>
                             <select asp-for="PreferredLayout" class="form-select">
-                                <option value="">-- ØºÙŠØ± Ù…Ø­Ø¯Ø¯ --</option>
-                                <option value="Straight">Ø®Ø·ÙŠ Ù…Ø³ØªÙ‚ÙŠÙ…</option>
-                                <option value="LShaped">Ø­Ø±Ù L</option>
-                                <option value="UShaped">Ø­Ø±Ù U</option>
-                                <option value="Island">Ù…Ø¹ Ø¬Ø²ÙŠØ±Ø© ÙˆØ³Ø·ÙŠØ©</option>
+                                <option value="">-- غير محدد --</option>
+                                <option value="Straight">خطي مستقيم</option>
+                                <option value="LShaped">حرف L</option>
+                                <option value="UShaped">حرف U</option>
+                                <option value="Island">مع جزيرة وسطية</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label asp-for="Notes" class="form-label fw-bold">Ù…Ù„Ø§Ø­Ø¸Ø§Øª ÙˆØ§Ø­ØªÙŠØ§Ø¬Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„</label>
-                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Ø§Ø³ØªÙØ³Ø§Ø± Ø§Ù„Ø¹Ù…ÙŠÙ„ØŒ Ø§Ù„Ù…ÙŠØ²Ø§Ù†ÙŠØ© Ø§Ù„ØªÙ‚Ø±ÙŠØ¨ÙŠØ©ØŒ Ù…ÙˆØ¹Ø¯ Ø§Ù„Ø¨Ù†Ø§Ø¡..."></textarea>
+                        <label asp-for="Notes" class="form-label fw-bold">ملاحظات واحتياجات العميل</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="استفسار العميل، الميزانية التقريبية، موعد البناء..."></textarea>
                     </div>
 
                     <div class="d-flex justify-content-between">
                         <a asp-action="Index" class="btn btn-outline-secondary px-4">
-                            <i class="fa-solid fa-arrow-right me-1"></i> Ø±Ø¬ÙˆØ¹
+                            <i class="fa-solid fa-arrow-right me-1"></i> رجوع
                         </a>
                         <button type="submit" class="btn btn-koss-primary px-4">
-                            <i class="fa-solid fa-save me-1"></i> Ø­ÙØ¸ Ø§Ù„Ø§Ø³ØªÙØ³Ø§Ø±
+                            <i class="fa-solid fa-save me-1"></i> حفظ الاستفسار
                         </button>
                     </div>
                 </form>

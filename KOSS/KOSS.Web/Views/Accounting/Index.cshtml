@@ -1,12 +1,12 @@
 ﻿@model IEnumerable<KOSS.Web.Helpers.ProjectProfitabilityReport>
 @{
-    ViewData["Title"] = "Ø§Ù„ØªØ­Ù„ÙŠÙ„ Ø§Ù„Ù…Ø§Ù„ÙŠ ÙˆØªÙƒØ§Ù„ÙŠÙ Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ ÙˆØ§Ù„Ø±Ø¨Ø­ÙŠØ©";
+    ViewData["Title"] = "التحليل المالي وتكاليف المشاريع والربحية";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold text-dark"><i class="fa-solid fa-scale-balanced text-primary me-2"></i> Ø§Ù„ØªØ­Ù„ÙŠÙ„ Ø§Ù„Ù…Ø§Ù„ÙŠ ÙˆØªÙƒØ§Ù„ÙŠÙ Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ ÙˆØ§Ù„Ø±Ø¨Ø­ÙŠØ©</h3>
-        <p class="text-muted mb-0">Ù…Ø±Ø§Ù‚Ø¨Ø© Ø¥ÙŠØ±Ø§Ø¯Ø§Øª Ø§Ù„Ø¹Ù‚ÙˆØ¯ØŒ ÙˆØ§Ù„Ù…ØµØ±ÙˆÙØ§Øª Ø§Ù„Ù…Ø¨Ø§Ø´Ø±Ø©ØŒ ÙˆØªÙƒÙ„ÙØ© Ø§Ù„Ù…ÙˆØ§Ø¯ØŒ ÙˆØµØ§ÙÙŠ Ù‡ÙˆØ§Ù…Ø´ Ø§Ù„Ø±Ø¨Ø­</p>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-scale-balanced text-primary me-2"></i> التحليل المالي وتكاليف المشاريع والربحية</h3>
+        <p class="text-muted mb-0">مراقبة إيرادات العقود، والمصروفات المباشرة، وتكلفة المواد، وصافي هوامش الربح</p>
     </div>
 </div>
 
@@ -16,36 +16,36 @@
             <table class="table table-custom table-hover align-middle mb-0">
                 <thead>
                     <tr>
-                        <th>Ø±Ù‚Ù… Ø§Ù„Ù…Ø´Ø±ÙˆØ¹</th>
-                        <th>Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„</th>
-                        <th>Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø¥ÙŠØ±Ø§Ø¯ Ø§Ù„Ø¹Ù‚Ø¯</th>
-                        <th>Ø§Ù„Ù…Ø­ØµÙ„ Ø§Ù„ÙØ¹Ù„ÙŠ</th>
-                        <th>Ø§Ù„Ù…ØªØ¨Ù‚ÙŠ Ù„Ù„ØªØ­ØµÙŠÙ„</th>
-                        <th>ØªÙƒÙ„ÙØ© Ø§Ù„Ù…ÙˆØ§Ø¯ ÙˆØ§Ù„Ù…ØµØ±ÙˆÙØ§Øª</th>
-                        <th>ØµØ§ÙÙŠ Ø§Ù„Ø±Ø¨Ø­</th>
-                        <th>Ù‡Ø§Ù…Ø´ Ø§Ù„Ø±Ø¨Ø­</th>
-                        <th>Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª</th>
+                        <th>رقم المشروع</th>
+                        <th>اسم العميل</th>
+                        <th>إجمالي إيراد العقد</th>
+                        <th>المحصل الفعلي</th>
+                        <th>المتبقي للتحصيل</th>
+                        <th>تكلفة المواد والمصروفات</th>
+                        <th>صافي الربح</th>
+                        <th>هامش الربح</th>
+                        <th>الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
-                        <tr><td colspan="9" class="text-center py-5 text-muted">Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø´Ø§Ø±ÙŠØ¹ Ù„ØªØ­Ù„ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§ØªÙ‡Ø§ Ø§Ù„Ù…Ø§Ù„ÙŠØ© Ø­Ø§Ù„ÙŠØ§Ù‹.</td></tr>
+                        <tr><td colspan="9" class="text-center py-5 text-muted">لا توجد مشاريع لتحليل بياناتها المالية حالياً.</td></tr>
                     }
                     @foreach (var prof in Model)
                     {
                         <tr>
                             <td><strong class="text-primary font-monospace">@prof.RequestNumber</strong></td>
                             <td><strong class="text-dark">@prof.CustomerName</strong></td>
-                            <td><strong>@prof.ContractRevenue.ToString("N0") Ø¯.Ù„</strong></td>
-                            <td><strong class="text-success">@prof.TotalCollected.ToString("N0") Ø¯.Ù„</strong></td>
-                            <td><strong class="text-danger">@prof.RemainingBalance.ToString("N0") Ø¯.Ù„</strong></td>
-                            <td><strong class="text-warning">@prof.TotalProjectCost.ToString("N0") Ø¯.Ù„</strong></td>
-                            <td><strong class="@(prof.IsProfitable ? "text-success" : "text-danger")">@prof.NetProfit.ToString("N0") Ø¯.Ù„</strong></td>
+                            <td><strong>@prof.ContractRevenue.ToString("N0") د.ل</strong></td>
+                            <td><strong class="text-success">@prof.TotalCollected.ToString("N0") د.ل</strong></td>
+                            <td><strong class="text-danger">@prof.RemainingBalance.ToString("N0") د.ل</strong></td>
+                            <td><strong class="text-warning">@prof.TotalProjectCost.ToString("N0") د.ل</strong></td>
+                            <td><strong class="@(prof.IsProfitable ? "text-success" : "text-danger")">@prof.NetProfit.ToString("N0") د.ل</strong></td>
                             <td><span class="badge @(prof.IsProfitable ? "bg-success" : "bg-danger") px-3 py-2">@prof.ProfitMarginPercentage.ToString("F1")%</span></td>
                             <td>
                                 <a asp-controller="Requests" asp-action="Details" asp-route-id="@prof.KitchenRequestId" class="btn btn-sm btn-outline-primary">
-                                    <i class="fa-solid fa-chart-line me-1"></i> ØªÙ‚Ø±ÙŠØ± Ø§Ù„ØªÙƒØ§Ù„ÙŠÙ
+                                    <i class="fa-solid fa-chart-line me-1"></i> تقرير التكاليف
                                 </a>
                             </td>
                         </tr>

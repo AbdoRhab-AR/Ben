@@ -1,15 +1,15 @@
 ﻿@model IEnumerable<KOSS.Web.Models.Customer>
 @{
-    ViewData["Title"] = "Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡";
+    ViewData["Title"] = "دليل العملاء";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold text-dark"><i class="fa-solid fa-users text-dark me-2"></i> Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ ÙˆØ³Ø¬Ù„ Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹</h3>
-        <p class="text-muted mb-0">Ø¥Ø¯Ø§Ø±Ø© Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ ÙˆØ§Ù„ØªÙˆØ§ØµÙ„ ÙˆØ³Ø¬Ù„ Ø§Ù„Ø¹Ù‚ÙˆØ¯ ÙˆØ§Ù„Ù…Ø·Ø§Ø¨Ø®</p>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-users text-dark me-2"></i> دليل العملاء وسجل المشاريع</h3>
+        <p class="text-muted mb-0">إدارة بيانات العملاء والتواصل وسجل العقود والمطابخ</p>
     </div>
     <a asp-action="Create" class="btn btn-koss-primary">
-        <i class="fa-solid fa-plus me-1"></i> Ø¥Ø¶Ø§ÙØ© Ø¹Ù…ÙŠÙ„ Ø¬Ø¯ÙŠØ¯
+        <i class="fa-solid fa-plus me-1"></i> إضافة عميل جديد
     </a>
 </div>
 
@@ -20,18 +20,18 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„</th>
-                        <th>Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ</th>
-                        <th>Ø§Ù„Ù…Ø¯ÙŠÙ†Ø© ÙˆØ§Ù„Ù…Ù†Ø·Ù‚Ø©</th>
-                        <th>Ø§Ù„Ø¹Ù†ÙˆØ§Ù†</th>
-                        <th>Ø¹Ø¯Ø¯ Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹</th>
-                        <th>ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ³Ø¬ÙŠÙ„</th>
+                        <th>اسم العميل</th>
+                        <th>رقم الهاتف</th>
+                        <th>المدينة والمنطقة</th>
+                        <th>العنوان</th>
+                        <th>عدد المشاريع</th>
+                        <th>تاريخ التسجيل</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
-                        <tr><td colspan="7" class="text-center py-5 text-muted">Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø¹Ù…Ù„Ø§Ø¡ Ù…Ø³Ø¬Ù„ÙŠÙ† Ø­Ø§Ù„ÙŠØ§Ù‹.</td></tr>
+                        <tr><td colspan="7" class="text-center py-5 text-muted">لا يوجد عملاء مسجلين حالياً.</td></tr>
                     }
                     @foreach (var cust in Model)
                     {
@@ -41,7 +41,7 @@
                             <td><span dir="ltr">@cust.Phone</span></td>
                             <td>@(cust.District ?? "-")</td>
                             <td><small class="text-muted">@(cust.Address ?? "-")</small></td>
-                            <td><span class="badge bg-light text-dark border">@(cust.KitchenRequests?.Count ?? 0) Ù…Ø´Ø§Ø±ÙŠØ¹</span></td>
+                            <td><span class="badge bg-light text-dark border">@(cust.KitchenRequests?.Count ?? 0) مشاريع</span></td>
                             <td class="text-muted"><small>@cust.CreatedAt.ToString("yyyy/MM/dd")</small></td>
                         </tr>
                     }
