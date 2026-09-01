@@ -1,69 +1,48 @@
-@model IEnumerable<KOSS.Web.Models.Customer>
+﻿@model IEnumerable<KOSS.Web.Models.Customer>
 @{
-    ViewData["Title"] = "دليل العملاء";
+    ViewData["Title"] = "Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold text-dark"><i class="fa-solid fa-users text-primary me-2"></i> دليل وسجل العملاء</h3>
-        <p class="text-muted mb-0">إدارة بيانات العملاء والطلبات والعقود المرتبطة</p>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-users text-dark me-2"></i> Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ ÙˆØ³Ø¬Ù„ Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹</h3>
+        <p class="text-muted mb-0">Ø¥Ø¯Ø§Ø±Ø© Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ ÙˆØ§Ù„ØªÙˆØ§ØµÙ„ ÙˆØ³Ø¬Ù„ Ø§Ù„Ø¹Ù‚ÙˆØ¯ ÙˆØ§Ù„Ù…Ø·Ø§Ø¨Ø®</p>
     </div>
     <a asp-action="Create" class="btn btn-koss-primary">
-        <i class="fa-solid fa-user-plus me-1"></i> تسجيل عميل جديد
+        <i class="fa-solid fa-plus me-1"></i> Ø¥Ø¶Ø§ÙØ© Ø¹Ù…ÙŠÙ„ Ø¬Ø¯ÙŠØ¯
     </a>
-</div>
-
-<div class="card card-custom mb-4">
-    <div class="card-body">
-        <form method="get" class="row g-3">
-            <div class="col-md-6">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-                    <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="ابحث بالاسم أو رقم الهاتف أو المدينة..." />
-                </div>
-            </div>
-            <div class="col-md-6 d-flex gap-2">
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter me-1"></i> تصفية</button>
-                <a asp-action="Index" class="btn btn-outline-secondary"><i class="fa-solid fa-rotate-left me-1"></i> إعادة تعيين</a>
-            </div>
-        </form>
-    </div>
 </div>
 
 <div class="card card-custom">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-custom table-hover align-middle mb-0">
+                <thead>
                     <tr>
                         <th>#</th>
-                        <th>اسم العميل</th>
-                        <th>رقم الهاتف</th>
-                        <th>المدينة / المنطقة</th>
-                        <th>عدد المشاريع</th>
-                        <th>تاريخ التسجيل</th>
-                        <th>الإجراءات</th>
+                        <th>Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„</th>
+                        <th>Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ</th>
+                        <th>Ø§Ù„Ù…Ø¯ÙŠÙ†Ø© ÙˆØ§Ù„Ù…Ù†Ø·Ù‚Ø©</th>
+                        <th>Ø§Ù„Ø¹Ù†ÙˆØ§Ù†</th>
+                        <th>Ø¹Ø¯Ø¯ Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹</th>
+                        <th>ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ³Ø¬ÙŠÙ„</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
-                        <tr><td colspan="7" class="text-center py-4 text-muted">لا يوجد عملاء مطابقين للبحث.</td></tr>
+                        <tr><td colspan="7" class="text-center py-5 text-muted">Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø¹Ù…Ù„Ø§Ø¡ Ù…Ø³Ø¬Ù„ÙŠÙ† Ø­Ø§Ù„ÙŠØ§Ù‹.</td></tr>
                     }
-                    @foreach (var c in Model)
+                    @foreach (var cust in Model)
                     {
                         <tr>
-                            <td>@c.Id</td>
-                            <td><strong>@c.Name</strong></td>
-                            <td dir="ltr">@c.Phone</td>
-                            <td>@(c.District ?? "-")</td>
-                            <td><span class="badge bg-primary">@(c.KitchenRequests?.Count ?? 0) مشروع</span></td>
-                            <td class="text-muted"><small>@c.CreatedAt.ToString("yyyy/MM/dd")</small></td>
-                            <td>
-                                <a asp-controller="Requests" asp-action="Create" asp-route-customerId="@c.Id" class="btn btn-sm btn-outline-success">
-                                    <i class="fa-solid fa-plus me-1"></i> فتح طلب مطبخ
-                                </a>
-                            </td>
+                            <td><strong class="text-primary font-monospace">#@cust.Id</strong></td>
+                            <td><strong class="text-dark">@cust.Name</strong></td>
+                            <td><span dir="ltr">@cust.Phone</span></td>
+                            <td>@(cust.District ?? "-")</td>
+                            <td><small class="text-muted">@(cust.Address ?? "-")</small></td>
+                            <td><span class="badge bg-light text-dark border">@(cust.KitchenRequests?.Count ?? 0) Ù…Ø´Ø§Ø±ÙŠØ¹</span></td>
+                            <td class="text-muted"><small>@cust.CreatedAt.ToString("yyyy/MM/dd")</small></td>
                         </tr>
                     }
                 </tbody>
@@ -71,4 +50,3 @@
         </div>
     </div>
 </div>
-

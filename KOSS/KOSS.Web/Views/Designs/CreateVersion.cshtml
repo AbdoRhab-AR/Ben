@@ -1,71 +1,68 @@
-@model KOSS.Web.Models.DesignVersion
+﻿@model KOSS.Web.Models.DesignVersion
 @{
-    ViewBag.Title = "إضافة إصدار تصميم جديد";
-    var request = ViewBag.Request as KOSS.Web.Models.KitchenRequest;
+    ViewData["Title"] = "رفع وتوثيق إصدار تصميم جديد 3D";
 }
 
-<div class="page-header">
-    <h2>🎨 إضافة إصدار تصميم جديد
-        <small>الطلب: <strong>@(request != null ? request.RequestNumber : "-")</strong> | العميل: <strong>@(request != null && request.Customer != null ? request.Customer.Name : "-")</strong></small>
-    </h2>
-</div>
-
-<div class="row">
-    <div class="col-md-8">
-        <div class="panel panel-default">
-            <div class="panel-heading"><h4>بيانات الإصدار @Model.VersionCode</h4></div>
-            <div class="panel-body">
-                @using (Html.BeginForm("CreateVersion", "Designs", FormMethod.Post, new { @class = "form-horizontal" }))
-                {
-                    @Html.AntiForgeryToken()
-                    @Html.HiddenFor(m => m.KitchenRequestId)
-                    @Html.HiddenFor(m => m.VersionNumber)
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.DesignerId, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-9">
-                            @Html.DropDownListFor(m => m.DesignerId, (SelectList)ViewBag.Designers, "--- اختر المصمم المسؤول ---", new { @class = "form-control" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.SoftwareUsed, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-4">
-                            @Html.TextBoxFor(m => m.SoftwareUsed, new { @class = "form-control", placeholder = "SketchUp / 3ds Max" })
-                        </div>
-                        @Html.LabelFor(m => m.EstimatedLinearMeters, new { @class = "col-md-2 control-label" })
-                        <div class="col-md-3">
-                            <div class="input-group">
-                                @Html.TextBoxFor(m => m.EstimatedLinearMeters, new { @class = "form-control", placeholder = "0.0" })
-                                <span class="input-group-addon">م</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.Notes, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-9">
-                            @Html.TextAreaFor(m => m.Notes, new { @class = "form-control", rows = 4, placeholder = "شرح فكرة التصميم، توزيع الخزائن، نوع المقابض والألوان المقترحة..." })
-                        </div>
-                    </div>
-
-                    <hr />
-                    <div class="form-group">
-                        <div class="col-md-9 col-md-offset-3">
-                            <button type="submit" class="btn btn-warning btn-lg">💾 حفظ إصدار التصميم وإرساله للمراجعة</button>
-                            <a href="@Url.Action("Details", "Requests", new { id = Model.KitchenRequestId })" class="btn btn-default btn-lg">إلغاء</a>
-                        </div>
-                    </div>
-                }
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card card-custom">
+            <div class="card-header card-header-custom">
+                <i class="fa-solid fa-cubes text-info me-2"></i> رفع وتوثيق إصدار تصميم ومخطط هندسي جديد
             </div>
-        </div>
-    </div>
+            <div class="card-body p-4">
+                <form asp-action="CreateVersion" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="KitchenRequestId" />
 
-    <div class="col-md-4">
-        <div class="panel panel-info">
-            <div class="panel-heading"><h4>ℹ️ قاعدة أمان الإصدارات</h4></div>
-            <div class="panel-body">
-                <p>بمجرد اعتماد هذا الإصدار من قبل العميل، سيتم <strong>قفله تلقائياً (Locked)</strong> منعاً للتعديل المباشر، وأي تعديل مستقبلي ينشئ إصداراً جديداً برقم <code>V@(Model.VersionNumber + 1).0</code>.</p>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="VersionCode" class="form-label fw-bold">كود الإصدار (مثال: V1.0, V2.0)</label>
+                            <input asp-for="VersionCode" class="form-control" placeholder="V1.0" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EstimatedLinearMeters" class="form-label fw-bold">إجمالي الأمتار الطولية المحسوبة</label>
+                            <input asp-for="EstimatedLinearMeters" type="number" step="0.1" class="form-control" placeholder="مثال: 6.5" required />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="DesignerId" class="form-label fw-bold">المصمم الداخلي المسؤول</label>
+                            <select asp-for="DesignerId" class="form-select" asp-items="ViewBag.Designers">
+                                <option value="">-- اختر المصمم --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="SoftwareUsed" class="form-label fw-bold">برنامج التصميم</label>
+                            <select asp-for="SoftwareUsed" class="form-select">
+                                <option value="2020 Design">2020 Design</option>
+                                <option value="KD Max">KD Max</option>
+                                <option value="SketchUp / V-Ray">SketchUp / V-Ray</option>
+                                <option value="3ds Max / Corona">3ds Max / Corona</option>
+                                <option value="AutoCAD 3D">AutoCAD 3D</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="RenderFilesPath" class="form-label fw-bold">رابط أو مسار ملفات الريندر والمخططات</label>
+                        <input asp-for="RenderFilesPath" type="text" class="form-control" placeholder="رابط مجلد السحابة أو مسار المخطط التنفيذي..." />
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Notes" class="form-label fw-bold">ملاحظات ومواصفات التصميم المعتمدة</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="مواصفات الخزائن، نوع المقابض، مكان الأجهزة..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-controller="Requests" asp-action="Details" asp-route-id="@Model.KitchenRequestId" class="btn btn-outline-secondary px-4">
+                            <i class="fa-solid fa-arrow-right me-1"></i> رجوع
+                        </a>
+                        <button type="submit" class="btn btn-koss-primary px-4">
+                            <i class="fa-solid fa-cloud-arrow-up me-1"></i> حفظ وتوثيق التصميم
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

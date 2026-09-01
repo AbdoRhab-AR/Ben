@@ -1,55 +1,56 @@
 ﻿@model KOSS.Web.Models.Customer
 @{
-    ViewData["Title"] = "تسجيل عميل جديد";
+    ViewData["Title"] = "Ø¥Ø¶Ø§ÙØ© Ø¹Ù…ÙŠÙ„ Ø¬Ø¯ÙŠØ¯";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="fw-bold text-dark"><i class="fa-solid fa-user-plus text-primary me-2"></i> تسجيل عميل جديد</h3>
-        <p class="text-muted mb-0">إضافة بيانات العميل إلى قاعدة البيانات المركزية</p>
-    </div>
-    <a asp-action="Index" class="btn btn-outline-secondary">
-        <i class="fa-solid fa-arrow-right me-1"></i> العودة لدليل العملاء
-    </a>
-</div>
-
-<div class="card card-custom" style="max-width: 700px;">
-    <div class="card-body">
-        <form asp-action="Create" method="post">
-            @Html.AntiForgeryToken()
-
-            <div class="mb-3">
-                <label asp-for="Name" class="form-label fw-bold"></label>
-                <input asp-for="Name" class="form-control" placeholder="الاسم ثلاثي" required />
-                <span asp-validation-for="Name" class="text-danger small"></span>
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card card-custom">
+            <div class="card-header card-header-custom">
+                <i class="fa-solid fa-user-plus text-primary me-2"></i> ØªØ³Ø¬ÙŠÙ„ ÙˆØ¥Ø¶Ø§ÙØ© Ø¹Ù…ÙŠÙ„ Ø¬Ø¯ÙŠØ¯
             </div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label asp-for="Phone" class="form-label fw-bold"></label>
-                    <input asp-for="Phone" class="form-control" placeholder="09xxxxxxxx" required />
-                    <span asp-validation-for="Phone" class="text-danger small"></span>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="District" class="form-label fw-bold"></label>
-                    <input asp-for="District" class="form-control" placeholder="المدينة أو المنطقة" />
-                </div>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label fw-bold">Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø§Ù„ÙƒØ§Ù…Ù„</label>
+                        <input asp-for="Name" class="form-control" placeholder="Ø§Ù„Ø§Ø³Ù… Ø§Ù„Ø«Ù„Ø§Ø«ÙŠ Ø£Ùˆ Ø§Ø³Ù… Ø§Ù„Ø´Ø±ÙƒØ©..." required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Phone" class="form-label fw-bold">Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ</label>
+                        <input asp-for="Phone" class="form-control" placeholder="091XXXXXXX" required />
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="District" class="form-label fw-bold">Ø§Ù„Ù…Ø¯ÙŠÙ†Ø© / Ø§Ù„Ù…Ù†Ø·Ù‚Ø©</label>
+                            <input asp-for="District" class="form-control" placeholder="Ø·Ø±Ø§Ø¨Ù„Ø³ØŒ Ø¨Ù†ØºØ§Ø²ÙŠØŒ Ù…ØµØ±Ø§ØªØ©..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Address" class="form-label fw-bold">Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø§Ù„ØªÙØµÙŠÙ„ÙŠ</label>
+                            <input asp-for="Address" class="form-control" placeholder="Ø§Ù„Ø´Ø§Ø±Ø¹ØŒ Ø¹Ù„Ø§Ù…Ø© Ù…Ù…ÙŠØ²Ø©..." />
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Notes" class="form-label fw-bold">Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø¹Ø§Ù…Ø© Ø­ÙˆÙ„ Ø§Ù„Ø¹Ù…ÙŠÙ„</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="ØªÙØ¶ÙŠÙ„Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„ØŒ Ø£ÙˆÙ‚Ø§Øª Ø§Ù„ØªÙˆØ§ØµÙ„ Ø§Ù„Ù…Ù†Ø§Ø³Ø¨Ø©..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            <i class="fa-solid fa-arrow-right me-1"></i> Ø±Ø¬ÙˆØ¹
+                        </a>
+                        <button type="submit" class="btn btn-koss-primary px-4">
+                            <i class="fa-solid fa-save me-1"></i> Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <div class="mb-3">
-                <label asp-for="Address" class="form-label fw-bold"></label>
-                <input asp-for="Address" class="form-control" placeholder="العنوان التفصيلي أو أقرب نقطة دالة" />
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Notes" class="form-label fw-bold"></label>
-                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="ملاحظات عامة حول العميل..."></textarea>
-            </div>
-
-            <hr />
-            <button type="submit" class="btn btn-koss-primary px-4 py-2">
-                <i class="fa-solid fa-floppy-disk me-1"></i> حفظ العميل
-            </button>
-        </form>
+        </div>
     </div>
 </div>

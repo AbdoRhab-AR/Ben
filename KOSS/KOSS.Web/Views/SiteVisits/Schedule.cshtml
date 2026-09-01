@@ -1,61 +1,45 @@
-@model KOSS.Web.Models.SiteVisit
+﻿@model KOSS.Web.Models.SiteVisit
 @{
-    ViewBag.Title = "جدولة موعد معاينة ميدانية";
-    var request = ViewBag.Request as KOSS.Web.Models.KitchenRequest;
+    ViewData["Title"] = "جدولة موعد معاينة ميدانية";
 }
 
-<div class="page-header">
-    <h2>📏 جدولة موعد معاينة ميدانية
-        <small>الطلب: <strong>@(request != null ? request.RequestNumber : "-")</strong> | العميل: <strong>@(request != null && request.Customer != null ? request.Customer.Name : "-")</strong></small>
-    </h2>
-</div>
-
-<div class="row">
-    <div class="col-md-7">
-        <div class="panel panel-default">
-            <div class="panel-heading"><h4>تفاصيل الزيارة والتكليف</h4></div>
-            <div class="panel-body">
-                @using (Html.BeginForm("Schedule", "SiteVisits", FormMethod.Post, new { @class = "form-horizontal" }))
-                {
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card card-custom">
+            <div class="card-header card-header-custom">
+                <i class="fa-solid fa-calendar-plus text-primary me-2"></i> جدولة موعد معاينة ميدانية بالليزر
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Schedule" method="post">
                     @Html.AntiForgeryToken()
-                    @Html.HiddenFor(m => m.KitchenRequestId)
+                    <input type="hidden" asp-for="KitchenRequestId" />
 
-                    <div class="form-group">
-                        <label class="col-md-4 control-label">موقع المطبخ</label>
-                        <div class="col-md-8">
-                            <input type="text" class="form-control" value="@(request != null ? request.Location : "-")" disabled />
-                        </div>
+                    <div class="mb-3">
+                        <label asp-for="ScheduledDate" class="form-label fw-bold">تاريخ المعاينة الميدانية</label>
+                        <input asp-for="ScheduledDate" type="date" class="form-control" value="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" required />
                     </div>
 
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.AssignedSurveyorId, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.DropDownListFor(m => m.AssignedSurveyorId, (SelectList)ViewBag.Surveyors, "--- اختر مهندس المعاينة ---", new { @class = "form-control" })
-                        </div>
+                    <div class="mb-3">
+                        <label asp-for="AssignedSurveyorId" class="form-label fw-bold">المهندس المساح المسؤول</label>
+                        <select asp-for="AssignedSurveyorId" class="form-select" asp-items="ViewBag.Surveyors">
+                            <option value="">-- اختر مهندس المساحة الميداني --</option>
+                        </select>
                     </div>
 
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.ScheduledDate, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.TextBoxFor(m => m.ScheduledDate, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local" })
-                        </div>
+                    <div class="mb-4">
+                        <label asp-for="Notes" class="form-label fw-bold">ملاحظات وتوجيهات الزيارة الميدانية</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="توجيهات الموقع، أوقات تواجد العميل، شروط الدخول..."></textarea>
                     </div>
 
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.SurveyorReport, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.TextAreaFor(m => m.SurveyorReport, new { @class = "form-control", rows = 3, placeholder = "توجيهات خاصة للمهندس الزائر..." })
-                        </div>
+                    <div class="d-flex justify-content-between">
+                        <a asp-controller="Requests" asp-action="Details" asp-route-id="@Model.KitchenRequestId" class="btn btn-outline-secondary px-4">
+                            <i class="fa-solid fa-arrow-right me-1"></i> إلغاء
+                        </a>
+                        <button type="submit" class="btn btn-koss-primary px-4">
+                            <i class="fa-solid fa-calendar-check me-1"></i> تأكيد جدولة الموعد
+                        </button>
                     </div>
-
-                    <hr />
-                    <div class="form-group">
-                        <div class="col-md-8 col-md-offset-4">
-                            <button type="submit" class="btn btn-primary btn-lg">💾 حفظ وتكليف المهندس</button>
-                            <a href="@Url.Action("Details", "Requests", new { id = Model.KitchenRequestId })" class="btn btn-default btn-lg">إلغاء</a>
-                        </div>
-                    </div>
-                }
+                </form>
             </div>
         </div>
     </div>

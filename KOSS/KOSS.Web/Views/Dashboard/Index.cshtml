@@ -114,7 +114,7 @@
             <div class="col">
                 <div class="p-2 border rounded bg-light">
                     <small class="text-muted d-block">جاهز للتركيب</small>
-                    <strong class="fs-5 text-purple" style="color:#6f42c1;">@Model.ReadyForInstallation</strong>
+                    <strong class="fs-5 text-primary">@Model.ReadyForInstallation</strong>
                 </div>
             </div>
         </div>
@@ -125,7 +125,7 @@
 <div class="card card-custom">
     <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
         <span><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> أحدث طلبات ومشاريع المطابخ</span>
-        <a asp-controller="Requests" asp-action="Index" class="btn btn-sm btn-outline-primary">عرض الكل</a>
+        <a asp-controller="Requests" asp-action="Index" class="btn btn-sm btn-outline-primary">عرض كافة الطلبات</a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -151,14 +151,14 @@
                         foreach (var req in Model.RecentRequests)
                         {
                             <tr>
-                                <td><strong class="text-primary">@req.RequestNumber</strong></td>
+                                <td><strong class="text-primary font-monospace">@req.RequestNumber</strong></td>
                                 <td><strong>@(req.Customer != null ? req.Customer.Name : "-")</strong></td>
-                                <td><small>@req.Location</small></td>
-                                <td>@req.ProjectType - @req.LayoutType</td>
-                                <td><span class="badge bg-primary">@req.Status</span></td>
+                                <td><small class="text-muted"><i class="fa-solid fa-location-dot text-danger me-1"></i> @req.Location</small></td>
+                                <td><span class="badge bg-light text-dark border">@req.ProjectType.ToArabic() - @req.LayoutType.ToArabic()</span></td>
+                                <td><span class="badge bg-primary px-3 py-2">@req.Status.ToArabic()</span></td>
                                 <td class="text-muted"><small>@req.CreatedAt.ToString("yyyy/MM/dd")</small></td>
                                 <td>
-                                    <a asp-controller="Requests" asp-action="Details" asp-route-id="@req.Id" class="btn btn-sm btn-outline-primary">
+                                    <a asp-controller="Requests" asp-action="Details" asp-route-id="@req.Id" class="btn btn-sm btn-outline-primary fw-bold">
                                         <i class="fa-solid fa-folder-open me-1"></i> فتح ملف المشروع
                                     </a>
                                 </td>

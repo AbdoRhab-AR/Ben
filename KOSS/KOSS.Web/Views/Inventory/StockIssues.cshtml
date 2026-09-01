@@ -1,54 +1,53 @@
-@model IEnumerable<KOSS.Web.Models.StockIssue>
+﻿@model IEnumerable<KOSS.Web.Models.StockIssue>
 @{
-    ViewBag.Title = "سجل سندات الصرف للمشاريع";
+    ViewData["Title"] = "سندات صرف الخامات لمشاريع المطابخ";
 }
 
-<div class="page-header">
-    <h2>📋 سجل سندات الصرف المخزني للمشاريع
-        <small>(ربط الخامات المصروفة بمراكز تكلفة طلبات المطابخ)</small>
-        <a href="@Url.Action("Index")" class="btn btn-default pull-left">← العودة للأرصدة</a>
-    </h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-dolly text-primary me-2"></i> سندات صرف الخامات للمصنع والمشاريع</h3>
+        <p class="text-muted mb-0">توثيق المواد والألواح والإكسسوارات المصروفة فعلياً لكل أمر تشغيل</p>
+    </div>
 </div>
 
-<div class="panel panel-default">
-    <div class="panel-heading"><h4>سندات الصرف الصادرة (@Model.Count())</h4></div>
-    <div class="panel-body table-responsive">
-        <table class="table table-striped table-hover table-bordered">
-            <thead class="thead-koss">
-                <tr>
-                    <th>رقم السند</th>
-                    <th>رقم الطلب</th>
-                    <th>العميل</th>
-                    <th>المستودع</th>
-                    <th>المستلم</th>
-                    <th>إجمالي التكلفة</th>
-                    <th>التاريخ</th>
-                    <th>المعتمد</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr><td colspan="8" class="text-center text-muted">لا توجد سندات صرف صادرة حتى الآن.</td></tr>
-                }
-                @foreach (var s in Model)
-                {
+<div class="card card-custom">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <td><strong>@s.IssueNumber</strong></td>
-                        <td>
-                            <a href="@Url.Action("Details", "Requests", new { id = s.KitchenRequestId })" style="font-weight:bold;">
-                                📁 @(s.KitchenRequest != null ? s.KitchenRequest.RequestNumber : "-")
-                            </a>
-                        </td>
-                        <td><strong>@(s.KitchenRequest != null && s.KitchenRequest.Customer != null ? s.KitchenRequest.Customer.Name : "-")</strong></td>
-                        <td>@(s.Warehouse != null ? s.Warehouse.Name : "-")</td>
-                        <td>@s.RecipientName</td>
-                        <td class="text-success"><strong>@s.TotalCost.ToString("N3") د.ل</strong></td>
-                        <td>@s.IssuedAt.ToString("yyyy/MM/dd HH:mm")</td>
-                        <td><small>@s.ApprovedBy</small></td>
+                        <th>رقم السند</th>
+                        <th>طلب المطبخ</th>
+                        <th>أمر التشغيل</th>
+                        <th>المستودع المصروف منه</th>
+                        <th>المستلم (الفني / الفريق)</th>
+                        <th>إجمالي تكلفة المواد</th>
+                        <th>تاريخ وساعة الصرف</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="7" class="text-center py-5 text-muted">لا توجد سندات صرف مسجلة.</td></tr>
+                    }
+                    @foreach (var issue in Model)
+                    {
+                        <tr>
+                            <td><strong class="text-primary font-monospace">@issue.IssueNumber</strong></td>
+                            <td>
+                                <a asp-controller="Requests" asp-action="Details" asp-route-id="@issue.KitchenRequestId" class="fw-bold text-decoration-none">
+                                    @(issue.KitchenRequest?.RequestNumber ?? $"طلب #{issue.KitchenRequestId}")
+                                </a>
+                            </td>
+                            <td>@(issue.WorkOrder?.OrderNumber ?? "-")</td>
+                            <td>@(issue.Warehouse?.Name ?? "المستودع الرئيسي")</td>
+                            <td><strong>@issue.RecipientName</strong></td>
+                            <td><strong class="text-danger">@issue.TotalCost.ToString("N3") د.ل</strong></td>
+                            <td class="text-muted"><small>@issue.IssuedAt.ToString("yyyy/MM/dd HH:mm")</small></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

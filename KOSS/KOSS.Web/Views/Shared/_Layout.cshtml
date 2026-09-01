@@ -3,277 +3,476 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - شركة بن سوما للمطابخ الحديثة (KOSS ERP)</title>
-    <!-- Bootstrap 5.3 RTL -->
+    <title>@ViewData["Title"] - منظومة بن سوما للمطابخ الحديثة (KOSS ERP v2.0)</title>
+    
+    <!-- Bootstrap 5.3.2 RTL -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
-    <!-- Font Awesome 6.5 -->
+    <!-- Font Awesome 6.5.1 Pro Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Google Font: Cairo -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --koss-primary: #1e3c72;
-            --koss-secondary: #2a5298;
-            --koss-accent: #e67e22;
-            --koss-success: #27ae60;
-            --koss-bg: #f4f6f9;
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --body-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --sidebar-width: 270px;
         }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Cairo', sans-serif;
-            background-color: var(--koss-bg);
-            color: #333;
+            font-family: 'Cairo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--body-bg);
+            color: #1e293b;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
         }
-        .navbar-custom {
-            background: linear-gradient(135deg, var(--koss-primary), var(--koss-secondary));
+
+        /* Topbar Header */
+        .topbar {
+            height: 64px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-        }
-        .navbar-brand {
-            font-weight: 800;
-            font-size: 1.3rem;
-            color: #fff !important;
-        }
-        .sidebar {
-            min-height: calc(100vh - 56px);
-            background-color: #fff;
-            box-shadow: 0 0 15px rgba(0,0,0,0.05);
-            border-left: 1px solid #e9ecef;
-        }
-        .sidebar .nav-link {
-            color: #495057;
-            font-weight: 600;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 0.25rem;
-            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1040;
+            padding: 0 1.5rem;
             display: flex;
             align-items: center;
+            justify-content: space-between;
         }
-        .sidebar .nav-link i {
-            width: 28px;
-            font-size: 1.1rem;
-            text-align: center;
-            margin-left: 8px;
-            color: var(--koss-secondary);
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #fff;
         }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            background-color: #ebf3fa;
-            color: var(--koss-primary);
-            font-weight: 700;
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
         }
-        .sidebar .sidebar-heading {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+
+        .brand-title {
             font-weight: 800;
-            color: #8c9ba5;
-            padding: 0.75rem 1rem 0.25rem;
+            font-size: 1.15rem;
+            line-height: 1.2;
+            letter-spacing: -0.3px;
         }
-        .card-custom {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            background: #fff;
-            margin-bottom: 1.5rem;
-        }
-        .card-header-custom {
-            background-color: #fff;
-            border-bottom: 1px solid #f0f2f5;
+
+        .brand-badge {
+            font-size: 0.65rem;
+            background: rgba(245,158,11,0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245,158,11,0.4);
+            padding: 2px 8px;
+            border-radius: 20px;
             font-weight: 700;
-            padding: 1rem 1.25rem;
-            border-radius: 12px 12px 0 0 !important;
         }
-        .btn-koss-primary {
-            background: linear-gradient(135deg, var(--koss-primary), var(--koss-secondary));
-            color: #fff;
-            border: none;
+
+        /* Layout Container */
+        .app-container {
+            display: flex;
+            min-height: calc(100vh - 64px);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #ffffff;
+            border-left: 1px solid #e2e8f0;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.02);
+            padding: 1.25rem 0.85rem;
+            flex-shrink: 0;
+            height: calc(100vh - 64px);
+            position: sticky;
+            top: 64px;
+            overflow-y: auto;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 1rem 0.75rem 0.35rem;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar .nav-link {
+            color: #475569;
             font-weight: 600;
+            font-size: 0.92rem;
+            padding: 0.65rem 0.85rem;
             border-radius: 8px;
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease-in-out;
+            text-decoration: none;
         }
-        .btn-koss-primary:hover {
-            color: #fff;
-            opacity: 0.9;
+
+        .sidebar .nav-link i {
+            width: 22px;
+            font-size: 1.05rem;
+            color: #64748b;
+            transition: all 0.2s ease-in-out;
         }
-        .badge-status {
-            font-size: 0.85rem;
-            padding: 0.4em 0.75em;
-            border-radius: 6px;
+
+        .sidebar .nav-link:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            transform: translateX(-3px);
+        }
+
+        .sidebar .nav-link:hover i {
+            color: var(--accent);
+        }
+
+        .sidebar .nav-link.active {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            color: var(--accent);
             font-weight: 700;
         }
+
+        .sidebar .nav-link.active i {
+            color: var(--accent);
+        }
+
+        /* Main Content Area */
         .main-content {
-            padding: 1.5rem;
+            flex-grow: 1;
+            padding: 2rem;
+            max-width: calc(100vw - var(--sidebar-width));
+        }
+
+        /* Cards & Widgets */
+        .card-custom {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            margin-bottom: 1.5rem;
+            transition: all 0.2s ease-in-out;
+            overflow: hidden;
+        }
+
+        .card-custom:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+        }
+
+        .card-header-custom {
+            background-color: #ffffff;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 1.1rem 1.5rem;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Buttons */
+        .btn-koss-primary {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: #ffffff;
+            border: none;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 0.6rem 1.25rem;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+            transition: all 0.2s;
+        }
+
+        .btn-koss-primary:hover {
+            color: #ffffff;
+            background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+            box-shadow: 0 6px 16px rgba(37,99,235,0.35);
+            transform: translateY(-1px);
+        }
+
+        /* Stat Widget */
+        .stat-card {
+            padding: 1.35rem;
+            border-radius: 16px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-icon-wrapper {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        /* Tables */
+        .table-custom {
+            margin-bottom: 0;
+        }
+        .table-custom thead th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.9rem 1rem;
+        }
+        .table-custom tbody td {
+            padding: 0.9rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+            font-size: 0.92rem;
+        }
+
+        /* Nav Pills (Modern SaaS Tabs) */
+        .nav-pills-custom .nav-link {
+            color: #475569;
+            font-weight: 700;
+            padding: 0.65rem 1.15rem;
+            border-radius: 10px;
+            margin-left: 0.5rem;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav-pills-custom .nav-link:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+        .nav-pills-custom .nav-link.active {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.25);
         }
     </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-controller="Dashboard" asp-action="Index">
-                    <i class="fa-solid fa-kitchen-set me-2"></i> شركة بن سوما للمطابخ <small class="fw-normal fs-6 text-warning">ERP v2.0</small>
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarMain">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <span class="nav-link text-white-50"><i class="fa-regular fa-clock me-1"></i> @DateTime.Now.ToString("dd/MM/yyyy")</span>
-                        </li>
-                    </ul>
-                    <ul class="navbar-nav ms-auto align-items-center">
-                        @if (User.Identity.IsAuthenticated)
-                        {
-                            <li class="nav-item me-3">
-                                <span class="badge bg-light text-dark px-3 py-2 rounded-pill shadow-sm">
-                                    <i class="fa-solid fa-user-shield text-primary me-1"></i> 
-                                    @User.Identity.Name (@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)
-                                </span>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn btn-sm btn-outline-light rounded-pill px-3" asp-controller="Account" asp-action="Logout">
-                                    <i class="fa-solid fa-right-from-bracket me-1"></i> خروج
-                                </a>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="btn btn-sm btn-light rounded-pill px-3" asp-controller="Account" asp-action="Login">
-                                    <i class="fa-solid fa-right-to-bracket me-1"></i> دخول
-                                </a>
-                            </li>
-                        }
-                    </ul>
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="d-flex align-items-center gap-3">
+            <a class="brand-logo" asp-controller="Dashboard" asp-action="Index">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-kitchen-set"></i>
                 </div>
-            </div>
-        </nav>
-    </header>
+                <div>
+                    <div class="brand-title">شركة بن سوما للمطابخ <span class="brand-badge">ERP v2.0</span></div>
+                    <small class="text-white-50" style="font-size:0.75rem;">منظومة تصنيع وإدارة مشاريع المطابخ المتكاملة</small>
+                </div>
+            </a>
+        </div>
 
-    <div class="container-fluid">
-        <div class="row">
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-none d-md-flex align-items-center text-white-50 small bg-white bg-opacity-10 px-3 py-1 rounded-pill">
+                <i class="fa-regular fa-calendar-check me-2 text-warning"></i> @DateTime.Now.ToString("dddd, dd MMMM yyyy")
+            </div>
+
             @if (User.Identity.IsAuthenticated)
             {
-                <!-- Sidebar -->
-                <div class="col-md-3 col-lg-2 sidebar pt-3">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
-                                <i class="fa-solid fa-chart-pie"></i> لوحة التحكم
-                            </a>
-                        </li>
+                <div class="d-flex align-items-center bg-white bg-opacity-10 px-3 py-1 rounded-pill border border-white border-opacity-10">
+                    <i class="fa-solid fa-user-shield text-info me-2"></i>
+                    <span class="text-white fw-bold me-2" style="font-size:0.88rem;">@User.Identity.Name</span>
+                    <span class="badge bg-warning text-dark font-monospace" style="font-size:0.75rem;">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
+                </div>
+                <a class="btn btn-sm btn-outline-danger rounded-pill px-3" asp-controller="Account" asp-action="Logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> خروج
+                </a>
+            }
+            else
+            {
+                <a class="btn btn-sm btn-light rounded-pill px-4 fw-bold" asp-controller="Account" asp-action="Login">
+                    <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> دخول
+                </a>
+            }
+        </div>
+    </header>
 
-                        <div class="sidebar-heading">مسار عمل المشاريع (ERP)</div>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Requests" asp-action="Index">
-                                <i class="fa-solid fa-folder-tree"></i> طلبات ومشاريع المطابخ
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Inquiries" asp-action="Index">
-                                <i class="fa-solid fa-headset"></i> الاستفسارات والفرص
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="SiteVisits" asp-action="Index">
-                                <i class="fa-solid fa-ruler-combined"></i> المعاينات والقياسات
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Designs" asp-action="Index">
-                                <i class="fa-solid fa-cubes"></i> التصاميم (3D)
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Quotations" asp-action="Index">
-                                <i class="fa-solid fa-file-invoice-dollar"></i> عروض الأسعار
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Contracts" asp-action="Index">
-                                <i class="fa-solid fa-file-contract"></i> العقود والدفعات
-                            </a>
-                        </li>
+    <div class="app-container">
+        @if (User.Identity.IsAuthenticated)
+        {
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
+                            <i class="fa-solid fa-chart-pie text-primary"></i>
+                            <span>لوحة التحكم والمؤشرات</span>
+                        </a>
+                    </li>
 
-                        <div class="sidebar-heading">التصنيع والعمليات</div>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="WorkOrders" asp-action="Index">
-                                <i class="fa-solid fa-gears"></i> أوامر التشغيل (BOM)
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Manufacturing" asp-action="Index">
-                                <i class="fa-solid fa-industry"></i> المصنع وفحص الجودة
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Installation" asp-action="Index">
-                                <i class="fa-solid fa-truck-ramp-box"></i> التركيب الميداني
-                            </a>
-                        </li>
+                    <div class="sidebar-section-title">مسار المشاريع (24 حالة)</div>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Requests" asp-action="Index">
+                            <i class="fa-solid fa-folder-tree text-indigo"></i>
+                            <span>طلبات ومشاريع المطابخ</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Inquiries" asp-action="Index">
+                            <i class="fa-solid fa-headset text-success"></i>
+                            <span>الاستفسارات والفرص</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="SiteVisits" asp-action="Index">
+                            <i class="fa-solid fa-ruler-combined text-warning"></i>
+                            <span>المعاينات والقياسات 3D</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Designs" asp-action="Index">
+                            <i class="fa-solid fa-cubes text-info"></i>
+                            <span>مخططات وتصاميم 3D</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Quotations" asp-action="Index">
+                            <i class="fa-solid fa-file-invoice-dollar text-primary"></i>
+                            <span>عروض الأسعار والتسعير</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Contracts" asp-action="Index">
+                            <i class="fa-solid fa-file-contract text-danger"></i>
+                            <span>العقود وجدول الدفعات</span>
+                        </a>
+                    </li>
 
-                        <div class="sidebar-heading">المخازن والمالية</div>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Inventory" asp-action="Index">
-                                <i class="fa-solid fa-boxes-stacked"></i> المستودعات والخامات
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Accounting" asp-action="Index">
-                                <i class="fa-solid fa-scale-balanced"></i> التكاليف والربحية
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Clients" asp-action="Index">
-                                <i class="fa-solid fa-users"></i> دليل العملاء
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Hr" asp-action="Index">
-                                <i class="fa-solid fa-user-tie"></i> الموظفين والفنيين
-                            </a>
-                        </li>
+                    <div class="sidebar-section-title">التشغيل والتصنيع</div>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="WorkOrders" asp-action="Index">
+                            <i class="fa-solid fa-gears text-secondary"></i>
+                            <span>أوامر التنفيذ (BOM)</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Manufacturing" asp-action="Index">
+                            <i class="fa-solid fa-industry text-warning"></i>
+                            <span>خطوط الإنتاج وفحص الجودة</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Installation" asp-action="Index">
+                            <i class="fa-solid fa-truck-ramp-box text-success"></i>
+                            <span>التركيب الميداني والتسليم</span>
+                        </a>
+                    </li>
 
-                        @if (User.IsInRole("Executive") || User.IsInRole("Admin"))
-                        {
-                            <div class="sidebar-heading">الإدارة والنظام</div>
-                            <li class="nav-item">
-                                <a class="nav-link text-danger" asp-controller="AuditLogs" asp-action="Index">
-                                    <i class="fa-solid fa-shield-halved text-danger"></i> سجل التدقيق (Audit)
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Users" asp-action="Index">
-                                    <i class="fa-solid fa-user-gear"></i> المستخدمين والصلاحيات
-                                </a>
-                            </li>
-                        }
-                    </ul>
+                    <div class="sidebar-section-title">المستودعات والمالية</div>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Inventory" asp-action="Index">
+                            <i class="fa-solid fa-boxes-stacked text-info"></i>
+                            <span>المستودعات والخامات</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Accounting" asp-action="Index">
+                            <i class="fa-solid fa-scale-balanced text-primary"></i>
+                            <span>تحليل التكاليف والربحية</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Clients" asp-action="Index">
+                            <i class="fa-solid fa-users text-dark"></i>
+                            <span>دليل العملاء</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Hr" asp-action="Index">
+                            <i class="fa-solid fa-user-tie text-secondary"></i>
+                            <span>الموظفين والفنيين</span>
+                        </a>
+                    </li>
+
+                    @if (User.IsInRole("Executive") || User.IsInRole("Admin"))
+                    {
+                        <div class="sidebar-section-title">الرقابة والتدقيق</div>
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" asp-controller="AuditLogs" asp-action="Index">
+                                <i class="fa-solid fa-shield-halved text-danger"></i>
+                                <span>سجل التدقيق (Audit Trail)</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Users" asp-action="Index">
+                                <i class="fa-solid fa-user-gear text-dark"></i>
+                                <span>المستخدمين والصلاحيات</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </aside>
+        }
+
+        <!-- Main Workspace -->
+        <main class="@(User.Identity.IsAuthenticated ? "main-content" : "w-100 p-4")">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 rounded-3 mb-4 d-flex align-items-center" role="alert">
+                    <i class="fa-solid fa-circle-check fs-5 me-2"></i>
+                    <div>@TempData["Success"]</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 rounded-3 mb-4 d-flex align-items-center" role="alert">
+                    <i class="fa-solid fa-triangle-exclamation fs-5 me-2"></i>
+                    <div>@TempData["Error"]</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             }
 
-            <main class="@(User.Identity.IsAuthenticated ? "col-md-9 col-lg-10" : "col-12") main-content">
-                @if (TempData["Success"] != null)
-                {
-                    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                        <i class="fa-solid fa-circle-check me-2"></i> @TempData["Success"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                }
-                @if (TempData["Error"] != null)
-                {
-                    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-                        <i class="fa-solid fa-triangle-exclamation me-2"></i> @TempData["Error"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                }
-
-                @RenderBody()
-            </main>
-        </div>
+            @RenderBody()
+        </main>
     </div>
 
-    <!-- Bootstrap 5.3 JS Bundle -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     @RenderSection("Scripts", required: false)
 </body>

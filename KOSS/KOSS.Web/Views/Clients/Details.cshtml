@@ -1,66 +1,71 @@
-﻿@model KOSS.Web.Models.Customer
+﻿@model KOSS.Web.Models.Client
 @{
-    ViewData["Title"] = "ملف العميل: " + Model.Name;
+    ViewData["Title"] = $"ملف العميل: {Model.Name}";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="fw-bold text-dark"><i class="fa-solid fa-id-card text-primary me-2"></i> ملف العميل: @Model.Name</h3>
-        <p class="text-muted mb-0">سجل طلبات المطابخ، الاستفسارات، والعقود المسجلة</p>
-    </div>
-    <div class="d-flex gap-2">
-        <a asp-controller="Requests" asp-action="Create" asp-route-customerId="@Model.Id" class="btn btn-koss-primary">
-            <i class="fa-solid fa-plus me-1"></i> فتح طلب مطبخ جديد
-        </a>
-        <a asp-action="Index" class="btn btn-outline-secondary">العودة للعملاء</a>
-    </div>
-</div>
-
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card card-custom p-3">
-            <h6 class="fw-bold text-muted mb-2">بيانات الاتصال</h6>
-            <p class="mb-1"><i class="fa-solid fa-phone me-2 text-primary"></i> <span dir="ltr">@Model.Phone</span></p>
-            <p class="mb-1"><i class="fa-solid fa-location-dot me-2 text-danger"></i> @(Model.District ?? "-") - @(Model.Address ?? "-")</p>
-            <p class="mb-0 text-muted small"><i class="fa-regular fa-calendar me-2"></i> تاريخ التسجيل: @Model.CreatedAt.ToString("yyyy/MM/dd")</p>
+<div class="card card-custom mb-4">
+    <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fa-solid fa-user me-2 text-primary"></i>
+            <strong class="fs-5">@Model.Name</strong>
+            <span class="badge bg-primary ms-2">@Model.Status</span>
         </div>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+            <i class="fa-solid fa-arrow-right me-1"></i> العودة لدليل العملاء
+        </a>
     </div>
-</div>
+    <div class="card-body p-4">
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <small class="text-muted d-block">رقم الهاتف الأساسي</small>
+                <strong dir="ltr">@Model.Phone</strong>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted d-block">رقم الهاتف الإضافي</small>
+                <span dir="ltr">@(Model.Phone2 ?? "-")</span>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted d-block">المدينة والمنطقة</small>
+                <strong>@(Model.District ?? "-")</strong>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted d-block">العنوان التفصيلي</small>
+                <span>@(Model.Address ?? "-")</span>
+            </div>
+        </div>
 
-<div class="card card-custom">
-    <div class="card-header card-header-custom">
-        <i class="fa-solid fa-folder-tree text-primary me-1"></i> طلبات ومشاريع المطبخ للعميل (@(Model.KitchenRequests?.Count ?? 0))
-    </div>
-    <div class="card-body p-0">
+        <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-file-contract text-primary me-2"></i> عقود ومشاريع العميل</h5>
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-custom table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <th>رقم الطلب</th>
-                        <th>الموقع</th>
-                        <th>النوع والتخطيط</th>
-                        <th>الحالة</th>
-                        <th>تاريخ الفتح</th>
+                        <th>رقم العقد</th>
+                        <th>إجمالي القيمة</th>
+                        <th>المحصل</th>
+                        <th>المتبقي</th>
+                        <th>حالة العقد</th>
+                        <th>تاريخ التوقيع</th>
                         <th>الإجراء</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model.KitchenRequests == null || !Model.KitchenRequests.Any())
+                    @if (Model.Contracts == null || !Model.Contracts.Any())
                     {
-                        <tr><td colspan="6" class="text-center py-4 text-muted">لا توجد طلبات مطابخ مسجلة لهذا العميل.</td></tr>
+                        <tr><td colspan="7" class="text-center py-4 text-muted">لا توجد عقود مسجلة لهذا العميل حتى الآن.</td></tr>
                     }
                     else
                     {
-                        foreach (var req in Model.KitchenRequests)
+                        foreach (var c in Model.Contracts)
                         {
                             <tr>
-                                <td><strong class="text-primary">@req.RequestNumber</strong></td>
-                                <td>@req.Location</td>
-                                <td>@req.ProjectType - @req.LayoutType</td>
-                                <td><span class="badge bg-primary">@req.Status</span></td>
-                                <td class="text-muted"><small>@req.CreatedAt.ToString("yyyy/MM/dd")</small></td>
+                                <td><strong class="text-primary font-monospace">@c.ContractNumber</strong></td>
+                                <td><strong>@c.TotalValue.ToString("N3") د.ل</strong></td>
+                                <td><strong class="text-success">@c.TotalPaid.ToString("N3") د.ل</strong></td>
+                                <td><strong class="text-danger">@c.RemainingBalance.ToString("N3") د.ل</strong></td>
+                                <td><span class="badge bg-success px-3 py-2">@c.Status.ToArabic()</span></td>
+                                <td class="text-muted"><small>@c.SignedDate.ToString("yyyy/MM/dd")</small></td>
                                 <td>
-                                    <a asp-controller="Requests" asp-action="Details" asp-route-id="@req.Id" class="btn btn-sm btn-outline-primary">
+                                    <a asp-controller="Requests" asp-action="Details" asp-route-id="@c.KitchenRequestId" class="btn btn-sm btn-outline-primary">
                                         <i class="fa-solid fa-folder-open me-1"></i> فتح ملف المشروع
                                     </a>
                                 </td>

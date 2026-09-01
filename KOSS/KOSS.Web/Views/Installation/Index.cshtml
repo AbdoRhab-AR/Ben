@@ -1,117 +1,61 @@
-@model IEnumerable<KOSS.Web.Models.InstallationOrder>
+﻿@model IEnumerable<KOSS.Web.Models.InstallationOrder>
 @{
-    ViewBag.Title = "إدارة التركيبات الميدانية والتسليم";
+    ViewData["Title"] = "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ØªØ±ÙƒÙŠØ¨Ø§Øª Ø§Ù„Ù…ÙŠØ¯Ø§Ù†ÙŠØ© Ø¨Ø§Ù„Ù…ÙˆÙ‚Ø¹";
 }
 
-<div class="page-header">
-    <h2>🚚 إدارة التركيبات الميدانية ومحاضر التسليم
-        <small>(المرحلة 14 و 15: إتمام التركيب وتوقيع محضر الاستلام)</small>
-    </h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-truck-ramp-box text-warning me-2"></i> Ø¥Ø¯Ø§Ø±Ø© ÙˆØ¬Ø¯ÙˆÙ„Ø© Ø§Ù„ØªØ±ÙƒÙŠØ¨Ø§Øª Ø§Ù„Ù…ÙŠØ¯Ø§Ù†ÙŠØ©</h3>
+        <p class="text-muted mb-0">Ù…ØªØ§Ø¨Ø¹Ø© Ù…ÙˆØ§Ø¹ÙŠØ¯ Ø§Ù„ØªÙˆØµÙŠÙ„ØŒ ÙˆÙÙØ±Ù‚ Ø§Ù„ÙÙ†ÙŠÙŠÙ†ØŒ ÙˆØªÙˆÙ‚ÙŠØ¹ Ù…Ø­Ø§Ø¶Ø± Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù… ÙˆØ§Ù„ØªØ³Ù„ÙŠÙ…</p>
+    </div>
 </div>
 
-<div class="panel panel-default">
-    <div class="panel-heading"><h4>📋 قائمة أوامر التركيب المجدولة والمنجزة (@Model.Count())</h4></div>
-    <div class="panel-body table-responsive">
-        <table class="table table-striped table-hover table-bordered">
-            <thead class="thead-koss">
-                <tr>
-                    <th>رقم أمر التركيب</th>
-                    <th>رقم الطلب</th>
-                    <th>العميل</th>
-                    <th>الموقع</th>
-                    <th>الموعد المجدول</th>
-                    <th>رئيس الفريق</th>
-                    <th>الأمتار المنجزة</th>
-                    <th>الحالة</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr><td colspan="9" class="text-center text-muted">لا توجد عمليات تركيب مجدولة حالياً.</td></tr>
-                }
-                @foreach (var i in Model)
-                {
-                    var wo = i.WorkOrder;
-                    var req = wo != null ? wo.KitchenRequest : null;
+<div class="card card-custom">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <td><strong>@i.OrderNumber</strong></td>
-                        <td>
-                            <a href="@Url.Action("Details", "Requests", new { id = req != null ? req.Id : 0 })" style="font-weight:bold;">
-                                📁 @(req != null ? req.RequestNumber : "-")
-                            </a>
-                        </td>
-                        <td><strong>@(req != null && req.Customer != null ? req.Customer.Name : "-")</strong></td>
-                        <td><small>@(req != null ? req.Location : "-")</small></td>
-                        <td>@i.ScheduledDate.ToString("yyyy/MM/dd")</td>
-                        <td>@i.TeamLeadName</td>
-                        <td>@i.InstalledLinearMeters م</td>
-                        <td><span class="label @(i.Status == "FullyCompleted" ? "label-success" : "label-primary")">@i.Status</span></td>
-                        <td>
-                            @if (i.Status == "Scheduled")
-                            {
-                                using (Html.BeginForm("StartInstallation", "Installation", FormMethod.Post, new { style = "display:inline;" }))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="installationOrderId" value="@i.Id" />
-                                    <button type="submit" class="btn btn-xs btn-warning">🚚 بدء التركيب الميداني</button>
-                                }
-                            }
-                            else if (i.Status == "InProgress")
-                            {
-                                <button type="button" class="btn btn-xs btn-success" data-toggle="modal" data-target="#handoverModal-@i.Id">
-                                    🏁 تحرير محضر التسليم
-                                </button>
-
-                                <!-- نافذة محضر التسليم المنبثقة -->
-                                <div class="modal fade" id="handoverModal-@i.Id" tabindex="-1" role="dialog">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                                                <h4 class="modal-title">🎉 تحرير محضر التسليم النهائي واستلام العميل</h4>
-                                            </div>
-                                            @using (Html.BeginForm("CompleteHandover", "Installation", FormMethod.Post))
-                                            {
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="workOrderId" value="@i.WorkOrderId" />
-                                                <div class="modal-body">
-                                                    <div class="form-group">
-                                                        <label>اسم العميل المستلم</label>
-                                                        <input type="text" name="customerSignerName" class="form-control" value="@(req != null && req.Customer != null ? req.Customer.Name : "")" required />
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label>الأمتار الطولية المنجزة</label>
-                                                        <input type="number" name="installedLinearMeters" class="form-control" value="10" step="0.1" required />
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label>ملاحظات العميل الختامية</label>
-                                                        <textarea name="customerRemarks" class="form-control" rows="3" placeholder="ملاحظات العميل عند الفحص والاستلام..."></textarea>
-                                                    </div>
-                                                    <div class="checkbox">
-                                                        <label>
-                                                            <input type="checkbox" name="customerAccepted" value="true" checked /> العميل موافق ومستلم لكافة الأعمال حسب المواصفات
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-default" data-dismiss="modal">إلغاء</button>
-                                                    <button type="submit" class="btn btn-success">✅ اعتماد محضر التسليم الرسمي</button>
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                            else
-                            {
-                                <span class="text-success">✅ تم التسليم</span>
-                            }
-                        </td>
+                        <th>Ø£Ù…Ø± Ø§Ù„ØªØ±ÙƒÙŠØ¨</th>
+                        <th>Ø·Ù„Ø¨ Ø§Ù„Ù…Ø·Ø¨Ø®</th>
+                        <th>Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„ ÙˆØ§Ù„Ù…ÙˆÙ‚Ø¹</th>
+                        <th>ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ±ÙƒÙŠØ¨</th>
+                        <th>Ø±Ø¦ÙŠØ³ ÙØ±ÙŠÙ‚ Ø§Ù„ØªØ±ÙƒÙŠØ¨</th>
+                        <th>Ø­Ø§Ù„Ø© Ø§Ù„ØªØ±ÙƒÙŠØ¨</th>
+                        <th>Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="7" class="text-center py-5 text-muted">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£ÙˆØ§Ù…Ø± ØªØ±ÙƒÙŠØ¨ Ù…Ø¬Ø¯ÙˆÙ„Ø© Ø­Ø§Ù„ÙŠØ§Ù‹.</td></tr>
+                    }
+                    @foreach (var order in Model)
+                    {
+                        var req = order.WorkOrder?.KitchenRequest;
+                        <tr>
+                            <td><strong class="text-primary font-monospace">@order.OrderNumber</strong></td>
+                            <td>
+                                <a asp-controller="Requests" asp-action="Details" asp-route-id="@(req?.Id ?? 0)" class="fw-bold text-decoration-none">
+                                    @(req?.RequestNumber ?? $"Ø·Ù„Ø¨ #{order.WorkOrderId}")
+                                </a>
+                            </td>
+                            <td>
+                                <strong>@(req?.Customer?.Name ?? "-")</strong>
+                                <small class="text-muted d-block">@(req?.Location ?? "-")</small>
+                            </td>
+                            <td><strong class="text-dark">@order.ScheduledDate.ToString("yyyy/MM/dd")</strong></td>
+                            <td><span class="badge bg-light text-dark border">@order.TeamLeadName</span></td>
+                            <td><span class="badge bg-primary px-3 py-2">@order.Status</span></td>
+                            <td>
+                                <a asp-controller="Requests" asp-action="Details" asp-route-id="@(req?.Id ?? 0)" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa-solid fa-signature me-1"></i> Ù…Ø­Ø¶Ø± Ø§Ù„ØªØ³Ù„ÙŠÙ…
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

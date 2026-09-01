@@ -6,99 +6,90 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace KOSS.Web.Models
 {
     // ============================================================
-    //  Ø­Ø§Ù„Ø© Ø£Ù…Ø± Ø§Ù„ØªÙ†ÙÙŠØ°
+    //  حالة أمر التنفيذ والتشغيل
     // ============================================================
     public enum WorkOrderStatus
     {
-        [Display(Name = "Ù‚ÙŠØ¯ Ø§Ù„ØªØ®Ø·ÙŠØ·")]
+        [Display(Name = "قيد التخطيط وإصدار الـ BOM")]
         Planning = 1,
 
-        [Display(Name = "Ù‚ÙŠØ¯ Ø§Ù„ØªØµÙ†ÙŠØ¹ Ø¨Ø§Ù„Ù…ØµÙ†Ø¹")]
+        [Display(Name = "قيد التصنيع والقص بالمصنع")]
         Manufacturing = 2,
 
-        [Display(Name = "ØªÙ… Ø§Ù„ØªØµÙ†ÙŠØ¹ - ÙØ­Øµ Ø§Ù„Ø¬ÙˆØ¯Ø©")]
+        [Display(Name = "فحص الجودة والمطابقة الفنية")]
         QualityInspection = 3,
 
-        [Display(Name = "Ø¬Ø§Ù‡Ø² Ù„Ù„Ù†Ù‚Ù„ ÙˆØ§Ù„ØªØ±ÙƒÙŠØ¨")]
+        [Display(Name = "جاهز للنقل والتركيب")]
         ReadyForInstallation = 4,
 
-        [Display(Name = "Ù‚ÙŠØ¯ Ø§Ù„ØªØ±ÙƒÙŠØ¨ Ø§Ù„Ù…ÙŠØ¯Ø§Ù†ÙŠ")]
+        [Display(Name = "قيد التركيب الميداني")]
         Installing = 5,
 
-        [Display(Name = "Ù…Ø¹Ø§Ù„Ø¬Ø© Ù…Ù„Ø§Ø­Ø¸Ø§Øª ÙˆÙ†ÙˆØ§Ù‚Øµ")]
+        [Display(Name = "معالجة ملاحظات ونواقص")]
         SnagResolution = 6,
 
-        [Display(Name = "Ø¬Ø§Ù‡Ø² Ù„Ù„ØªØ³Ù„ÙŠÙ… Ø§Ù„Ù†Ù‡Ø§Ø¦ÙŠ")]
+        [Display(Name = "جاهز للتسليم النهائي")]
         ReadyForHandover = 7,
 
-        [Display(Name = "Ù…ÙƒØªÙ…Ù„ Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹")]
+        [Display(Name = "مكتمل نهائياً")]
         Completed = 8,
 
-        [Display(Name = "Ù…Ù„ØºÙ‰")]
+        [Display(Name = "ملغى")]
         Cancelled = 9
     }
 
     // ============================================================
-    //  Ø£Ù…Ø± Ø§Ù„ØªÙ†ÙÙŠØ° ÙˆØ§Ù„ØªØ´ØºÙŠÙ„ Ø§Ù„Ù…Ø±ÙƒØ²ÙŠ (WorkOrder)
+    //  أمر التنفيذ والتشغيل المركزي (WorkOrder)
     // ============================================================
     public class WorkOrder
     {
         public int Id { get; set; }
 
         [Required]
-        [Display(Name = "Ø·Ù„Ø¨ Ø§Ù„Ù…Ø·Ø¨Ø®")]
+        [Display(Name = "طلب المطبخ")]
         public int KitchenRequestId { get; set; }
 
-        [Display(Name = "Ø§Ù„Ø¹Ù‚Ø¯ Ø§Ù„Ù…Ø±ØªØ¨Ø·")]
+        [Display(Name = "العقد المرتبط")]
         public int? ContractId { get; set; }
 
-        [Display(Name = "Ø±Ù‚Ù… Ø£Ù…Ø± Ø§Ù„ØªÙ†ÙÙŠØ°")]
-        [StringLength(50)]
+        [Display(Name = "رقم أمر التشغيل")]
+        [Required, StringLength(50)]
         public string OrderNumber { get; set; }
 
-        [Display(Name = "Ø§Ù„Ø£ÙˆÙ„ÙˆÙŠØ©")]
-        public PriorityLevel Priority { get; set; } = PriorityLevel.Normal;
-
-        [Display(Name = "Ù…Ø³Ø¤ÙˆÙ„ Ø§Ù„Ø¥Ù†ØªØ§Ø¬ ÙˆØ§Ù„ØªÙ†ÙÙŠØ°")]
+        [Display(Name = "مدير الإنتاج المسؤول")]
         public int? ProductionManagerId { get; set; }
 
-        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¨Ø¯Ø¡ Ø§Ù„Ù…Ø®Ø·Ø·")]
-        public DateTime? PlannedStartDate { get; set; }
-
-        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„Ù…ØªÙˆÙ‚Ø¹")]
+        [Display(Name = "الموعد المستهدف لانتهاء التصنيع")]
         public DateTime? ExpectedEndDate { get; set; }
 
-        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„ÙØ¹Ù„ÙŠ")]
+        [Display(Name = "تاريخ الانتهاء الفعلي من المصنع")]
         public DateTime? ActualEndDate { get; set; }
 
-        [Display(Name = "Ø­Ø§Ù„Ø© Ø£Ù…Ø± Ø§Ù„ØªÙ†ÙÙŠØ°")]
+        [Display(Name = "حالة أمر التنفيذ")]
         public WorkOrderStatus Status { get; set; } = WorkOrderStatus.Planning;
 
-        [Display(Name = "Ù…Ù„Ø§Ø­Ø¸Ø§Øª ÙˆØªØ¹Ù„ÙŠÙ…Ø§Øª Ø§Ù„Ø¥Ù†ØªØ§Ø¬")]
+        [Display(Name = "ملاحظات وتوجيهات التصنيع")]
         [StringLength(1000)]
-        public string Notes { get; set; }
+        public string ManufacturingNotes { get; set; }
 
-        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¥Ù†Ø´Ø§Ø¡")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        [Display(Name = "Ø£ÙÙ†Ø´Ø¦ Ø¨ÙˆØ§Ø³Ø·Ø©")]
         public string CreatedBy { get; set; }
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
+        // العلاقات
         public virtual KitchenRequest KitchenRequest { get; set; }
         public virtual Contract Contract { get; set; }
         public virtual StaffMember ProductionManager { get; set; }
 
         public virtual ICollection<MaterialRequirement> MaterialRequirements { get; set; } = new List<MaterialRequirement>();
-        public virtual ICollection<StockIssue> StockIssues { get; set; } = new List<StockIssue>();
         public virtual ICollection<ManufacturingTask> Tasks { get; set; } = new List<ManufacturingTask>();
         public virtual ICollection<QualityCheck> QualityChecks { get; set; } = new List<QualityCheck>();
+        public virtual ICollection<StockIssue> StockIssues { get; set; } = new List<StockIssue>();
         public virtual ICollection<InstallationOrder> InstallationOrders { get; set; } = new List<InstallationOrder>();
         public virtual ICollection<HandoverDocument> HandoverDocuments { get; set; } = new List<HandoverDocument>();
     }
 
     // ============================================================
-    //  Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù…ÙˆØ§Ø¯ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø© Ù„Ø£Ù…Ø± Ø§Ù„ØªÙ†ÙÙŠØ° (MaterialRequirement - BOM)
+    //  بند قائمة المواد المطلوب تجهيزها (MaterialRequirement / BOM)
     // ============================================================
     public class MaterialRequirement
     {
@@ -107,45 +98,34 @@ namespace KOSS.Web.Models
         [Required]
         public int WorkOrderId { get; set; }
 
-        [Display(Name = "ÙƒÙˆØ¯ Ø§Ù„ØµÙ†Ù / Ø§Ù„Ù…Ø§Ø¯Ø©")]
-        [StringLength(50)]
-        public string ItemCode { get; set; }
-
-        [Display(Name = "Ø§Ø³Ù… Ø§Ù„Ù…Ø§Ø¯Ø© / Ø§Ù„ØµÙ†Ù")]
+        [Display(Name = "اسم الخامة / الصنف")]
         [Required, StringLength(200)]
         public string ItemName { get; set; }
 
-        [Display(Name = "ÙØ¦Ø© Ø§Ù„Ù…Ø§Ø¯Ø©")]
-        [StringLength(100)]
+        [Display(Name = "الفئة")]
+        [Required, StringLength(100)]
         public string Category { get; set; }
 
-        [Display(Name = "Ø§Ù„ÙˆØ­Ø¯Ø©")]
-        [StringLength(30)]
-        public string Unit { get; set; } = "Ù‚Ø·Ø¹Ø©";
-
-        [Display(Name = "Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠØ© Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø©")]
+        [Display(Name = "الكمية المطلوبة بالمطبخ")]
         public decimal QuantityRequired { get; set; }
 
-        [Display(Name = "Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„Ù…Ø­Ø¬ÙˆØ²Ø© Ù…Ù† Ø§Ù„Ù…Ø®Ø²Ù†")]
-        public decimal QuantityReserved { get; set; } = 0;
+        [Display(Name = "الوحدة القياسية")]
+        [Required, StringLength(30)]
+        public string Unit { get; set; } = "لوح";
 
-        [Display(Name = "Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„Ù…ØµØ±ÙˆÙØ© ÙØ¹Ù„ÙŠØ§Ù‹ Ù„Ù„Ù…Ø´Ø±ÙˆØ¹")]
-        public decimal QuantityIssued { get; set; } = 0;
-
-        [Display(Name = "Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„Ù†Ø§Ù‚ØµØ© Ø§Ù„Ù…Ø·Ù„ÙˆØ¨ Ø´Ø±Ø§Ø¤Ù‡Ø§")]
-        public decimal QuantityToPurchase => Math.Max(0, QuantityRequired - (QuantityReserved + QuantityIssued));
-
-        [Display(Name = "ØªÙƒÙ„ÙØ© Ø§Ù„ÙˆØ­Ø¯Ø© Ø§Ù„ØªÙ‚Ø¯ÙŠØ±ÙŠØ© (Ø¯.Ù„)")]
+        [Display(Name = "التكلفة التقديرية للوحدة (د.ل)")]
         public decimal EstimatedUnitCost { get; set; } = 0;
 
-        [Display(Name = "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„ØªÙƒÙ„ÙØ© Ø§Ù„Ù…Ù‚Ø¯Ø±Ø© (Ø¯.Ù„)")]
+        [Display(Name = "إجمالي التكلفة التقديرية (د.ل)")]
         public decimal TotalEstimatedCost => QuantityRequired * EstimatedUnitCost;
 
-        [Display(Name = "Ù‡Ù„ ØªÙ… Ø§ÙƒØªÙ…Ø§Ù„ ØµØ±Ù Ø§Ù„Ø¨Ù†Ø¯ØŸ")]
-        public bool IsFullyIssued => QuantityIssued >= QuantityRequired;
+        [Display(Name = "الكمية المتوفرة بالمخزن")]
+        public decimal QuantityInStock { get; set; } = 0;
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø©
+        [Display(Name = "الكمية التي تم صرفها للمشروع فعلياً")]
+        public decimal QuantityIssued { get; set; } = 0;
+
+        // العلاقة
         public virtual WorkOrder WorkOrder { get; set; }
     }
 }
-

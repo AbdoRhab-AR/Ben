@@ -1,97 +1,93 @@
 ﻿@model KOSS.Web.Models.KitchenRequest
 @{
-    ViewData["Title"] = "فتح طلب مطبخ جديد";
-    var customers = ViewBag.Customers as List<KOSS.Web.Models.Customer> ?? new List<KOSS.Web.Models.Customer>();
+    ViewData["Title"] = "ÙØªØ­ Ø·Ù„Ø¨ Ù…Ø·Ø¨Ø® Ø¬Ø¯ÙŠØ¯";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="fw-bold text-dark"><i class="fa-solid fa-folder-plus text-primary me-2"></i> فتح وتسجيل طلب مطبخ / مشروع جديد</h3>
-        <p class="text-muted mb-0">المرحلة الثانية في مسار العمل (إنشاء رقم طلب رسمي وربطه بالعميل)</p>
-    </div>
-    <a asp-action="Index" class="btn btn-outline-secondary">
-        <i class="fa-solid fa-arrow-right me-1"></i> العودة للطلبات
-    </a>
-</div>
-
-<div class="row">
+<div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card card-custom">
             <div class="card-header card-header-custom">
-                <i class="fa-solid fa-file-pen text-primary me-1"></i> بيانات الطلب والموقع
+                <i class="fa-solid fa-folder-plus text-primary me-2"></i> ÙØªØ­ ÙˆØªØ³Ø¬ÙŠÙ„ Ø·Ù„Ø¨ Ù…Ø·Ø¨Ø® ÙˆÙ…Ø´Ø±ÙˆØ¹ Ø¬Ø¯ÙŠØ¯
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form asp-action="Create" method="post">
                     @Html.AntiForgeryToken()
 
+                    <div class="mb-3">
+                        <label asp-for="CustomerId" class="form-label fw-bold">Ø§Ù„Ø¹Ù…ÙŠÙ„</label>
+                        <select asp-for="CustomerId" class="form-select" required>
+                            <option value="">-- Ø§Ø®ØªØ± Ø§Ù„Ø¹Ù…ÙŠÙ„ --</option>
+                            @if (ViewBag.Customers is IEnumerable<KOSS.Web.Models.Customer> customers)
+                            {
+                                foreach (var c in customers)
+                                {
+                                    <option value="@c.Id">@c.Name (@c.Phone)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Location" class="form-label fw-bold">Ù…ÙˆÙ‚Ø¹ ÙˆØ¹Ù†ÙˆØ§Ù† ØªØ±ÙƒÙŠØ¨ Ø§Ù„Ù…Ø·Ø¨Ø®</label>
+                        <input asp-for="Location" class="form-control" placeholder="Ø§Ù„Ù…Ø¯ÙŠÙ†Ø©ØŒ Ø§Ù„Ù…Ù†Ø·Ù‚Ø©ØŒ Ø±Ù‚Ù… Ø§Ù„Ø´Ø§Ø±Ø¹ØŒ Ø§Ù„ÙÙŠÙ„Ø§..." required />
+                    </div>
+
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label asp-for="RequestNumber" class="form-label fw-bold"></label>
-                            <input asp-for="RequestNumber" class="form-control fw-bold bg-light" readonly />
+                            <label asp-for="ProjectType" class="form-label fw-bold">Ù†ÙˆØ¹ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹</label>
+                            <select asp-for="ProjectType" class="form-select">
+                                <option value="Villa">ÙÙŠÙ„Ø§ Ø³ÙƒÙ†ÙŠØ©</option>
+                                <option value="Apartment">Ø´Ù‚Ø© Ø³ÙƒÙ†ÙŠØ©</option>
+                                <option value="Commercial">Ù…Ø´Ø±ÙˆØ¹ ØªØ¬Ø§Ø±ÙŠ / Ù…Ø¹Ø±Ø¶</option>
+                                <option value="Chalet">Ø´Ø§Ù„ÙŠÙ‡ / Ø§Ø³ØªØ±Ø§Ø­Ø©</option>
+                            </select>
                         </div>
                         <div class="col-md-6">
-                            <label asp-for="CustomerId" class="form-label fw-bold"></label>
-                            <select asp-for="CustomerId" class="form-select">
-                                <option value="">--- اختر العميل ---</option>
-                                @foreach (var c in customers)
+                            <label asp-for="LayoutType" class="form-label fw-bold">Ø´ÙƒÙ„ ÙˆØªØ®Ø·ÙŠØ· Ø§Ù„Ù…Ø·Ø¨Ø®</label>
+                            <select asp-for="LayoutType" class="form-select">
+                                <option value="Straight">Ø®Ø·ÙŠ Ù…Ø³ØªÙ‚ÙŠÙ… (Straight)</option>
+                                <option value="LShaped">Ø­Ø±Ù L (L-Shaped)</option>
+                                <option value="UShaped">Ø­Ø±Ù U (U-Shaped)</option>
+                                <option value="Parallel">Ù…ØªÙˆØ§Ø²ÙŠ (Galley / Parallel)</option>
+                                <option value="Island">Ù…Ø·Ø¨Ø® Ù…Ø¹ Ø¬Ø²ÙŠØ±Ø© ÙˆØ³Ø·ÙŠØ© (Island)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="AssignedSalesStaffId" class="form-label fw-bold">Ù…ÙˆØ¸Ù Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„</label>
+                            <select asp-for="AssignedSalesStaffId" class="form-select">
+                                <option value="">-- Ø§Ø®ØªØ± Ù…ÙˆØ¸Ù Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª --</option>
+                                @if (ViewBag.SalesStaff is IEnumerable<KOSS.Web.Models.StaffMember> salesStaff)
                                 {
-                                    <option value="@c.Id" selected="@(c.Id == Model.CustomerId ? "selected" : null)">@c.Name (@c.Phone)</option>
+                                    foreach (var s in salesStaff)
+                                    {
+                                        <option value="@s.Id">@s.FullName</option>
+                                    }
                                 }
                             </select>
-                            <span asp-validation-for="CustomerId" class="text-danger small"></span>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Location" class="form-label fw-bold"></label>
-                        <input asp-for="Location" class="form-control" placeholder="عنوان وموقع المطبخ التفصيلي" required />
-                        <span asp-validation-for="Location" class="text-danger small"></span>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label asp-for="ProjectType" class="form-label fw-bold"></label>
-                            <select asp-for="ProjectType" asp-items="Html.GetEnumSelectList<ProjectType>()" class="form-select"></select>
                         </div>
                         <div class="col-md-6">
-                            <label asp-for="LayoutType" class="form-label fw-bold"></label>
-                            <select asp-for="LayoutType" asp-items="Html.GetEnumSelectList<KitchenLayoutType>()" class="form-select"></select>
+                            <label asp-for="TargetDeliveryDate" class="form-label fw-bold">Ø§Ù„Ù…ÙˆØ¹Ø¯ Ø§Ù„Ù…ØªÙˆÙ‚Ø¹ Ù„Ù„ØªØ³Ù„ÙŠÙ…</label>
+                            <input asp-for="TargetDeliveryDate" type="date" class="form-control" value="@DateTime.Now.AddDays(45).ToString("yyyy-MM-dd")" />
                         </div>
                     </div>
 
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label asp-for="TargetDeliveryDate" class="form-label fw-bold"></label>
-                            <input asp-for="TargetDeliveryDate" type="date" class="form-control" />
-                        </div>
+                    <div class="mb-4">
+                        <label asp-for="Notes" class="form-label fw-bold">Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª ÙˆØ§Ù„Ø§Ø´ØªØ±Ø§Ø·Ø§Øª Ø§Ù„Ø£ÙˆÙ„ÙŠØ© Ù„Ù„Ø¹Ù…ÙŠÙ„</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Ø§Ù„Ø£Ù„ÙˆØ§Ù† Ø§Ù„Ù…ÙØ¶Ù„Ø©ØŒ Ù†ÙˆØ¹ Ø§Ù„Ù…Ù‚Ø§Ø¨Ø¶ØŒ Ù†ÙˆØ¹ Ø§Ù„Ø£Ø³Ø·Ø­ØŒ Ø§Ù„Ø£Ø¬Ù‡Ø²Ø© Ø§Ù„Ù…Ø¯Ù…Ø¬Ø©..."></textarea>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Notes" class="form-label fw-bold"></label>
-                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="الاحتياجات الأولية وملاحظات العميل..."></textarea>
-                    </div>
-
-                    <hr />
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-koss-primary px-4 py-2">
-                            <i class="fa-solid fa-floppy-disk me-1"></i> حفظ الطلب والتحويل للمعاينة الميدانية
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            <i class="fa-solid fa-arrow-right me-1"></i> Ø±Ø¬ÙˆØ¹
+                        </a>
+                        <button type="submit" class="btn btn-koss-primary px-4">
+                            <i class="fa-solid fa-folder-open me-1"></i> ÙØªØ­ Ù…Ù„Ù Ø§Ù„Ù…Ø´Ø±ÙˆØ¹
                         </button>
-                        <a asp-action="Index" class="btn btn-light px-4 py-2">إلغاء</a>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <div class="card card-custom border-primary border-top border-4">
-            <div class="card-body">
-                <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-circle-info me-1"></i> إرشادات فتح الطلب</h5>
-                <ul class="text-muted small ps-3">
-                    <li class="mb-2">كل طلب مطبخ يمثل مشروعاً مستقلاً ومركز تكلفة مخصصاً.</li>
-                    <li class="mb-2">بعد الحفظ ينتقل الطلب تلقائياً إلى حالة <strong>"بانتظار المعاينة"</strong>.</li>
-                    <li class="mb-2">يمكن لمدير المبيعات أو العمليات تكليف المهندس وتحديد موعد الزيارة.</li>
-                </ul>
             </div>
         </div>
     </div>

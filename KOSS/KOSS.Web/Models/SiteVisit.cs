@@ -4,9 +4,27 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace KOSS.Web.Models
 {
-    // ============================================================
-    //  المعاينة والقياسات الميدانية (SiteVisit)
-    // ============================================================
+    public enum SiteVisitStatus
+    {
+        [Display(Name = "معاينة مجدولة")]
+        Scheduled = 1,
+
+        [Display(Name = "قيد التنفيذ")]
+        InProgress = 2,
+
+        [Display(Name = "تمت الزيارة الميدانية")]
+        Completed = 3,
+
+        [Display(Name = "القياسات بانتظار الاعتماد")]
+        AwaitingReview = 4,
+
+        [Display(Name = "قياسات معتمدة")]
+        Approved = 5,
+
+        [Display(Name = "معاينة ملغاة")]
+        Cancelled = 6
+    }
+
     public class SiteVisit
     {
         public int Id { get; set; }
@@ -19,26 +37,25 @@ namespace KOSS.Web.Models
         public int? AssignedSurveyorId { get; set; }
 
         [Display(Name = "الموعد المجدول للزيارة")]
-        public DateTime? ScheduledDate { get; set; }
+        public DateTime ScheduledDate { get; set; } = DateTime.Now;
 
         [Display(Name = "تاريخ الزيارة الفعلي")]
         public DateTime? ActualVisitDate { get; set; }
 
-        // تفاصيل القياسات الفنية
         [Display(Name = "طول الجدار الرئيسي (سم)")]
-        public decimal? WallLength1Cm { get; set; }
+        public decimal WallLength1Cm { get; set; } = 0;
 
         [Display(Name = "طول الجدار الثاني (سم)")]
-        public decimal? WallLength2Cm { get; set; }
+        public decimal WallLength2Cm { get; set; } = 0;
 
         [Display(Name = "طول الجدار الثالث (سم)")]
-        public decimal? WallLength3Cm { get; set; }
+        public decimal WallLength3Cm { get; set; } = 0;
 
         [Display(Name = "الارتفاع من الأرض للسقف (سم)")]
-        public decimal? CeilingHeightCm { get; set; }
+        public decimal CeilingHeightCm { get; set; } = 0;
 
         [Display(Name = "المساحة الإجمالية المقدرة (م²)")]
-        public decimal? EstimatedAreaM2 { get; set; }
+        public decimal EstimatedAreaM2 { get; set; } = 0;
 
         [Display(Name = "موقع نقطة تصريف المياه والسباكة")]
         [StringLength(200)]
@@ -50,7 +67,15 @@ namespace KOSS.Web.Models
 
         [Display(Name = "مواقع النوافذ والأبواب والأعمدة")]
         [StringLength(300)]
+        public string StructuralObstacles { get; set; }
+
+        [Display(Name = "ملاحظات العوائق الإنشائية")]
+        [StringLength(300)]
         public string ObstaclesNotes { get; set; }
+
+        [Display(Name = "تقرير المهندس والملاحظات")]
+        [StringLength(1000)]
+        public string SurveyorReport { get; set; }
 
         [Display(Name = "رابط ملف المخطط / الصور المرفقة")]
         [StringLength(500)]
@@ -58,7 +83,7 @@ namespace KOSS.Web.Models
 
         [Display(Name = "تقرير المهندس والملاحظات")]
         [StringLength(1000)]
-        public string SurveyorReport { get; set; }
+        public string Notes { get; set; }
 
         [Display(Name = "حالة المعاينة")]
         public SiteVisitStatus Status { get; set; } = SiteVisitStatus.Scheduled;
@@ -69,14 +94,11 @@ namespace KOSS.Web.Models
         [Display(Name = "تاريخ الاعتماد")]
         public DateTime? ApprovedAt { get; set; }
 
-        [Display(Name = "تاريخ الإنشاء")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public string CreatedBy { get; set; }
 
         // العلاقات
-        [ForeignKey("KitchenRequestId")]
         public virtual KitchenRequest KitchenRequest { get; set; }
-
-        [ForeignKey("AssignedSurveyorId")]
         public virtual StaffMember AssignedSurveyor { get; set; }
     }
 }

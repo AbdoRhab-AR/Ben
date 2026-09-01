@@ -1,84 +1,81 @@
-@model IEnumerable<KOSS.Web.Models.SiteVisit>
+﻿@model IEnumerable<KOSS.Web.Models.SiteVisit>
 @{
-    ViewBag.Title = "المعاينات والقياسات الميدانية";
+    ViewData["Title"] = "المعاينات والقياسات الميدانية 3D";
 }
 
-<div class="page-header">
-    <h2>📏 المعاينات والقياسات الميدانية
-        <small>(المرحلة 3: رفع القياسات والنقاط الفنية بالموقع)</small>
-    </h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-ruler-combined text-warning me-2"></i> المعاينات والقياسات الميدانية بالليزر</h3>
+        <p class="text-muted mb-0">جدولة الزيارات الميدانية وتوثيق القياسات وتغذية الكهرباء والسباكة</p>
+    </div>
 </div>
 
-<div class="panel panel-default">
-    <div class="panel-heading"><h4>📋 جدول المعاينات والزيارات الميدانية (@Model.Count())</h4></div>
-    <div class="panel-body table-responsive">
-        <table class="table table-striped table-hover table-bordered">
-            <thead class="thead-koss">
-                <tr>
-                    <th>#</th>
-                    <th>رقم الطلب</th>
-                    <th>العميل</th>
-                    <th>الموقع</th>
-                    <th>المهندس المكلف</th>
-                    <th>الموعد المجدول</th>
-                    <th>الأبعاد (سم)</th>
-                    <th>الحالة</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr><td colspan="9" class="text-center text-muted">لا توجد معاينات مسجلة حالياً.</td></tr>
-                }
-                @foreach (var s in Model)
-                {
+<div class="card card-custom">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <td>@s.Id</td>
-                        <td>
-                            <a href="@Url.Action("Details", "Requests", new { id = s.KitchenRequestId })" style="font-weight:bold;">
-                                📁 @(s.KitchenRequest != null ? s.KitchenRequest.RequestNumber : "-")
-                            </a>
-                        </td>
-                        <td><strong>@(s.KitchenRequest != null && s.KitchenRequest.Customer != null ? s.KitchenRequest.Customer.Name : "-")</strong></td>
-                        <td><small>@(s.KitchenRequest != null ? s.KitchenRequest.Location : "-")</small></td>
-                        <td>@(s.AssignedSurveyor != null ? s.AssignedSurveyor.FullName : "غير معين")</td>
-                        <td>@(s.ScheduledDate.HasValue ? s.ScheduledDate.Value.ToString("yyyy/MM/dd") : "-")</td>
-                        <td>
-                            @if (s.WallLength1Cm.HasValue)
-                            {
-                                <span>@s.WallLength1Cm x @s.WallLength2Cm</span>
-                            }
-                            else
-                            {
-                                <span>-</span>
-                            }
-                        </td>
-                        <td>
-                            @if (s.Status == SiteVisitStatus.Approved)
-                            {
-                                <span class="label label-success">@s.Status</span>
-                            }
-                            else
-                            {
-                                <span class="label label-warning">@s.Status</span>
-                            }
-                        </td>
-                        <td>
-                            <a href="@Url.Action("RecordMeasurements", new { id = s.Id })" class="btn btn-xs btn-default">📐 إدخال القياسات</a>
-                            @if (s.Status != SiteVisitStatus.Approved)
-                            {
-                                using (Html.BeginForm("Approve", "SiteVisits", FormMethod.Post, new { style = "display:inline;" }))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="visitId" value="@s.Id" />
-                                    <button type="submit" class="btn btn-xs btn-success">✅ اعتماد المعاينة</button>
-                                }
-                            }
-                        </td>
+                        <th>رقم المعاينة</th>
+                        <th>طلب المطبخ</th>
+                        <th>العميل والموقع</th>
+                        <th>تاريخ الزيارة المجدول</th>
+                        <th>المهندس المساح</th>
+                        <th>الأبعاد المرفوعة (سم)</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="8" class="text-center py-5 text-muted">لا توجد مواعيد معاينة مسجلة.</td></tr>
+                    }
+                    @foreach (var v in Model)
+                    {
+                        <tr>
+                            <td><strong class="text-primary font-monospace">#@v.Id</strong></td>
+                            <td>
+                                <a asp-controller="Requests" asp-action="Details" asp-route-id="@v.KitchenRequestId" class="fw-bold text-decoration-none">
+                                    @(v.KitchenRequest?.RequestNumber ?? $"طلب #{v.KitchenRequestId}")
+                                </a>
+                            </td>
+                            <td>
+                                <strong>@(v.KitchenRequest?.Customer?.Name ?? "-")</strong>
+                                <small class="d-block text-muted"><i class="fa-solid fa-location-dot text-danger me-1"></i> @(v.KitchenRequest?.Location ?? "-")</small>
+                            </td>
+                            <td><strong class="text-dark">@v.ScheduledDate.ToString("yyyy/MM/dd")</strong></td>
+                            <td>@(v.AssignedSurveyor != null ? v.AssignedSurveyor.FullName : "مهندس المساحة")</td>
+                            <td>
+                                @if (v.WallLength1Cm > 0)
+                                {
+                                    <span class="badge bg-light text-dark border">@v.WallLength1Cm × @v.WallLength2Cm × @v.CeilingHeightCm سم</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">لم تُرفع بعد</span>
+                                }
+                            </td>
+                            <td><span class="badge bg-primary px-3 py-2">@v.Status.ToArabic()</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a asp-action="RecordMeasurements" asp-route-id="@v.Id" class="btn btn-outline-primary">
+                                        <i class="fa-solid fa-pen-ruler me-1"></i> رفع القياسات
+                                    </a>
+                                    @if (v.Status == SiteVisitStatus.AwaitingReview)
+                                    {
+                                        <form asp-action="Approve" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="visitId" value="@v.Id" />
+                                            <button type="submit" class="btn btn-success"><i class="fa-solid fa-check me-1"></i> اعتماد</button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

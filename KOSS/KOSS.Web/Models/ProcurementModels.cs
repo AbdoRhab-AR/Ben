@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -6,83 +6,92 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace KOSS.Web.Models
 {
     // ============================================================
-    //  Ø§Ù„Ù…ÙˆØ±Ø¯ (Supplier)
+    //  المورد (Supplier)
     // ============================================================
     public class Supplier
     {
         public int Id { get; set; }
 
-        [Display(Name = "ÙƒÙˆØ¯ Ø§Ù„Ù…ÙˆØ±Ø¯")]
+        [Display(Name = "كود المورد")]
         [Required, StringLength(30)]
         public string Code { get; set; }
 
-        [Display(Name = "Ø§Ø³Ù… Ø§Ù„Ù…ÙˆØ±Ø¯ / Ø§Ù„Ø´Ø±ÙƒØ©")]
+        [Display(Name = "اسم المورد / الشركة")]
         [Required, StringLength(150)]
         public string Name { get; set; }
 
-        [Display(Name = "Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ")]
+        [Display(Name = "رقم الهاتف")]
         [Required, StringLength(30)]
         public string Phone { get; set; }
 
-        [Display(Name = "Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ")]
+        [Display(Name = "البريد الإلكتروني")]
         [StringLength(100)]
         public string Email { get; set; }
 
-        [Display(Name = "Ø§Ù„Ø¹Ù†ÙˆØ§Ù†")]
+        [Display(Name = "العنوان")]
         [StringLength(200)]
         public string Address { get; set; }
 
-        [Display(Name = "Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ù…Ø§Ù„ÙŠ Ø§Ù„Ø­Ø§Ù„ÙŠ Ø§Ù„Ù…Ø³ØªØ­Ù‚ Ù„Ù„Ù…ÙˆØ±Ø¯ (Ø¯.Ù„)")]
+        [Display(Name = "الرصيد المالي الحالي المستحق للمورد (د.ل)")]
         public decimal CurrentBalance { get; set; } = 0;
 
-        [Display(Name = "Ù‡Ù„ Ø§Ù„Ù…ÙˆØ±Ø¯ Ù†Ø´Ø·ØŸ")]
+        [Display(Name = "هل المورد نشط؟")]
         public bool IsActive { get; set; } = true;
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
+        // العلاقات
         public virtual ICollection<PurchaseOrder> PurchaseOrders { get; set; } = new List<PurchaseOrder>();
     }
 
     // ============================================================
-    //  Ø·Ù„Ø¨ Ø§Ù„Ø§Ø­ØªÙŠØ§Ø¬ / Ø·Ù„Ø¨ Ø§Ù„Ø´Ø±Ø§Ø¡ Ø§Ù„Ø£ÙˆÙ„ÙŠ (PurchaseRequest)
+    //  طلب الاحتياج / طلب الشراء الأولي (PurchaseRequest)
     // ============================================================
+    public enum PriorityLevel
+    {
+        [Display(Name = "عادي")]
+        Normal = 1,
+
+        [Display(Name = "عاجل")]
+        Urgent = 2,
+
+        [Display(Name = "طارئ جداً")]
+        Critical = 3
+    }
+
     public class PurchaseRequest
     {
         public int Id { get; set; }
 
-        [Display(Name = "Ø·Ù„Ø¨ Ø§Ù„Ù…Ø·Ø¨Ø® Ø§Ù„Ù…Ø±ØªØ¨Ø· (Ø¥Ù† ÙˆØ¬Ø¯)")]
+        [Display(Name = "طلب المطبخ المرتبط")]
         public int? KitchenRequestId { get; set; }
 
-        [Display(Name = "Ø±Ù‚Ù… Ø·Ù„Ø¨ Ø§Ù„Ø§Ø­ØªÙŠØ§Ø¬")]
+        [Display(Name = "رقم طلب الاحتياج")]
         [Required, StringLength(50)]
         public string RequestNumber { get; set; }
 
-        [Display(Name = "Ø§Ù„ØºØ±Ø¶ Ù…Ù† Ø§Ù„Ø´Ø±Ø§Ø¡")]
+        [Display(Name = "الغرض من الشراء")]
         [Required, StringLength(200)]
-        public string Purpose { get; set; } // Ù„Ù…Ø´Ø±ÙˆØ¹ Ù…Ø¹ÙŠÙ†ØŒ Ù„ØªØºØ°ÙŠØ© Ø§Ù„Ù…Ø®Ø²ÙˆÙ†...
+        public string Purpose { get; set; }
 
-        [Display(Name = "Ø§Ù„Ø£ÙˆÙ„ÙˆÙŠØ©")]
+        [Display(Name = "الأولوية")]
         public PriorityLevel Priority { get; set; } = PriorityLevel.Normal;
 
-        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø·Ù„Ø¨")]
+        [Display(Name = "تاريخ الطلب")]
         public DateTime RequestDate { get; set; } = DateTime.Now;
 
-        [Display(Name = "Ø­Ø§Ù„Ø© Ø§Ù„Ø·Ù„Ø¨")]
-        public string Status { get; set; } = "Pending"; // Pending, Approved, ConvertedToPO, Rejected
+        [Display(Name = "حالة الطلب")]
+        public string Status { get; set; } = "Pending";
 
-        [Display(Name = "Ø§Ù„Ù…Ø¹ØªÙ…Ø¯")]
+        [Display(Name = "المعتمد")]
         public string ApprovedBy { get; set; }
 
-        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯")]
+        [Display(Name = "تاريخ الاعتماد")]
         public DateTime? ApprovedAt { get; set; }
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
+        // العلاقات
         public virtual KitchenRequest KitchenRequest { get; set; }
         public virtual ICollection<PurchaseRequestItem> Items { get; set; } = new List<PurchaseRequestItem>();
     }
 
-    // ============================================================
-    //  Ø¨Ù†Ø¯ Ø·Ù„Ø¨ Ø§Ù„Ø§Ø­ØªÙŠØ§Ø¬ (PurchaseRequestItem)
-    // ============================================================
     public class PurchaseRequestItem
     {
         public int Id { get; set; }
@@ -93,14 +102,14 @@ namespace KOSS.Web.Models
         [Required]
         public int ItemMasterId { get; set; }
 
-        [Display(Name = "Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø©")]
+        [Display(Name = "الكمية المطلوبة")]
         public decimal QuantityRequested { get; set; }
 
-        [Display(Name = "Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ù„Ø¨Ù†Ø¯")]
+        [Display(Name = "ملاحظات البند")]
         [StringLength(200)]
         public string Notes { get; set; }
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
+        // العلاقات
         public virtual PurchaseRequest PurchaseRequest { get; set; }
         public virtual ItemMaster ItemMaster { get; set; }
     }
@@ -132,7 +141,7 @@ namespace KOSS.Web.Models
         public decimal TotalAmount { get; set; } = 0;
 
         [Display(Name = "حالة أمر الشراء")]
-        public string Status { get; set; } = "Draft"; // Draft, Approved, SentToSupplier, PartiallyReceived, Completed, Cancelled
+        public string Status { get; set; } = "Draft";
 
         [Display(Name = "ملاحظات وشروط التوريد")]
         [StringLength(500)]
@@ -148,9 +157,6 @@ namespace KOSS.Web.Models
         public virtual ICollection<GoodsReceipt> GoodsReceipts { get; set; } = new List<GoodsReceipt>();
     }
 
-    // ============================================================
-    //  بند في أمر الشراء (PurchaseOrderItem)
-    // ============================================================
     public class PurchaseOrderItem
     {
         public int Id { get; set; }
@@ -188,36 +194,33 @@ namespace KOSS.Web.Models
         [Required]
         public int WarehouseId { get; set; }
 
-        [Display(Name = "Ø±Ù‚Ù… Ø³Ù†Ø¯ Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…")]
+        [Display(Name = "رقم سند الاستلام")]
         [Required, StringLength(50)]
         public string ReceiptNumber { get; set; }
 
-        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…")]
+        [Display(Name = "تاريخ الاستلام")]
         public DateTime ReceivedDate { get; set; } = DateTime.Now;
 
-        [Display(Name = "Ø£Ù…ÙŠÙ† Ø§Ù„Ù…Ø®Ø²Ù† Ø§Ù„Ù…Ø³ØªÙ„Ù…")]
+        [Display(Name = "أمين المخزن المستلم")]
         public string ReceivedBy { get; set; }
 
-        [Display(Name = "Ø±Ù‚Ù… Ø¥Ø°Ù† ØªØ³Ù„ÙŠÙ… / ÙØ§ØªÙˆØ±Ø© Ø§Ù„Ù…ÙˆØ±Ø¯")]
+        [Display(Name = "رقم إذن تسليم / فاتورة المورد")]
         [StringLength(100)]
         public string SupplierDeliveryNote { get; set; }
 
-        [Display(Name = "Ø­Ø§Ù„Ø© Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù… ÙˆØ§Ù„ÙØ­Øµ")]
-        public string QualityStatus { get; set; } = "Passed"; // Passed, PartialPass, Rejected
+        [Display(Name = "حالة الاستلام والفحص")]
+        public string QualityStatus { get; set; } = "Passed";
 
-        [Display(Name = "Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ù„ÙØ­Øµ ÙˆØ§Ù„Ø§Ø³ØªÙ„Ø§Ù…")]
+        [Display(Name = "ملاحظات الفحص والاستلام")]
         [StringLength(500)]
         public string Notes { get; set; }
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
+        // العلاقات
         public virtual PurchaseOrder PurchaseOrder { get; set; }
         public virtual Warehouse Warehouse { get; set; }
         public virtual ICollection<GoodsReceiptItem> Items { get; set; } = new List<GoodsReceiptItem>();
     }
 
-    // ============================================================
-    //  Ø¨Ù†Ø¯ ÙÙŠ Ø³Ù†Ø¯ Ø§Ø³ØªÙ„Ø§Ù… Ø§Ù„Ø¨Ø¶Ø§Ø¹Ø© (GoodsReceiptItem)
-    // ============================================================
     public class GoodsReceiptItem
     {
         public int Id { get; set; }
@@ -228,21 +231,20 @@ namespace KOSS.Web.Models
         [Required]
         public int ItemMasterId { get; set; }
 
-        [Display(Name = "Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„Ù…Ø³ØªÙ„Ù…Ø© Ø§Ù„Ø³Ù„ÙŠÙ…Ø©")]
+        [Display(Name = "الكمية المستلمة السليمة")]
         public decimal QuantityReceived { get; set; }
 
-        [Display(Name = "Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„ØªØ§Ù„ÙØ© / Ø§Ù„Ù…Ø±ÙÙˆØ¶Ø©")]
+        [Display(Name = "الكمية التالفة / المرفوضة")]
         public decimal QuantityDamaged { get; set; } = 0;
 
-        [Display(Name = "Ø³Ø¹Ø± Ø§Ù„ÙˆØ­Ø¯Ø© Ù…Ù† Ø§Ù„ÙØ§ØªÙˆØ±Ø© (Ø¯.Ù„)")]
+        [Display(Name = "سعر الوحدة من الفاتورة (د.ل)")]
         public decimal UnitCost { get; set; }
 
-        [Display(Name = "Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ (Ø¯.Ù„)")]
+        [Display(Name = "الإجمالي (د.ل)")]
         public decimal TotalCost => QuantityReceived * UnitCost;
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
+        // العلاقات
         public virtual GoodsReceipt GoodsReceipt { get; set; }
         public virtual ItemMaster ItemMaster { get; set; }
     }
 }
-

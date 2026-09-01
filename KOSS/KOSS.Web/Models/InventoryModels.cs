@@ -6,108 +6,108 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace KOSS.Web.Models
 {
     // ============================================================
-    //  Ø£Ù†ÙˆØ§Ø¹ Ø§Ù„Ø­Ø±ÙƒØ§Øª Ø§Ù„Ù…Ø®Ø²Ù†ÙŠØ©
+    //  أنواع الحركات المخزنية
     // ============================================================
     public enum StockTransactionType
     {
-        [Display(Name = "Ø§Ø³ØªÙ„Ø§Ù… Ù…Ø®Ø²Ù†ÙŠ (Ø´Ø±Ø§Ø¡ / ØªÙˆØ±ÙŠØ¯)")]
+        [Display(Name = "استلام مخزني (شراء / توريد)")]
         Receipt = 1,
 
-        [Display(Name = "ØµØ±Ù Ù„Ù…Ø´Ø±ÙˆØ¹ Ù…Ø·Ø¨Ø®")]
+        [Display(Name = "صرف لمشروع مطبخ")]
         IssueToProject = 2,
 
-        [Display(Name = "ØµØ±Ù ØªØ´ØºÙŠÙ„ÙŠ Ø¹Ø§Ù…")]
+        [Display(Name = "صرف تشغيلي عام")]
         IssueGeneral = 3,
 
-        [Display(Name = "Ù…Ù†Ø§Ù‚Ù„Ø© Ø¨ÙŠÙ† Ù…Ø³ØªÙˆØ¯Ø¹ÙŠÙ†")]
+        [Display(Name = "مناقلة بين مستودعين")]
         Transfer = 4,
 
-        [Display(Name = "Ù…Ø±ØªØ¬Ø¹ Ù…Ù† Ù…Ø´Ø±ÙˆØ¹ Ù„Ù„Ù…Ø®Ø²Ù†")]
+        [Display(Name = "مرتجع من مشروع للمخزن")]
         ReturnFromProject = 5,
 
-        [Display(Name = "Ù…Ø±ØªØ¬Ø¹ Ù„Ù…ÙˆØ±Ø¯")]
+        [Display(Name = "مرتجع لمورد")]
         ReturnToSupplier = 6,
 
-        [Display(Name = "ØªØ³ÙˆÙŠØ© Ø¬Ø±Ø¯ÙŠØ© (+ / -)")]
+        [Display(Name = "تسوية جردية (+ / -)")]
         InventoryAdjustment = 7
     }
 
     // ============================================================
-    //  Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹ (Warehouse)
+    //  المستودع (Warehouse)
     // ============================================================
     public class Warehouse
     {
         public int Id { get; set; }
 
-        [Display(Name = "ÙƒÙˆØ¯ Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹")]
+        [Display(Name = "كود المستودع")]
         [Required, StringLength(30)]
         public string Code { get; set; }
 
-        [Display(Name = "Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹")]
+        [Display(Name = "اسم المستودع")]
         [Required, StringLength(150)]
         public string Name { get; set; }
 
-        [Display(Name = "Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø§Ù„Ø¬ØºØ±Ø§ÙÙŠ")]
+        [Display(Name = "الموقع الجغرافي")]
         [StringLength(200)]
         public string Location { get; set; }
 
-        [Display(Name = "Ø£Ù…ÙŠÙ† Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹")]
+        [Display(Name = "أمين المستودع")]
         [StringLength(100)]
         public string KeeperName { get; set; }
 
-        [Display(Name = "Ù‡Ù„ Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹ Ù†Ø´Ø·ØŸ")]
+        [Display(Name = "هل المستودع نشط؟")]
         public bool IsActive { get; set; } = true;
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
+        // العلاقات
         public virtual ICollection<StockItem> StockItems { get; set; } = new List<StockItem>();
         public virtual ICollection<StockIssue> StockIssues { get; set; } = new List<StockIssue>();
     }
 
     // ============================================================
-    //  Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø£ØµÙ†Ø§Ù ÙˆØ§Ù„Ù…ÙˆØ§Ø¯ Ø§Ù„Ù‚ÙŠØ§Ø³ÙŠ (ItemMaster)
+    //  دليل الأصناف والمواد القياسي (ItemMaster)
     // ============================================================
     public class ItemMaster
     {
         public int Id { get; set; }
 
-        [Display(Name = "ÙƒÙˆØ¯ Ø§Ù„ØµÙ†Ù Ø§Ù„Ù…Ø¹ÙŠØ§Ø±ÙŠ")]
+        [Display(Name = "كود الصنف المعياري")]
         [Required, StringLength(50)]
         public string ItemCode { get; set; }
 
-        [Display(Name = "Ø§Ø³Ù… Ø§Ù„Ù…Ø§Ø¯Ø© / Ø§Ù„ØµÙ†Ù")]
+        [Display(Name = "اسم المادة / الصنف")]
         [Required, StringLength(200)]
         public string Name { get; set; }
 
-        [Display(Name = "Ø§Ù„ÙØ¦Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©")]
+        [Display(Name = "الفئة الرئيسية")]
         [Required, StringLength(100)]
-        public string Category { get; set; } // Ø£Ù„ÙˆØ§Ø­ Ø®Ø´Ø¨ØŒ Ù‚ÙˆØ§Ø·Ø¹ØŒ Ù…ÙØµÙ„Ø§ØªØŒ Ø³ÙƒÙƒ Ø£Ø¯Ø±Ø§Ø¬ØŒ Ù…Ù‚Ø§Ø¨Ø¶ØŒ Ø­ÙˆØ§Ù PVCØŒ Ø±Ø®Ø§Ù…...
+        public string Category { get; set; }
 
-        [Display(Name = "Ø§Ù„ÙˆØ­Ø¯Ø© Ø§Ù„Ù‚ÙŠØ§Ø³ÙŠØ©")]
+        [Display(Name = "الوحدة القياسية")]
         [Required, StringLength(30)]
-        public string Unit { get; set; } = "Ù‚Ø·Ø¹Ø©";
+        public string Unit { get; set; } = "قطعة";
 
-        [Display(Name = "Ø§Ù„ØªÙƒÙ„ÙØ© Ø§Ù„Ù‚ÙŠØ§Ø³ÙŠØ© (Ø¯.Ù„)")]
+        [Display(Name = "التكلفة القياسية (د.ل)")]
         public decimal StandardCost { get; set; } = 0;
 
-        [Display(Name = "Ø³Ø¹Ø± Ø§Ù„Ø¨ÙŠØ¹ Ø§Ù„Ù‚ÙŠØ§Ø³ÙŠ (Ø¯.Ù„)")]
+        [Display(Name = "سعر البيع القياسي (د.ل)")]
         public decimal StandardSalePrice { get; set; } = 0;
 
-        [Display(Name = "Ø­Ø¯ Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ø·Ù„Ø¨ Ø§Ù„Ø£Ø¯Ù†Ù‰")]
+        [Display(Name = "حد إعادة الطلب الأدنى")]
         public decimal ReorderLevel { get; set; } = 5;
 
-        [Display(Name = "Ø§Ù„Ù…ÙˆØ§ØµÙØ§Øª Ø§Ù„ÙÙ†ÙŠØ©")]
+        [Display(Name = "المواصفات الفنية")]
         [StringLength(500)]
         public string Specifications { get; set; }
 
-        [Display(Name = "Ù‡Ù„ Ø§Ù„ØµÙ†Ù Ù†Ø´Ø·ØŸ")]
+        [Display(Name = "هل الصنف نشط؟")]
         public bool IsActive { get; set; } = true;
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
+        // العلاقات
         public virtual ICollection<StockItem> StockItems { get; set; } = new List<StockItem>();
     }
 
     // ============================================================
-    //  Ø±ØµÙŠØ¯ Ø§Ù„ØµÙ†Ù Ø¨Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹ (StockItem) - Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„ÙØ¹Ù„ÙŠ ÙˆØ§Ù„Ù…Ø­Ø¬ÙˆØ² ÙˆØ§Ù„Ù…ØªØ§Ø­
+    //  رصيد الصنف بالمستودع (StockItem)
     // ============================================================
     public class StockItem
     {
@@ -119,66 +119,66 @@ namespace KOSS.Web.Models
         [Required]
         public int ItemMasterId { get; set; }
 
-        [Display(Name = "Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„ÙØ¹Ù„ÙŠ (Physical Stock)")]
+        [Display(Name = "الرصيد الفعلي بالمخزن")]
         public decimal PhysicalQuantity { get; set; } = 0;
 
-        [Display(Name = "Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ù…Ø­Ø¬ÙˆØ² Ù„Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ (Reserved Stock)")]
+        [Display(Name = "الرصيد المحجوز للمشاريع")]
         public decimal ReservedQuantity { get; set; } = 0;
 
-        [Display(Name = "Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ù…ØªØ§Ø­ Ù„Ù„ØµØ±Ù (Available Stock)")]
+        [Display(Name = "الرصيد المتاح للصرف")]
         public decimal AvailableQuantity => Math.Max(0, PhysicalQuantity - ReservedQuantity);
 
-        [Display(Name = "Ù…ØªÙˆØ³Ø· Ø§Ù„ØªÙƒÙ„ÙØ© Ø§Ù„Ù…Ø±Ø¬Ø­ (WAC)")]
+        [Display(Name = "متوسط التكلفة المرجح (WAC)")]
         public decimal WeightedAverageCost { get; set; } = 0;
 
-        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø¢Ø®Ø± Ø¬Ø±Ø¯ / ØªØ­Ø¯ÙŠØ«")]
+        [Display(Name = "تاريخ آخر تحديث")]
         public DateTime LastUpdated { get; set; } = DateTime.Now;
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
+        // العلاقات
         public virtual Warehouse Warehouse { get; set; }
         public virtual ItemMaster ItemMaster { get; set; }
     }
 
     // ============================================================
-    //  Ø³Ù†Ø¯ ØµØ±Ù Ù…Ø®Ø²Ù†ÙŠ Ù„Ù…Ø´Ø±ÙˆØ¹ Ù…Ø·Ø¨Ø® (StockIssue)
+    //  سند صرف مخزني لمشروع مطبخ (StockIssue)
     // ============================================================
     public class StockIssue
     {
         public int Id { get; set; }
 
         [Required]
-        [Display(Name = "Ø·Ù„Ø¨ Ø§Ù„Ù…Ø·Ø¨Ø® / Ù…Ø±ÙƒØ² Ø§Ù„ØªÙƒÙ„ÙØ©")]
+        [Display(Name = "طلب المطبخ")]
         public int KitchenRequestId { get; set; }
 
-        [Display(Name = "Ø£Ù…Ø± Ø§Ù„ØªÙ†ÙÙŠØ°")]
+        [Display(Name = "أمر التنفيذ")]
         public int? WorkOrderId { get; set; }
 
         [Required]
-        [Display(Name = "Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹ Ø§Ù„Ù…ØµØ±ÙˆÙ Ù…Ù†Ù‡")]
+        [Display(Name = "المستودع المصروف منه")]
         public int WarehouseId { get; set; }
 
-        [Display(Name = "Ø±Ù‚Ù… Ø³Ù†Ø¯ Ø§Ù„ØµØ±Ù")]
+        [Display(Name = "رقم سند الصرف")]
         [Required, StringLength(50)]
         public string IssueNumber { get; set; }
 
-        [Display(Name = "ØªØ§Ø±ÙŠØ® ÙˆØ³Ø§Ø¹Ø© Ø§Ù„ØµØ±Ù")]
+        [Display(Name = "تاريخ وساعة الصرف")]
         public DateTime IssuedAt { get; set; } = DateTime.Now;
 
-        [Display(Name = "Ø§Ù„Ù…Ø³ØªÙ„Ù… (Ø§Ù„ÙÙ†ÙŠ / Ø§Ù„ÙØ±ÙŠÙ‚)")]
+        [Display(Name = "المستلم (الفني / الفريق)")]
         [Required, StringLength(100)]
         public string RecipientName { get; set; }
 
-        [Display(Name = "Ø¥Ø¬Ù…Ø§Ù„ÙŠ ØªÙƒÙ„ÙØ© Ø§Ù„Ù…ÙˆØ§Ø¯ Ø§Ù„Ù…ØµØ±ÙˆÙØ© (Ø¯.Ù„)")]
+        [Display(Name = "إجمالي تكلفة المواد المصروفة (د.ل)")]
         public decimal TotalCost { get; set; } = 0;
 
-        [Display(Name = "Ø§Ù„Ù…Ø¹ØªÙ…Ø¯")]
+        [Display(Name = "المعتمد")]
         public string ApprovedBy { get; set; }
 
-        [Display(Name = "Ù…Ù„Ø§Ø­Ø¸Ø§Øª")]
+        [Display(Name = "ملاحظات")]
         [StringLength(500)]
         public string Notes { get; set; }
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
+        // العلاقات
         public virtual KitchenRequest KitchenRequest { get; set; }
         public virtual WorkOrder WorkOrder { get; set; }
         public virtual Warehouse Warehouse { get; set; }
@@ -186,7 +186,7 @@ namespace KOSS.Web.Models
     }
 
     // ============================================================
-    //  Ø¨Ù†Ø¯ ÙÙŠ Ø³Ù†Ø¯ Ø§Ù„ØµØ±Ù Ø§Ù„Ù…Ø®Ø²Ù†ÙŠ (StockIssueItem)
+    //  بند في سند الصرف المخزني (StockIssueItem)
     // ============================================================
     public class StockIssueItem
     {
@@ -198,22 +198,22 @@ namespace KOSS.Web.Models
         [Required]
         public int ItemMasterId { get; set; }
 
-        [Display(Name = "Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„Ù…ØµØ±ÙˆÙØ©")]
+        [Display(Name = "الكمية المصروفة")]
         public decimal QuantityIssued { get; set; }
 
-        [Display(Name = "ØªÙƒÙ„ÙØ© Ø§Ù„ÙˆØ­Ø¯Ø© Ø¹Ù†Ø¯ Ø§Ù„ØµØ±Ù (Ø¯.Ù„)")]
+        [Display(Name = "تكلفة الوحدة عند الصرف (د.ل)")]
         public decimal UnitCost { get; set; }
 
-        [Display(Name = "Ø¥Ø¬Ù…Ø§Ù„ÙŠ ØªÙƒÙ„ÙØ© Ø§Ù„Ø¨Ù†Ø¯ (Ø¯.Ù„)")]
+        [Display(Name = "إجمالي تكلفة البند (د.ل)")]
         public decimal TotalCost => QuantityIssued * UnitCost;
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
+        // العلاقات
         public virtual StockIssue StockIssue { get; set; }
         public virtual ItemMaster ItemMaster { get; set; }
     }
 
     // ============================================================
-    //  Ø³Ø¬Ù„ Ø§Ù„Ø­Ø±ÙƒØ§Øª Ø§Ù„Ù…Ø®Ø²Ù†ÙŠØ© Ø§Ù„Ø¹Ø§Ù… (StockTransaction)
+    //  سجل الحركات المخزنية العام (StockTransaction)
     // ============================================================
     public class StockTransaction
     {
@@ -225,38 +225,27 @@ namespace KOSS.Web.Models
         [Required]
         public int ItemMasterId { get; set; }
 
-        [Display(Name = "Ù†ÙˆØ¹ Ø§Ù„Ø­Ø±ÙƒØ©")]
+        [Display(Name = "نوع الحركة")]
         public StockTransactionType TransactionType { get; set; }
 
-        [Display(Name = "Ø±Ù‚Ù… Ø§Ù„Ù…Ø³ØªÙ†Ø¯ Ø§Ù„Ù…Ø±Ø¬Ø¹ÙŠ")]
-        [StringLength(100)]
+        [Display(Name = "الكمية")]
+        public decimal Quantity { get; set; }
+
+        [Display(Name = "تكلفة الوحدة (د.ل)")]
+        public decimal UnitCost { get; set; }
+
+        [Display(Name = "رقم المستند المرجعي")]
+        [StringLength(50)]
         public string ReferenceNumber { get; set; }
 
-        [Display(Name = "Ù…Ø±ÙƒØ² Ø§Ù„ØªÙƒÙ„ÙØ© / Ø·Ù„Ø¨ Ø§Ù„Ù…Ø·Ø¨Ø®")]
-        public int? KitchenRequestId { get; set; }
-
-        [Display(Name = "Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„ÙˆØ§Ø±Ø¯Ø© (+)")]
-        public decimal InQuantity { get; set; } = 0;
-
-        [Display(Name = "Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„ØµØ§Ø¯Ø±Ø© (-)")]
-        public decimal OutQuantity { get; set; } = 0;
-
-        [Display(Name = "Ø³Ø¹Ø± Ø§Ù„ÙˆØ­Ø¯Ø© Ù„Ù„Ø­Ø±ÙƒØ© (Ø¯.Ù„)")]
-        public decimal UnitCost { get; set; } = 0;
-
-        [Display(Name = "Ø§Ù„Ù‚ÙŠÙ…Ø© Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠØ© Ù„Ù„Ø­Ø±ÙƒØ© (Ø¯.Ù„)")]
-        public decimal TotalCost => (InQuantity > 0 ? InQuantity : OutQuantity) * UnitCost;
-
-        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø­Ø±ÙƒØ©")]
+        [Display(Name = "تاريخ الحركة")]
         public DateTime TransactionDate { get; set; } = DateTime.Now;
 
-        [Display(Name = "Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø§Ù„Ø°ÙŠ Ù†ÙØ° Ø§Ù„Ø­Ø±ÙƒØ©")]
+        [Display(Name = "المستخدم المسؤول")]
         public string CreatedBy { get; set; }
 
-        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
+        // العلاقات
         public virtual Warehouse Warehouse { get; set; }
         public virtual ItemMaster ItemMaster { get; set; }
-        public virtual KitchenRequest KitchenRequest { get; set; }
     }
 }
-

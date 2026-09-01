@@ -1,65 +1,61 @@
-@model IEnumerable<KOSS.Web.Models.Contract>
+﻿@model IEnumerable<KOSS.Web.Models.Contract>
 @{
-    ViewBag.Title = "العقود الرسمية";
+    ViewData["Title"] = "العقود والاتفاقيات الرسمية";
 }
 
-<div class="page-header">
-    <h2>📋 العقود الرسمية للمطابخ
-        <small>(المرحلة 6: تفعيل العقود وجداول الدفعات)</small>
-    </h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-file-contract text-danger me-2"></i> العقود والاتفاقيات الرسمية وجدول الدفعات</h3>
+        <p class="text-muted mb-0">إدارة العقود السارية، ومتابعة تحصيل الدفعات المالية الأربعة</p>
+    </div>
 </div>
 
-<div class="panel panel-default">
-    <div class="panel-heading"><h4>📋 قائمة العقود المسجلة (@Model.Count())</h4></div>
-    <div class="panel-body table-responsive">
-        <table class="table table-striped table-hover table-bordered">
-            <thead class="thead-koss">
-                <tr>
-                    <th>رقم العقد</th>
-                    <th>رقم الطلب</th>
-                    <th>العميل</th>
-                    <th>إجمالي القيمة</th>
-                    <th>المدفوع</th>
-                    <th>المتبقي</th>
-                    <th>نسبة السداد</th>
-                    <th>الحالة</th>
-                    <th>تاريخ التوقيع</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr><td colspan="10" class="text-center text-muted">لا توجد عقود مسجلة حالياً.</td></tr>
-                }
-                @foreach (var c in Model)
-                {
+<div class="card card-custom">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <td><strong>@c.ContractNumber</strong></td>
-                        <td>
-                            <a href="@Url.Action("Details", "Requests", new { id = c.KitchenRequestId })" style="font-weight:bold;">
-                                📁 @(c.KitchenRequest != null ? c.KitchenRequest.RequestNumber : "-")
-                            </a>
-                        </td>
-                        <td><strong>@(c.KitchenRequest != null && c.KitchenRequest.Customer != null ? c.KitchenRequest.Customer.Name : (c.Client != null ? c.Client.Name : "-"))</strong></td>
-                        <td>@c.TotalValue.ToString("N3") د.ل</td>
-                        <td class="text-success"><strong>@c.TotalPaid.ToString("N3") د.ل</strong></td>
-                        <td class="text-danger"><strong>@c.RemainingBalance.ToString("N3") د.ل</strong></td>
-                        <td>
-                            <div class="progress" style="margin-bottom:0; min-width:80px;">
-                                <div class="progress-bar @(c.PaymentPercentage >= 70 ? "progress-bar-success" : "progress-bar-warning")" style="width:@c.PaymentPercentage.ToString("F0")%">
-                                    @c.PaymentPercentage.ToString("F0")%
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="label @(c.Status == ContractStatus.Active ? "label-success" : "label-default")">@c.Status</span></td>
-                        <td>@(c.SignedDate.HasValue ? c.SignedDate.Value.ToString("yyyy/MM/dd") : "-")</td>
-                        <td>
-                            <a href="@Url.Action("Details", "Requests", new { id = c.KitchenRequestId })" class="btn btn-xs btn-primary">📁 فتح ملف المشروع</a>
-                        </td>
+                        <th>رقم العقد</th>
+                        <th>طلب المطبخ</th>
+                        <th>العميل</th>
+                        <th>إجمالي قيمة العقد</th>
+                        <th>المحصل الفعلي</th>
+                        <th>المتبقي للتحصيل</th>
+                        <th>حالة العقد</th>
+                        <th>تاريخ التوقيع</th>
+                        <th>الإجراءات</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="9" class="text-center py-5 text-muted">لا توجد عقود مسجلة حالياً.</td></tr>
+                    }
+                    @foreach (var c in Model)
+                    {
+                        <tr>
+                            <td><strong class="text-primary font-monospace">@c.ContractNumber</strong></td>
+                            <td>
+                                <a asp-controller="Requests" asp-action="Details" asp-route-id="@c.KitchenRequestId" class="fw-bold text-decoration-none">
+                                    @(c.KitchenRequest?.RequestNumber ?? $"طلب #{c.KitchenRequestId}")
+                                </a>
+                            </td>
+                            <td><strong>@(c.KitchenRequest?.Customer?.Name ?? "-")</strong></td>
+                            <td><strong class="text-dark">@c.TotalValue.ToString("N3") د.ل</strong></td>
+                            <td><strong class="text-success">@c.TotalPaid.ToString("N3") د.ل</strong></td>
+                            <td><strong class="text-danger">@c.RemainingBalance.ToString("N3") د.ل</strong></td>
+                            <td><span class="badge bg-success px-3 py-2">@c.Status.ToArabic()</span></td>
+                            <td class="text-muted"><small>@c.SignedDate.ToString("yyyy/MM/dd")</small></td>
+                            <td>
+                                <a asp-controller="Requests" asp-action="Details" asp-route-id="@c.KitchenRequestId" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa-solid fa-folder-open me-1"></i> فتح ملف المشروع
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

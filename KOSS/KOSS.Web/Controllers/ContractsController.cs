@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using KOSS.Web.Models;
@@ -76,7 +76,7 @@ namespace KOSS.Web.Controllers
                 TargetCompletionDate = DateTime.Now.AddDays(35),
                 TotalValue = totalVal,
                 RequiredDeposit = deposit,
-                PricePerMeter = des != null && des.EstimatedLinearMeters > 0 ? (totalVal / des.EstimatedLinearMeters.Value) : 950,
+                PricePerMeter = des != null && des.EstimatedLinearMeters > 0 ? (totalVal / des.EstimatedLinearMeters) : 950,
                 TotalMeters = des?.EstimatedLinearMeters ?? 6,
                 Status = ContractStatus.Draft
             };

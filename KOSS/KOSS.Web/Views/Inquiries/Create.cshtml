@@ -1,69 +1,64 @@
 ﻿@model KOSS.Web.Models.CustomerInquiry
 @{
-    ViewData["Title"] = "تسجيل استفسار بيعي";
-    var customers = ViewBag.Customers as List<KOSS.Web.Models.Customer> ?? new List<KOSS.Web.Models.Customer>();
+    ViewData["Title"] = "ØªØ³Ø¬ÙŠÙ„ Ø§Ø³ØªÙØ³Ø§Ø± ÙˆÙØ±ØµØ© Ø¨ÙŠØ¹ÙŠØ©";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="fw-bold text-dark"><i class="fa-solid fa-headset text-primary me-2"></i> تسجيل استفسار وفرصة بيع جديدة</h3>
-        <p class="text-muted mb-0">المرحلة الأولى في مسار العمل (تسجيل العميل المحتمل والاهتمامات)</p>
-    </div>
-    <a asp-action="Index" class="btn btn-outline-secondary">
-        <i class="fa-solid fa-arrow-right me-1"></i> العودة للاستفسارات
-    </a>
-</div>
-
-<div class="card card-custom" style="max-width: 800px;">
-    <div class="card-body">
-        <form asp-action="Create" method="post">
-            @Html.AntiForgeryToken()
-
-            <div class="mb-3">
-                <label asp-for="CustomerId" class="form-label fw-bold"></label>
-                <select asp-for="CustomerId" class="form-select">
-                    <option value="0">--- عميل جديد (أدخل البيانات بالأسفل) ---</option>
-                    @foreach (var c in customers)
-                    {
-                        <option value="@c.Id" selected="@(c.Id == Model.CustomerId ? "selected" : null)">@c.Name (@c.Phone)</option>
-                    }
-                </select>
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card card-custom">
+            <div class="card-header card-header-custom">
+                <i class="fa-solid fa-headset text-success me-2"></i> ØªØ³Ø¬ÙŠÙ„ Ø§Ø³ØªÙØ³Ø§Ø± ÙˆÙØ±ØµØ© Ø¨ÙŠØ¹ÙŠØ© Ø¬Ø¯ÙŠØ¯Ø©
             </div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
 
-            <div class="p-3 bg-light rounded mb-3 border">
-                <h6 class="fw-bold text-secondary mb-2">أو بيانات عميل جديد:</h6>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">اسم العميل</label>
-                        <input type="text" name="customerName" class="form-control" placeholder="الاسم كاملاً" />
+                    <div class="mb-3">
+                        <label asp-for="CustomerId" class="form-label fw-bold">Ø§Ù„Ø¹Ù…ÙŠÙ„</label>
+                        <select asp-for="CustomerId" class="form-select" required>
+                            <option value="">-- Ø§Ø®ØªØ± Ø§Ù„Ø¹Ù…ÙŠÙ„ --</option>
+                            @if (ViewBag.Customers is IEnumerable<KOSS.Web.Models.Customer> customers)
+                            {
+                                foreach (var c in customers)
+                                {
+                                    <option value="@c.Id">@c.Name (@c.Phone)</option>
+                                }
+                            }
+                        </select>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">رقم الهاتف</label>
-                        <input type="text" name="customerPhone" class="form-control" placeholder="09xxxxxxxx" />
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Location" class="form-label fw-bold">Ø§Ù„Ù…Ø¯ÙŠÙ†Ø© / Ø§Ù„Ù…Ù†Ø·Ù‚Ø©</label>
+                            <input asp-for="Location" class="form-control" placeholder="Ø·Ø±Ø§Ø¨Ù„Ø³ØŒ Ø§Ù„Ø³Ø±Ø§Ø¬ØŒ Ø­ÙŠ Ø§Ù„Ø£Ù†Ø¯Ù„Ø³..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="PreferredLayout" class="form-label fw-bold">Ø§Ù„ØªØ®Ø·ÙŠØ· Ø§Ù„Ù…Ù‚ØªØ±Ø­</label>
+                            <select asp-for="PreferredLayout" class="form-select">
+                                <option value="">-- ØºÙŠØ± Ù…Ø­Ø¯Ø¯ --</option>
+                                <option value="Straight">Ø®Ø·ÙŠ Ù…Ø³ØªÙ‚ÙŠÙ…</option>
+                                <option value="LShaped">Ø­Ø±Ù L</option>
+                                <option value="UShaped">Ø­Ø±Ù U</option>
+                                <option value="Island">Ù…Ø¹ Ø¬Ø²ÙŠØ±Ø© ÙˆØ³Ø·ÙŠØ©</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label asp-for="PreferredLayout" class="form-label fw-bold"></label>
-                    <select asp-for="PreferredLayout" asp-items="Html.GetEnumSelectList<KitchenLayoutType>()" class="form-select"></select>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="Location" class="form-label fw-bold"></label>
-                    <input asp-for="Location" class="form-control" placeholder="المدينة / المنطقة" />
-                </div>
-            </div>
+                    <div class="mb-4">
+                        <label asp-for="Notes" class="form-label fw-bold">Ù…Ù„Ø§Ø­Ø¸Ø§Øª ÙˆØ§Ø­ØªÙŠØ§Ø¬Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Ø§Ø³ØªÙØ³Ø§Ø± Ø§Ù„Ø¹Ù…ÙŠÙ„ØŒ Ø§Ù„Ù…ÙŠØ²Ø§Ù†ÙŠØ© Ø§Ù„ØªÙ‚Ø±ÙŠØ¨ÙŠØ©ØŒ Ù…ÙˆØ¹Ø¯ Ø§Ù„Ø¨Ù†Ø§Ø¡..."></textarea>
+                    </div>
 
-            <div class="mb-3">
-                <label asp-for="Notes" class="form-label fw-bold"></label>
-                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="تفاصيل الطلب والاحتياجات المبدئية..."></textarea>
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            <i class="fa-solid fa-arrow-right me-1"></i> Ø±Ø¬ÙˆØ¹
+                        </a>
+                        <button type="submit" class="btn btn-koss-primary px-4">
+                            <i class="fa-solid fa-save me-1"></i> Ø­ÙØ¸ Ø§Ù„Ø§Ø³ØªÙØ³Ø§Ø±
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <hr />
-            <button type="submit" class="btn btn-koss-primary px-4 py-2">
-                <i class="fa-solid fa-floppy-disk me-1"></i> حفظ الاستفسار
-            </button>
-        </form>
+        </div>
     </div>
 </div>

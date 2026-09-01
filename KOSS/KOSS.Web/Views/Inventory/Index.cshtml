@@ -1,71 +1,48 @@
 ﻿@model IEnumerable<KOSS.Web.Models.ItemMaster>
 @{
-    ViewData["Title"] = "المستودعات والخامات";
+    ViewData["Title"] = "Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹Ø§Øª ÙˆØ§Ù„Ø®Ø§Ù…Ø§Øª ÙˆØ§Ù„Ø£Ø±ØµØ¯Ø©";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold text-dark"><i class="fa-solid fa-boxes-stacked text-primary me-2"></i> المستودعات ودليل الخامات والأصناف</h3>
-        <p class="text-muted mb-0">متابعة أرصدة الأخشاب، الرخام، المفصلات، والإكسسوارات وسندات الصرف للمشاريع</p>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-boxes-stacked text-info me-2"></i> Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹Ø§Øª ÙˆØ®Ø§Ù…Ø§Øª Ø§Ù„Ø£Ù„ÙˆØ§Ø­ ÙˆØ§Ù„Ø¥ÙƒØ³Ø³ÙˆØ§Ø±Ø§Øª</h3>
+        <p class="text-muted mb-0">Ù…Ø±Ø§Ù‚Ø¨Ø© Ø®Ø§Ù…Ø§Øª Ø§Ù„Ø¥Ù†ØªØ§Ø¬ØŒ ÙˆØ§Ù„Ø£Ù„ÙˆØ§Ø­ØŒ ÙˆØ§Ù„Ù…Ù‚Ø§Ø¨Ø¶ØŒ ÙˆØ§Ù„Ù…ÙØµÙ„Ø§ØªØŒ ÙˆØ§Ù„Ø£Ø±ØµØ¯Ø© Ø§Ù„Ù…ØªØ§Ø­Ø©</p>
     </div>
-    <a asp-action="StockIssues" class="btn btn-outline-primary">
-        <i class="fa-solid fa-file-lines me-1"></i> سجل سندات الصرف
-    </a>
 </div>
 
 <div class="card card-custom">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-custom table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <th>كود الصنف</th>
-                        <th>اسم الخامة / الصنف</th>
-                        <th>الفئة</th>
-                        <th>الوحدة</th>
-                        <th>التكلفة القياسية</th>
-                        <th>سعر البيع القياسي</th>
-                        <th>الرصيد المتوفر بالمخازن</th>
-                        <th>حد إعادة الطلب</th>
-                        <th>الحالة</th>
+                        <th>ÙƒÙˆØ¯ Ø§Ù„ØµÙ†Ù</th>
+                        <th>Ø§Ø³Ù… Ø§Ù„Ø®Ø§Ù…Ø© / Ø§Ù„ØµÙ†Ù</th>
+                        <th>Ø§Ù„ÙØ¦Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©</th>
+                        <th>Ø§Ù„ÙˆØ­Ø¯Ø©</th>
+                        <th>Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„ÙØ¹Ù„ÙŠ Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ</th>
+                        <th>Ø§Ù„Ù…ØªØ§Ø­ Ù„Ù„ØµØ±Ù</th>
+                        <th>Ù…ØªÙˆØ³Ø· Ø§Ù„ØªÙƒÙ„ÙØ© (WAC)</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
-                        <tr><td colspan="9" class="text-center py-4 text-muted">لا توجد أصناف معرفة حالياً في المخازن.</td></tr>
+                        <tr><td colspan="7" class="text-center py-5 text-muted">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø®Ø§Ù…Ø§Øª Ù…Ø³Ø¬Ù„Ø© ÙÙŠ Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹Ø§Øª.</td></tr>
                     }
-                    @foreach (var i in Model)
+                    @foreach (var item in Model)
                     {
-                        var totalStock = i.StockItems?.Sum(s => s.AvailableQuantity) ?? 0;
+                        var totalPhys = item.StockItems?.Sum(s => s.PhysicalQuantity) ?? 0;
+                        var totalAvail = item.StockItems?.Sum(s => s.AvailableQuantity) ?? 0;
+                        var avgCost = item.StockItems?.FirstOrDefault()?.WeightedAverageCost ?? 0;
                         <tr>
-                            <td><strong class="text-secondary">@i.ItemCode</strong></td>
-                            <td><strong>@i.Name</strong></td>
-                            <td><span class="badge bg-light text-dark border">@i.Category</span></td>
-                            <td>@i.Unit</td>
-                            <td>@i.StandardCost.ToString("N3") د.ل</td>
-                            <td>@i.StandardSalePrice.ToString("N3") د.ل</td>
-                            <td>
-                                @if (totalStock <= i.ReorderLevel)
-                                {
-                                    <span class="badge bg-danger fs-6">@totalStock @i.Unit (منخفض)</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-success fs-6">@totalStock @i.Unit</span>
-                                }
-                            </td>
-                            <td>@i.ReorderLevel @i.Unit</td>
-                            <td>
-                                @if (i.IsActive)
-                                {
-                                    <span class="badge bg-success">نشط</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">غير نشط</span>
-                                }
-                            </td>
+                            <td><strong class="text-primary font-monospace">@item.ItemCode</strong></td>
+                            <td><strong class="text-dark">@item.Name</strong></td>
+                            <td><span class="badge bg-light text-dark border">@item.Category</span></td>
+                            <td>@item.Unit</td>
+                            <td><strong>@totalPhys @item.Unit</strong></td>
+                            <td><span class="badge bg-success fs-6">@totalAvail @item.Unit</span></td>
+                            <td>@avgCost.ToString("N3") Ø¯.Ù„</td>
                         </tr>
                     }
                 </tbody>

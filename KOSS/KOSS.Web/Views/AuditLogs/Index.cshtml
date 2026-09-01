@@ -1,62 +1,60 @@
 ﻿@model IEnumerable<KOSS.Web.Models.AuditLog>
 @{
-    ViewData["Title"] = "سجل التدقيق وتتبع العمليات (Audit Trail)";
+    ViewData["Title"] = "سجل التدقيق والرقابة وتتبع العمليات";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold text-dark"><i class="fa-solid fa-shield-halved text-danger me-2"></i> سجل التدقيق وتتبع العمليات (Audit Trail)</h3>
-        <p class="text-muted mb-0">تتبع آلي لكافة حركات الإضافة والتعديل والحذف وتصفح الشاشات عبر ChangeTracker</p>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-shield-halved text-danger me-2"></i> سجل التدقيق والرقابة وتتبع العمليات (Audit Trail)</h3>
+        <p class="text-muted mb-0">تتبع آلي شامل لكافة عمليات الإضافة والتعديل والحذف وتغييرات الحالات في المنظومة</p>
     </div>
 </div>
 
 <div class="card card-custom">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-custom table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <th>#</th>
                         <th>المستخدم</th>
                         <th>نوع الحركة</th>
-                        <th>الجدول / الشاشة</th>
-                        <th>التفاصيل والقيم القديمة والجديدة</th>
-                        <th>التاريخ والوقت</th>
+                        <th>الشاشة / الجدول</th>
+                        <th>البيان والتفاصيل</th>
+                        <th>تاريخ وساعة العملية</th>
                         <th>عنوان IP</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
-                        <tr><td colspan="7" class="text-center py-4 text-muted">لا توجد سجلات تدقيق مسجلة حتى الآن.</td></tr>
+                        <tr><td colspan="6" class="text-center py-5 text-muted">لا توجد سجلات تدقيق مسجلة.</td></tr>
                     }
                     @foreach (var log in Model)
                     {
                         <tr>
-                            <td>@log.Id</td>
-                            <td><span class="badge bg-secondary">@log.Username</span></td>
+                            <td><strong class="text-primary"><i class="fa-solid fa-user-shield me-1"></i> @log.Username</strong></td>
                             <td>
                                 @if (log.Action == "Create")
                                 {
-                                    <span class="badge bg-success">إضافة جديدة</span>
+                                    <span class="badge bg-success px-3 py-1">إضافة جديدة</span>
                                 }
-                                else if (log.Action == "Update")
+                                else if (log.Action == "Update" || log.Action == "StatusTransition")
                                 {
-                                    <span class="badge bg-warning text-dark">تعديل بيانات</span>
+                                    <span class="badge bg-warning text-dark px-3 py-1">تعديل / تغيير حالة</span>
                                 }
                                 else if (log.Action == "Delete")
                                 {
-                                    <span class="badge bg-danger">حذف</span>
+                                    <span class="badge bg-danger px-3 py-1">حذف</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-info text-dark">تصفح</span>
+                                    <span class="badge bg-secondary px-3 py-1">@log.Action</span>
                                 }
                             </td>
-                            <td><strong>@log.EntityName</strong></td>
-                            <td><small class="text-muted" style="word-break:break-all;">@log.Description</small></td>
-                            <td dir="ltr" class="text-muted"><small>@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</small></td>
-                            <td><small class="badge bg-light text-dark">@(log.IpAddress ?? "Local")</small></td>
+                            <td><span class="badge bg-light text-dark border">@log.EntityName</span></td>
+                            <td><small class="text-dark">@log.Description</small></td>
+                            <td class="text-muted"><small>@log.Timestamp.ToString("yyyy/MM/dd HH:mm:ss")</small></td>
+                            <td><small class="text-muted font-monospace">@(log.IpAddress ?? "-")</small></td>
                         </tr>
                     }
                 </tbody>

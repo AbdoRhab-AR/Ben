@@ -1,119 +1,62 @@
-@model KOSS.Web.Models.SiteVisit
+﻿@model KOSS.Web.Models.SiteVisit
 @{
-    ViewBag.Title = "إدخال القياسات والنقاط الفنية";
+    ViewData["Title"] = "توثيق القياسات الميدانية 3D";
 }
 
-<div class="page-header">
-    <h2>📐 إدخال القياسات والنقاط الفنية للمعاينة
-        <small>الطلب: <strong>@(Model.KitchenRequest != null ? Model.KitchenRequest.RequestNumber : "-")</strong> | العميل: <strong>@(Model.KitchenRequest != null && Model.KitchenRequest.Customer != null ? Model.KitchenRequest.Customer.Name : "-")</strong></small>
-    </h2>
-</div>
-
-<div class="row">
-    <div class="col-md-8">
-        <div class="panel panel-default">
-            <div class="panel-heading"><h4>الأبعاد الهندسية والنقاط الخدمية (سم)</h4></div>
-            <div class="panel-body">
-                @using (Html.BeginForm("RecordMeasurements", "SiteVisits", FormMethod.Post, new { @class = "form-horizontal" }))
-                {
-                    @Html.AntiForgeryToken()
-                    @Html.HiddenFor(m => m.Id)
-                    @Html.HiddenFor(m => m.KitchenRequestId)
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.WallLength1Cm, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-3">
-                            <div class="input-group">
-                                @Html.TextBoxFor(m => m.WallLength1Cm, new { @class = "form-control", placeholder = "0.0" })
-                                <span class="input-group-addon">سم</span>
-                            </div>
-                        </div>
-                        @Html.LabelFor(m => m.WallLength2Cm, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-3">
-                            <div class="input-group">
-                                @Html.TextBoxFor(m => m.WallLength2Cm, new { @class = "form-control", placeholder = "0.0" })
-                                <span class="input-group-addon">سم</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.WallLength3Cm, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-3">
-                            <div class="input-group">
-                                @Html.TextBoxFor(m => m.WallLength3Cm, new { @class = "form-control", placeholder = "0.0" })
-                                <span class="input-group-addon">سم</span>
-                            </div>
-                        </div>
-                        @Html.LabelFor(m => m.CeilingHeightCm, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-3">
-                            <div class="input-group">
-                                @Html.TextBoxFor(m => m.CeilingHeightCm, new { @class = "form-control", placeholder = "0.0" })
-                                <span class="input-group-addon">سم</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.EstimatedAreaM2, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-3">
-                            <div class="input-group">
-                                @Html.TextBoxFor(m => m.EstimatedAreaM2, new { @class = "form-control", placeholder = "0.0" })
-                                <span class="input-group-addon">م²</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr />
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.PlumbingNotes, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-9">
-                            @Html.TextBoxFor(m => m.PlumbingNotes, new { @class = "form-control", placeholder = "موقع الصرف والتغذية للمجلى والغسالة..." })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.ElectricalNotes, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-9">
-                            @Html.TextBoxFor(m => m.ElectricalNotes, new { @class = "form-control", placeholder = "مواقع مقابس الفرن، الثلاجة، المايكرويف، الشفاط..." })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.ObstaclesNotes, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-9">
-                            @Html.TextBoxFor(m => m.ObstaclesNotes, new { @class = "form-control", placeholder = "مواقع النوافذ، الأبواب، الأعمدة الخرسانية، فتحة التهوية..." })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.SurveyorReport, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-9">
-                            @Html.TextAreaFor(m => m.SurveyorReport, new { @class = "form-control", rows = 3, placeholder = "التقرير النهائي والملاحظات الهندسية..." })
-                        </div>
-                    </div>
-
-                    <hr />
-                    <div class="form-group">
-                        <div class="col-md-9 col-md-offset-3">
-                            <button type="submit" class="btn btn-success btn-lg">💾 حفظ القياسات وإرسال التقرير للمراجعة</button>
-                            <a href="@Url.Action("Details", "Requests", new { id = Model.KitchenRequestId })" class="btn btn-default btn-lg">إلغاء</a>
-                        </div>
-                    </div>
-                }
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-custom">
+            <div class="card-header card-header-custom">
+                <i class="fa-solid fa-pen-ruler text-primary me-2"></i> توثيق القياسات الهندسية وتقرير الموقع الميداني
             </div>
-        </div>
-    </div>
+            <div class="card-body p-4">
+                <form asp-action="RecordMeasurements" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="KitchenRequestId" />
 
-    <div class="col-md-4">
-        <div class="panel panel-info">
-            <div class="panel-heading"><h4>ℹ️ إرشادات القياس</h4></div>
-            <div class="panel-body">
-                <ul>
-                    <li>جميع القياسات بالسنتيمتر (سم).</li>
-                    <li>تأكد من تحديد ارتفاعات مقابس الكهرباء من الأرضية.</li>
-                    <li>سجّل أي بروز أو أعمدة في الجدران.</li>
-                </ul>
+                    <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-arrows-up-down-left-right me-1"></i> الأبعاد الهندسية لجدران المطبخ (بالسنتيمتر)</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label asp-for="WallLength1Cm" class="form-label fw-bold">طول الجدار الرئيسي (سم)</label>
+                            <input asp-for="WallLength1Cm" type="number" step="0.1" class="form-control" placeholder="مثال: 450" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="WallLength2Cm" class="form-label fw-bold">طول الجدار الثاني (سم)</label>
+                            <input asp-for="WallLength2Cm" type="number" step="0.1" class="form-control" placeholder="مثال: 320" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="CeilingHeightCm" class="form-label fw-bold">ارتفاع السقف (سم)</label>
+                            <input asp-for="CeilingHeightCm" type="number" step="0.1" class="form-control" placeholder="مثال: 290" required />
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-faucet-drip me-1"></i> تمديدات وتغذية الموقع</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="PlumbingNotes" class="form-label fw-bold">تقرير تمديدات السباكة والصرف</label>
+                            <input asp-for="PlumbingNotes" type="text" class="form-control" placeholder="موقع مخرج المياه والصرف، فتحات التغذية..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ElectricalNotes" class="form-label fw-bold">تقرير نقاط الكهرباء والأفياش</label>
+                            <input asp-for="ElectricalNotes" type="text" class="form-control" placeholder="مواقع مقابس 220V، مخرج الشفاط، الإنارة المخفية..." />
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="StructuralObstacles" class="form-label fw-bold">العوائق الإنشائية والبروزات (أعمدة، كمرات، نوافذ)</label>
+                        <textarea asp-for="StructuralObstacles" class="form-control" rows="2" placeholder="أي بروز معماري أو عائق يؤثر على تركيب الخزائن..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-controller="Requests" asp-action="Details" asp-route-id="@Model.KitchenRequestId" class="btn btn-outline-secondary px-4">
+                            <i class="fa-solid fa-arrow-right me-1"></i> رجوع
+                        </a>
+                        <button type="submit" class="btn btn-success px-4 fw-bold">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> حفظ القياسات والتقرير
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

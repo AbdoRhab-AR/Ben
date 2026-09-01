@@ -1,99 +1,78 @@
-@model IEnumerable<KOSS.Web.Models.CustomerInquiry>
+﻿@model IEnumerable<KOSS.Web.Models.CustomerInquiry>
 @{
-    ViewBag.Title = "الاستفسارات والفرص البيعية (Leads & CRM)";
+    ViewData["Title"] = "الاستفسارات والفرص البيعية";
 }
 
-<div class="page-header">
-    <div class="row">
-        <div class="col-md-8">
-            <h2>📞 الاستفسارات والفرص البيعية
-                <small>(المرحلة 1: تتبع العملاء والتأهيل)</small>
-            </h2>
-        </div>
-        <div class="col-md-4 text-left">
-            <a href="@Url.Action("Create")" class="btn btn-warning btn-lg">➕ تسجيل استفسار جديد</a>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-headset text-success me-2"></i> الاستفسارات والفرص البيعية للعملاء</h3>
+        <p class="text-muted mb-0">المتابعة الأولية لطلبات العملاء قبل تحويلها إلى مشاريع رسمية</p>
     </div>
+    <a asp-action="Create" class="btn btn-koss-primary">
+        <i class="fa-solid fa-plus me-1"></i> تسجيل استفسار جديد
+    </a>
 </div>
 
-<div class="panel panel-default">
-    <div class="panel-heading"><h4>📋 قائمة الاستفسارات المسجلة (@Model.Count())</h4></div>
-    <div class="panel-body table-responsive">
-        <table class="table table-striped table-hover table-bordered">
-            <thead class="thead-koss">
-                <tr>
-                    <th>#</th>
-                    <th>العميل</th>
-                    <th>الهاتف</th>
-                    <th>الموقع</th>
-                    <th>المساحة التقديرية</th>
-                    <th>الميزانية</th>
-                    <th>الحالة</th>
-                    <th>الملاحظات</th>
-                    <th>الإجراء</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr><td colspan="9" class="text-center text-muted">لا توجد استفسارات مسجلة حتى الآن.</td></tr>
-                }
-                @foreach (var i in Model)
-                {
+<div class="card card-custom">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <td>@i.Id</td>
-                        <td><strong>@(i.Customer != null ? i.Customer.Name : "-")</strong></td>
-                        <td dir="ltr">@(i.Customer != null ? i.Customer.Phone : "-")</td>
-                        <td>@i.Location</td>
-                        <td>
-                            @if (i.EstimatedAreaM2.HasValue)
-                            {
-                                <span>@i.EstimatedAreaM2 م²</span>
-                            }
-                            else
-                            {
-                                <span>-</span>
-                            }
-                        </td>
-                        <td>
-                            @if (i.EstimatedBudget.HasValue)
-                            {
-                                <span>@i.EstimatedBudget.Value.ToString("N0") د.ل</span>
-                            }
-                            else
-                            {
-                                <span>-</span>
-                            }
-                        </td>
-                        <td>
-                            @if (i.Status == InquiryStatus.ConvertedToRequest)
-                            {
-                                <span class="label label-success">@i.Status</span>
-                            }
-                            else
-                            {
-                                <span class="label label-info">@i.Status</span>
-                            }
-                        </td>
-                        <td><small>@i.Notes</small></td>
-                        <td>
-                            @if (i.Status != InquiryStatus.ConvertedToRequest)
-                            {
-                                using (Html.BeginForm("ConvertToRequest", "Inquiries", FormMethod.Post, new { style = "display:inline;" }))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="inquiryId" value="@i.Id" />
-                                    <button type="submit" class="btn btn-xs btn-success">🚀 تحويل لطلب مطبخ رسمي</button>
-                                }
-                            }
-                            else if (i.ConvertedKitchenRequestId.HasValue)
-                            {
-                                <a href="@Url.Action("Details", "Requests", new { id = i.ConvertedKitchenRequestId.Value })" class="btn btn-xs btn-primary">📁 فتح الطلب المرتبط</a>
-                            }
-                        </td>
+                        <th>#</th>
+                        <th>اسم العميل</th>
+                        <th>رقم الهاتف</th>
+                        <th>المدينة والموقع</th>
+                        <th>التخطيط المفضل</th>
+                        <th>تاريخ الاستفسار</th>
+                        <th>الإجراءات</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="7" class="text-center py-5 text-muted">لا توجد استفسارات مسجلة حالياً.</td></tr>
+                    }
+                    @foreach (var inq in Model)
+                    {
+                        <tr>
+                            <td><strong class="text-primary font-monospace">#@inq.Id</strong></td>
+                            <td><strong class="text-dark">@(inq.Customer?.Name ?? "-")</strong></td>
+                            <td><span dir="ltr">@(inq.Customer?.Phone ?? "-")</span></td>
+                            <td>@(inq.Location ?? inq.Customer?.District ?? "-")</td>
+                            <td>
+                                @if (inq.PreferredLayout.HasValue)
+                                {
+                                    <span class="badge bg-light text-dark border">@inq.PreferredLayout.Value.ToArabic()</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">غير محدد</span>
+                                }
+                            </td>
+                            <td class="text-muted"><small>@inq.CreatedAt.ToString("yyyy/MM/dd")</small></td>
+                            <td>
+                                @if (inq.ConvertedKitchenRequestId.HasValue)
+                                {
+                                    <a asp-controller="Requests" asp-action="Details" asp-route-id="@inq.ConvertedKitchenRequestId" class="btn btn-sm btn-outline-success">
+                                        <i class="fa-solid fa-folder-open me-1"></i> فتح طلب المطبخ
+                                    </a>
+                                }
+                                else
+                                {
+                                    <form asp-action="ConvertToRequest" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="inquiryId" value="@inq.Id" />
+                                        <button type="submit" class="btn btn-sm btn-koss-primary">
+                                            <i class="fa-solid fa-arrow-right-arrow-left me-1"></i> تحويل لطلب مطبخ
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
