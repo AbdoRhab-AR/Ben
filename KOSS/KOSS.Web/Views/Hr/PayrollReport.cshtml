@@ -1,0 +1,101 @@
+@model IEnumerable<KOSS.Web.Models.StaffMember>
+@{
+    ViewBag.Title = "تقرير مسير الرواتب والمكافآت";
+    decimal totalBase = Model.Sum(x => x.BaseSalary);
+    decimal totalBonus = Model.Sum(x => x.BonusBalance);
+    decimal totalLiab = Model.Sum(x => x.LiabilityBalance);
+    decimal totalPay = Model.Sum(x => x.TotalMonthlyPay);
+}
+
+<div class="page-header">
+    <h2>📊 تقرير مسير الرواتب الشهري والحوافز
+        <a href="@Url.Action("Index")" class="btn btn-default pull-left">← العودة لقائمة الموظفين</a>
+    </h2>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="stat-card stat-blue">
+            <div class="stat-icon">👥</div>
+            <div class="stat-info">
+                <h3>@Model.Count()</h3>
+                <p>إجمالي الموظفين النشطين</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-green">
+            <div class="stat-icon">💵</div>
+            <div class="stat-info">
+                <h3>@totalBase.ToString("N0") <small>د.ل</small></h3>
+                <p>إجمالي الرواتب الأساسية</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-gold">
+            <div class="stat-icon">🎁</div>
+            <div class="stat-info">
+                <h3>@totalBonus.ToString("N0") <small>د.ل</small></h3>
+                <p>إجمالي المكافآت المستحقة</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-red">
+            <div class="stat-icon">💰</div>
+            <div class="stat-info">
+                <h3>@totalPay.ToString("N0") <small>د.ل</small></h3>
+                <p>صافي المسير الكلي</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel panel-default" style="margin-top:20px;">
+    <div class="panel-heading"><h4>تفاصيل رواتب الموظفين لشهر @DateTime.Now.ToString("MMMM yyyy", new System.Globalization.CultureInfo("ar-LY"))</h4></div>
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="thead-koss">
+                <tr>
+                    <th>#</th>
+                    <th>اسم الموظف</th>
+                    <th>الدور الوظيفي</th>
+                    <th>الراتب الأساسي (د.ل)</th>
+                    <th>المكافآت (د.ل)</th>
+                    <th>المسؤوليات/الخصومات (د.ل)</th>
+                    <th>صافي الحوافز (د.ل)</th>
+                    <th>إجمالي المستحق للصرف (د.ل)</th>
+                    <th>تاريخ الانضمام</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td>@s.Id</td>
+                        <td><strong>@s.FullName</strong></td>
+                        <td>@s.Role</td>
+                        <td>@s.BaseSalary.ToString("N3")</td>
+                        <td class="text-success"><strong>+@s.BonusBalance.ToString("N3")</strong></td>
+                        <td class="text-danger"><strong>-@s.LiabilityBalance.ToString("N3")</strong></td>
+                        <td>@s.NetBonus.ToString("N3")</td>
+                        <td><strong style="font-size:1.1em; color:#1a5f3c;">@s.TotalMonthlyPay.ToString("N3")</strong></td>
+                        <td>@s.JoinDate.ToString("yyyy/MM/dd")</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="active" style="font-weight:bold;">
+                    <td colspan="3" class="text-left">الإجمالي العام:</td>
+                    <td>@totalBase.ToString("N3") د.ل</td>
+                    <td class="text-success">+@totalBonus.ToString("N3") د.ل</td>
+                    <td class="text-danger">-@totalLiab.ToString("N3") د.ل</td>
+                    <td>@((totalBonus - totalLiab).ToString("N3")) د.ل</td>
+                    <td style="color:#1a5f3c; font-size:1.2em;">@totalPay.ToString("N3") د.ل</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>

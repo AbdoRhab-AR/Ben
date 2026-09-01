@@ -1,0 +1,102 @@
+@model KOSS.Web.Models.KitchenRequest
+@{
+    ViewBag.Title = "كشف تكاليف وإغلاق المشروع - " + Model.RequestNumber;
+    var prof = ViewBag.Report as KOSS.Web.Helpers.ProjectProfitabilityReport;
+    var closing = ViewBag.ClosingCheck as KOSS.Web.Helpers.ProjectClosingCheckResult;
+    var contract = Model.ActiveContract ?? (Model.Contracts != null ? Model.Contracts.FirstOrDefault() : null);
+}
+
+<div class="page-header">
+    <h2>📊 كشف التكاليف المباشرة والإغلاق المحاسبي
+        <small>المشروع: <strong>@Model.RequestNumber</strong> | العميل: <strong>@(Model.Customer != null ? Model.Customer.Name : "-")</strong></small>
+        <a href="@Url.Action("Index")" class="btn btn-default pull-left">← العودة لقائمة الربحية</a>
+    </h2>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <!-- جدول التكاليف والإيرادات التفصيلي -->
+        <div class="panel panel-default">
+            <div class="panel-heading"><h4>📋 ملخص بنود الإيرادات والتكاليف المباشرة</h4></div>
+            <div class="panel-body">
+                <table class="table table-bordered">
+                    <tr class="success">
+                        <td><strong>1. إجمالي إيرادات العقد</strong></td>
+                        <td class="text-left"><strong style="font-size:1.2em;">@(prof != null ? prof.ContractRevenue.ToString("N3") : "0.000") د.ل</strong></td>
+                    </tr>
+                    <tr>
+                        <td>2. تكلفة المواد والخامات المصروفة من المخزن</td>
+                        <td class="text-left text-danger">- @(prof != null ? prof.MaterialCost.ToString("N3") : "0.000") د.ل</td>
+                    </tr>
+                    <tr>
+                        <td>3. تكلفة المشتريات المباشرة للمشروع</td>
+                        <td class="text-left text-danger">- @(prof != null ? prof.DirectPurchasesCost.ToString("N3") : "0.000") د.ل</td>
+                    </tr>
+                    <tr>
+                        <td>4. أجور التركيب والمصنعية الميدانية</td>
+                        <td class="text-left text-danger">- @(prof != null ? prof.InstallationLaborCost.ToString("N3") : "0.000") د.ل</td>
+                    </tr>
+                    <tr>
+                        <td>5. المصروفات المباشرة الإضافية (نقل، رافعة، ضيافة)</td>
+                        <td class="text-left text-danger">- @(prof != null ? prof.DirectExpensesCost.ToString("N3") : "0.000") د.ل</td>
+                    </tr>
+                    <tr class="active" style="font-weight:bold;">
+                        <td>إجمالي تكاليف المشروع الكلية</td>
+                        <td class="text-left">@(prof != null ? prof.TotalProjectCost.ToString("N3") : "0.000") د.ل</td>
+                    </tr>
+                    <tr class="@(prof != null && prof.IsProfitable ? "success" : "danger")" style="font-size:1.3em; font-weight:bold;">
+                        <td>صافي الربح الفعلي المحقق</td>
+                        <td class="text-left">@(prof != null ? prof.NetProfit.ToString("N3") : "0.000") د.ل (@(prof != null ? prof.ProfitMarginPercentage.ToString("F1") : "0")%)</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <!-- فحص شروط الإغلاق الـ 9 للمشروع -->
+        <div class="panel panel-warning">
+            <div class="panel-heading"><h4>🔒 شروط الإغلاق النهائي للمشروع</h4></div>
+            <div class="panel-body">
+                @if (closing != null && closing.CanClose)
+                {
+                    <div class="alert alert-success">
+                        <strong>✅ مكتمل!</strong> تم استيفاء كافة الشروط التنفيذية والمالية. المشروع جاهز للإغلاق المحاسبي النهائي.
+                    </div>
+
+                    if (Model.Status != KOSS.Web.Models.KitchenRequestStatus.Closed)
+                    {
+                        using (Html.BeginForm("CloseProject", "Accounting", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="kitchenRequestId" value="@Model.Id" />
+                            <div class="form-group">
+                                <label>ملاحظات المراجعة المحاسبية</label>
+                                <textarea name="notes" class="form-control" rows="3" placeholder="تمت المراجعة المالية ومطابقة المقبوضات مع التكاليف..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-lg btn-block">
+                                🏁 إغلاق المشروع نهائياً وأرشفته (Close Project)
+                            </button>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">المشروع مغلق ومراجع محاسبياً بالفعل.</div>
+                    }
+                }
+                else if (closing != null)
+                {
+                    <div class="alert alert-danger">
+                        <strong>⚠️ لا يمكن إغلاق المشروع حتى استيفاء النواقص التالية:</strong>
+                        <ul style="margin-top:10px;">
+                            @foreach (var cond in closing.PendingConditions)
+                            {
+                                <li>@cond</li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,99 @@
+@model IEnumerable<KOSS.Web.Helpers.ProjectProfitabilityReport>
+@{
+    ViewBag.Title = "محاسبة التكاليف وتحليل ربحية المشاريع";
+    decimal totalRev = ViewBag.TotalRevenue != null ? (decimal)ViewBag.TotalRevenue : 0;
+    decimal totalCost = ViewBag.TotalCost != null ? (decimal)ViewBag.TotalCost : 0;
+    decimal totalNet = ViewBag.TotalNetProfit != null ? (decimal)ViewBag.TotalNetProfit : 0;
+}
+
+<div class="page-header">
+    <h2>📈 محاسبة التكاليف وتحليل ربحية المشاريع
+        <small>(المرحلة 18: مقارنة الإيرادات بالتكاليف المباشرة وصافي الربح)</small>
+    </h2>
+</div>
+
+<!-- بطاقات الملخص المالي الكلي للمشاريع -->
+<div class="row">
+    <div class="col-md-4">
+        <div class="stat-card stat-blue">
+            <div class="stat-icon">📋</div>
+            <div class="stat-info">
+                <h3>@totalRev.ToString("N0") <small>د.ل</small></h3>
+                <p>إجمالي إيرادات العقود المفعلة</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-red">
+            <div class="stat-icon">📉</div>
+            <div class="stat-info">
+                <h3>@totalCost.ToString("N0") <small>د.ل</small></h3>
+                <p>إجمالي التكاليف المباشرة (مواد + مصنعية + مصروفات)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-green">
+            <div class="stat-icon">💰</div>
+            <div class="stat-info">
+                <h3>@totalNet.ToString("N0") <small>د.ل</small></h3>
+                <p>صافي الأرباح المحققة</p>
+                <small>متوسط هامش الربح: @(totalRev > 0 ? (totalNet / totalRev * 100).ToString("F1") : "0")%</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- جدول تحليل الربحية لكل مشروع مطبخ -->
+<div class="panel panel-default" style="margin-top:20px;">
+    <div class="panel-heading"><h4>📊 كشف الربحية والتكاليف التفصيلي لكل مشروع مطبخ</h4></div>
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="thead-koss">
+                <tr>
+                    <th>رقم المشروع</th>
+                    <th>العميل</th>
+                    <th>إيراد العقد</th>
+                    <th>تكلفة المواد المصروفة</th>
+                    <th>أجور التركيب والمصنعية</th>
+                    <th>المصروفات الإضافية</th>
+                    <th>إجمالي التكلفة</th>
+                    <th>صافي الربح الفعلي</th>
+                    <th>هامش الربح (%)</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="10" class="text-center text-muted" style="padding:25px;">لا توجد مشاريع مفعلة بحسابات تكاليف حالياً.</td></tr>
+                }
+                @foreach (var r in Model)
+                {
+                    <tr class="@(r.IsProfitable ? "" : "danger")">
+                        <td><strong>@r.RequestNumber</strong></td>
+                        <td><strong>@r.CustomerName</strong></td>
+                        <td class="text-primary"><strong>@r.ContractRevenue.ToString("N3")</strong></td>
+                        <td class="text-danger">@r.MaterialCost.ToString("N3")</td>
+                        <td class="text-danger">@r.InstallationLaborCost.ToString("N3")</td>
+                        <td class="text-danger">@r.DirectExpensesCost.ToString("N3")</td>
+                        <td><strong>@r.TotalProjectCost.ToString("N3")</strong></td>
+                        <td class="@(r.IsProfitable ? "text-success" : "text-danger")" style="font-weight:bold; font-size:1.1em;">
+                            @r.NetProfit.ToString("N3") د.ل
+                        </td>
+                        <td>
+                            <span class="label @(r.ProfitMarginPercentage >= 25 ? "label-success" : (r.ProfitMarginPercentage > 0 ? "label-warning" : "label-danger"))">
+                                @r.ProfitMarginPercentage.ToString("F1")%
+                            </span>
+                        </td>
+                        <td>
+                            <a href="@Url.Action("ProjectCosting", new { id = r.KitchenRequestId })" class="btn btn-xs btn-primary">
+                                📊 كشف تفصيلي وإغلاق
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,120 @@
+@model KOSS.Web.Models.SiteVisit
+@{
+    ViewBag.Title = "إدخال القياسات والنقاط الفنية";
+}
+
+<div class="page-header">
+    <h2>📐 إدخال القياسات والنقاط الفنية للمعاينة
+        <small>الطلب: <strong>@(Model.KitchenRequest != null ? Model.KitchenRequest.RequestNumber : "-")</strong> | العميل: <strong>@(Model.KitchenRequest != null && Model.KitchenRequest.Customer != null ? Model.KitchenRequest.Customer.Name : "-")</strong></small>
+    </h2>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h4>الأبعاد الهندسية والنقاط الخدمية (سم)</h4></div>
+            <div class="panel-body">
+                @using (Html.BeginForm("RecordMeasurements", "SiteVisits", FormMethod.Post, new { @class = "form-horizontal" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.Id)
+                    @Html.HiddenFor(m => m.KitchenRequestId)
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.WallLength1Cm, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                @Html.TextBoxFor(m => m.WallLength1Cm, new { @class = "form-control", placeholder = "0.0" })
+                                <span class="input-group-addon">سم</span>
+                            </div>
+                        </div>
+                        @Html.LabelFor(m => m.WallLength2Cm, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                @Html.TextBoxFor(m => m.WallLength2Cm, new { @class = "form-control", placeholder = "0.0" })
+                                <span class="input-group-addon">سم</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.WallLength3Cm, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                @Html.TextBoxFor(m => m.WallLength3Cm, new { @class = "form-control", placeholder = "0.0" })
+                                <span class="input-group-addon">سم</span>
+                            </div>
+                        </div>
+                        @Html.LabelFor(m => m.CeilingHeightCm, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                @Html.TextBoxFor(m => m.CeilingHeightCm, new { @class = "form-control", placeholder = "0.0" })
+                                <span class="input-group-addon">سم</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.EstimatedAreaM2, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                @Html.TextBoxFor(m => m.EstimatedAreaM2, new { @class = "form-control", placeholder = "0.0" })
+                                <span class="input-group-addon">م²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.PlumbingNotes, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(m => m.PlumbingNotes, new { @class = "form-control", placeholder = "موقع الصرف والتغذية للمجلى والغسالة..." })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.ElectricalNotes, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(m => m.ElectricalNotes, new { @class = "form-control", placeholder = "مواقع مقابس الفرن، الثلاجة، المايكرويف، الشفاط..." })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.ObstaclesNotes, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(m => m.ObstaclesNotes, new { @class = "form-control", placeholder = "مواقع النوافذ، الأبواب، الأعمدة الخرسانية، فتحة التهوية..." })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.SurveyorReport, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-9">
+                            @Html.TextAreaFor(m => m.SurveyorReport, new { @class = "form-control", rows = 3, placeholder = "التقرير النهائي والملاحظات الهندسية..." })
+                        </div>
+                    </div>
+
+                    <hr />
+                    <div class="form-group">
+                        <div class="col-md-9 col-md-offset-3">
+                            <button type="submit" class="btn btn-success btn-lg">💾 حفظ القياسات وإرسال التقرير للمراجعة</button>
+                            <a href="@Url.Action("Details", "Requests", new { id = Model.KitchenRequestId })" class="btn btn-default btn-lg">إلغاء</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="panel panel-info">
+            <div class="panel-heading"><h4>ℹ️ إرشادات القياس</h4></div>
+            <div class="panel-body">
+                <ul>
+                    <li>جميع القياسات بالسنتيمتر (سم).</li>
+                    <li>تأكد من تحديد ارتفاعات مقابس الكهرباء من الأرضية.</li>
+                    <li>سجّل أي بروز أو أعمدة في الجدران.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

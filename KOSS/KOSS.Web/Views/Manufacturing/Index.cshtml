@@ -1,0 +1,89 @@
+@model IEnumerable<KOSS.Web.Models.WorkOrder>
+@{
+    ViewBag.Title = "لوحة المصنع ومتابعة الإنتاج";
+}
+
+<div class="page-header">
+    <h2>🏭 لوحة المصنع ومتابعة الإنتاج وفحص الجودة
+        <small>(المرحلة 12: تنفيذ التصنيع وفحص الجودة والمطابقة)</small>
+    </h2>
+</div>
+
+<div class="row">
+    @if (!Model.Any())
+    {
+        <div class="col-md-12">
+            <div class="alert alert-info text-center" style="padding:30px;">
+                لا توجد مشاريع قيد التصنيع حالياً بالمصنع.
+            </div>
+        </div>
+    }
+    @foreach (var wo in Model)
+    {
+        <div class="col-md-6">
+            <div class="panel panel-default" style="border-top: 4px solid #f39c12; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                <div class="panel-heading">
+                    <span class="label label-primary pull-left">@wo.Status</span>
+                    <h4>⚙️ أمر التشغيل: <strong>@wo.OrderNumber</strong></h4>
+                    <small>الطلب: <a href="@Url.Action("Details", "Requests", new { id = wo.KitchenRequestId })">@(wo.KitchenRequest != null ? wo.KitchenRequest.RequestNumber : "-")</a> | العميل: <strong>@(wo.KitchenRequest != null && wo.KitchenRequest.Customer != null ? wo.KitchenRequest.Customer.Name : "-")</strong></small>
+                </div>
+                <div class="panel-body">
+                    <h5>🛠️ مراحل التصنيع في الورشة:</h5>
+                    <table class="table table-condensed table-bordered">
+                        @foreach (var t in wo.Tasks)
+                        {
+                            <tr class="@(t.Status == "Completed" ? "success" : "")">
+                                <td><strong>@t.TaskName</strong></td>
+                                <td><small>@(t.TechnicianName ?? "غير محدد")</small></td>
+                                <td>
+                                    @if (t.Status == "Completed")
+                                    {
+                                        <span class="label label-success">✅ مكتمل</span>
+                                    }
+                                    else
+                                    {
+                                        using (Html.BeginForm("CompleteTask", "Manufacturing", FormMethod.Post, new { style = "display:inline;" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="taskId" value="@t.Id" />
+                                            <button type="submit" class="btn btn-xs btn-warning">🏁 إنجاز المرحلة</button>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </table>
+
+                    <!-- فحص الجودة والمطابقة -->
+                    <hr />
+                    <h5>🔍 فحص الجودة والمطابقة (QC Inspection):</h5>
+                    @if (wo.QualityChecks.Any())
+                    {
+                        var lastQc = wo.QualityChecks.Last();
+                        <div class="alert @(lastQc.Passed ? "alert-success" : "alert-warning")" style="margin-bottom:10px;">
+                            <strong>تقرير فحص الجودة #@lastQc.ReportNumber:</strong>
+                            <span class="label @(lastQc.Passed ? "label-success" : "label-danger")">@(lastQc.Passed ? "ناجح ومطابق" : "يوجد ملاحظات")</span>
+                            <small>المفتش: @lastQc.InspectorName</small>
+                        </div>
+                    }
+                    else
+                    {
+                        using (Html.BeginForm("PerformQualityCheck", "Manufacturing", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="workOrderId" value="@wo.Id" />
+                            <div class="checkbox"><label><input type="checkbox" name="dimensionsMatched" value="true" checked /> مطابقة المقاسات للمخطط 3D</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="surfacesFlawless" value="true" checked /> سلامة الأسطح ونظافة شريط الـ PVC</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="hardwareSmooth" value="true" checked /> سلاسة حركة الأدراج والمفصلات</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="packagingSecured" value="true" checked /> التغليف الآمن لحماية الأطراف</label></div>
+                            <div class="form-group" style="margin-top:10px;">
+                                <input type="text" name="snagDescription" class="form-control input-sm" placeholder="إذا وجد عيب أو نقص، اكتبه هنا للرصد..." />
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">✅ اعتماد تقرير فحص الجودة وتجهيز النقل</button>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

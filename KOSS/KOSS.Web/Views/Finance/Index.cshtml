@@ -1,0 +1,59 @@
+@model IEnumerable<KOSS.Web.Models.Contract>
+@{
+    ViewBag.Title = "المتابعة المالية";
+}
+
+<div class="page-header">
+    <h2>💰 إدارة المدفوعات والحسابات
+        <a href="@Url.Action("UpdatePrice")" class="btn btn-warning pull-left">📈 تحديث سعر المتر</a>
+    </h2>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="thead-koss">
+                <tr>
+                    <th>رقم العقد</th>
+                    <th>العميل</th>
+                    <th>قيمة العقد (د.ل)</th>
+                    <th>المدفوع (د.ل)</th>
+                    <th>المتبقي (د.ل)</th>
+                    <th>نسبة السداد</th>
+                    <th>الحالة</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    double pct = c.TotalValue > 0 ? (double)(c.TotalPaid / c.TotalValue * 100) : 0;
+                    <tr class="@(c.Status == ContractStatus.Suspended ? "warning" : "")">
+                        <td><strong>@c.ContractNumber</strong></td>
+                        <td>@(c.Client != null ? c.Client.Name : "-")</td>
+                        <td>@c.TotalValue.ToString("N3")</td>
+                        <td class="text-success"><strong>@c.TotalPaid.ToString("N3")</strong></td>
+                        <td class="@(c.RemainingBalance > 0 ? "text-danger" : "text-success")">
+                            @c.RemainingBalance.ToString("N3")
+                        </td>
+                        <td style="min-width:120px;">
+                            <div class="progress" style="margin:0;">
+                                <div class="progress-bar @(pct >= 70 ? "progress-bar-success" : "progress-bar-warning")"
+                                     style="width:@Math.Min(pct,100).ToString("F0")%">
+                                    @pct.ToString("F0")%
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="label label-primary">@c.Status</span></td>
+                        <td>
+                            <a href="@Url.Action("RecordPayment", new{contractId=c.Id})"
+                               class="btn btn-xs btn-success">💰 دفعة</a>
+                            <a href="@Url.Action("Ledger", new{id=c.Id})"
+                               class="btn btn-xs btn-info">📊 كشف</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

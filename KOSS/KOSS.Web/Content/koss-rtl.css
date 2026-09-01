@@ -1,0 +1,279 @@
+﻿/* ============================================================
+   KOSS ERP - نمط عربي RTL مخصص
+   يعمل فوق Bootstrap 3
+   ============================================================ */
+
+/* -- الجسم العام -- */
+body {
+    font-family: 'Segoe UI', 'Arial', 'Tahoma', sans-serif;
+    direction: rtl;
+    text-align: right;
+    background-color: #f4f6f8;
+    padding-top: 60px;
+}
+
+/* -- شريط التنقل -- */
+.koss-navbar {
+    background: linear-gradient(135deg, #1a5f3c 0%, #0d3d26 100%);
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.koss-brand {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #f0a500 !important;
+    letter-spacing: 1px;
+}
+
+.koss-navbar .navbar-nav > li > a {
+    color: #d4edda !important;
+    font-size: 0.95em;
+    padding: 15px 12px;
+}
+
+.koss-navbar .navbar-nav > li > a:hover,
+.koss-navbar .navbar-nav > .active > a {
+    background: rgba(255,255,255,0.15) !important;
+    color: #fff !important;
+    border-radius: 4px;
+}
+
+/* -- المحتوى الرئيسي -- */
+.koss-content {
+    padding: 20px 25px;
+    min-height: calc(100vh - 120px);
+}
+
+/* -- التذييل -- */
+.koss-footer {
+    background: #1a5f3c;
+    color: #a8d5b8;
+    padding: 12px 0;
+    margin-top: 30px;
+}
+
+.koss-footer p { margin: 0; }
+
+/* -- عنوان الصفحة -- */
+.page-header {
+    border-bottom: 3px solid #1a5f3c;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.page-header h2 { color: #1a5f3c; margin-top: 0; }
+
+/* ============================================================
+   بطاقات الإحصائيات (Dashboard)
+   ============================================================ */
+.koss-stats { margin-bottom: 20px; }
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+    border-right: 5px solid;
+    transition: transform .2s;
+}
+
+.stat-card:hover { transform: translateY(-3px); }
+
+.stat-blue  { border-color: #3498db; }
+.stat-green { border-color: #1a5f3c; }
+.stat-gold  { border-color: #f0a500; }
+.stat-red   { border-color: #e74c3c; }
+
+.stat-icon {
+    font-size: 2.5em;
+    margin-left: 15px;
+    opacity: 0.8;
+}
+
+.stat-info h3 {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 0 0 5px;
+    color: #2c3e50;
+}
+
+.stat-info p {
+    margin: 0;
+    color: #666;
+    font-size: 0.95em;
+}
+
+.stat-info small { color: #999; }
+
+/* ============================================================
+   خط الإنتاج (Pipeline)
+   ============================================================ */
+.pipeline-track {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pipeline-stage {
+    background: #ecf0f1;
+    border-radius: 8px;
+    padding: 12px 16px;
+    text-align: center;
+    min-width: 90px;
+    border: 2px solid #bdc3c7;
+}
+
+.stage-count {
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+    color: #1a5f3c;
+}
+
+.stage-label {
+    display: block;
+    font-size: 0.75em;
+    color: #666;
+    margin-top: 3px;
+}
+
+.pipeline-arrow {
+    font-size: 1.5em;
+    color: #bdc3c7;
+}
+
+.stage-new        { border-color: #95a5a6; }
+.stage-measured   { border-color: #3498db; }
+.stage-designed   { border-color: #9b59b6; }
+.stage-production { border-color: #e67e22; }
+.stage-manufactured { border-color: #27ae60; }
+.stage-installed  { border-color: #1a5f3c; }
+
+/* ============================================================
+   الملخص المالي
+   ============================================================ */
+.koss-finance-summary {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+}
+
+.finance-box { padding: 10px; }
+
+.finance-amount {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.finance-label {
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 3px;
+}
+
+.finance-paid   .finance-amount { color: #27ae60; }
+.finance-remaining .finance-amount { color: #e74c3c; }
+
+/* ============================================================
+   لوحات وبطاقات
+   ============================================================ */
+.panel {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid #e0e0e0;
+}
+
+.panel-heading {
+    background: #f5f5f5 !important;
+    border-bottom: 2px solid #e0e0e0 !important;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+.panel-heading h4 { margin: 0; color: #1a5f3c; }
+
+/* -- رأس الجدول -- */
+.thead-koss th {
+    background: #1a5f3c !important;
+    color: white !important;
+    border-color: #15503a !important;
+    white-space: nowrap;
+}
+
+/* -- المصنع (Kanban) -- */
+.factory-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+}
+
+/* -- بطاقة العقد في ملف العميل -- */
+.contract-card {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+/* -- بند الدفعة -- */
+.payment-item, .stalled-item {
+    padding: 6px 0;
+    border-bottom: 1px dashed #eee;
+}
+
+/* ============================================================
+   تنبيه سعر المتر
+   ============================================================ */
+.price-alert {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    border-radius: 0;
+    font-size: 1.1em;
+    text-align: center;
+    display: block !important;
+}
+
+/* ============================================================
+   الأزرار
+   ============================================================ */
+.btn-primary    { background: #1a5f3c; border-color: #15503a; }
+.btn-primary:hover { background: #2d8a5e; border-color: #1a5f3c; }
+
+/* ============================================================
+   النماذج (Forms) - RTL
+   ============================================================ */
+.form-control {
+    text-align: right;
+    direction: rtl;
+}
+
+input[dir="ltr"],
+input[type="number"] {
+    text-align: left;
+    direction: ltr;
+}
+
+/* ============================================================
+   الاستجابة للشاشات الصغيرة
+   ============================================================ */
+@media (max-width: 768px) {
+    .stat-card  { flex-direction: column; text-align: center; }
+    .stat-icon  { margin: 0 0 10px; }
+    .pipeline-track { flex-direction: column; }
+    .pipeline-arrow { transform: rotate(90deg); }
+    .koss-content { padding: 10px 15px; }
+}

@@ -1,0 +1,77 @@
+@model IEnumerable<KOSS.Web.Models.DesignVersion>
+@{
+    ViewBag.Title = "إدارة ومتابعة التصاميم (3D Designs)";
+}
+
+<div class="page-header">
+    <h2>🎨 إدارة ومتابعة التصاميم ثلاثية الأبعاد
+        <small>(المرحلة 4: إعداد المخططات والاعتماد)</small>
+    </h2>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading"><h4>📋 قائمة التصاميم وإصداراتها (@Model.Count())</h4></div>
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="thead-koss">
+                <tr>
+                    <th>رقم الطلب</th>
+                    <th>العميل</th>
+                    <th>الإصدار</th>
+                    <th>المصمم</th>
+                    <th>البرنامج</th>
+                    <th>الأمتار التقديرية</th>
+                    <th>الحالة</th>
+                    <th>مقفل؟</th>
+                    <th>تاريخ الإنشاء</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="10" class="text-center text-muted">لا توجد تصاميم مسجلة حالياً.</td></tr>
+                }
+                @foreach (var d in Model)
+                {
+                    <tr>
+                        <td>
+                            <a href="@Url.Action("Details", "Requests", new { id = d.KitchenRequestId })" style="font-weight:bold;">
+                                📁 @(d.KitchenRequest != null ? d.KitchenRequest.RequestNumber : "-")
+                            </a>
+                        </td>
+                        <td><strong>@(d.KitchenRequest != null && d.KitchenRequest.Customer != null ? d.KitchenRequest.Customer.Name : "-")</strong></td>
+                        <td><strong>@d.VersionCode</strong></td>
+                        <td>@(d.Designer != null ? d.Designer.FullName : "-")</td>
+                        <td>@d.SoftwareUsed</td>
+                        <td>
+                            @if (d.EstimatedLinearMeters.HasValue)
+                            {
+                                <span>@d.EstimatedLinearMeters م</span>
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </td>
+                        <td>
+                            @if (d.Status == DesignVersionStatus.ApprovedByCustomer)
+                            {
+                                <span class="label label-success">@d.Status</span>
+                            }
+                            else
+                            {
+                                <span class="label label-info">@d.Status</span>
+                            }
+                        </td>
+                        <td>@(d.IsLocked ? "🔒 نعم" : "مفتوح")</td>
+                        <td>@d.CreatedAt.ToString("yyyy/MM/dd")</td>
+                        <td>
+                            <a href="@Url.Action("Details", "Requests", new { id = d.KitchenRequestId })" class="btn btn-xs btn-primary">عرض في الطلب</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

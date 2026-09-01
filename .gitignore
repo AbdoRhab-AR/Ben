@@ -1,0 +1,30 @@
+﻿# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+
+# NuGet Packages
+*.nupkg
+packages/
+!packages/repositories.config
+
+# Node modules / Bower
+node_modules/
+bower_components/
+
+# Log files
+*.log
+
+# SQL Server local mdf/ldf (if temporary)
+# App_Data/*.ldf

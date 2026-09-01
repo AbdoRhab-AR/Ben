@@ -1,0 +1,125 @@
+﻿@model IEnumerable<KOSS.Web.Models.StaffMember>
+@{
+    ViewBag.Title = "الموارد البشرية";
+}
+
+<div class="page-header">
+    <h2>👥 إدارة الموظفين - الحوافز والمسؤوليات
+        <a href="@Url.Action("PayrollReport")" class="btn btn-info pull-left">📊 تقرير الرواتب</a>
+    </h2>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="thead-koss">
+                <tr>
+                    <th>الاسم</th>
+                    <th>الدور</th>
+                    <th>الراتب الأساسي (د.ل)</th>
+                    <th>المكافآت (د.ل)</th>
+                    <th>المسؤوليات (د.ل)</th>
+                    <th>صافي الراتب (د.ل)</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td><strong>@s.FullName</strong></td>
+                        <td>@s.Role</td>
+                        <td>@s.BaseSalary.ToString("N3")</td>
+                        <td class="text-success"><strong>+@s.BonusBalance.ToString("N3")</strong></td>
+                        <td class="text-danger"><strong>-@s.LiabilityBalance.ToString("N3")</strong></td>
+                        <td><strong>@s.TotalMonthlyPay.ToString("N3")</strong></td>
+                        <td>
+                            <!-- إضافة مكافأة -->
+                            <button class="btn btn-xs btn-success"
+                                    onclick="showBonusModal(@s.Id, '@s.FullName')">
+                                🎁 مكافأة
+                            </button>
+                            <!-- تسجيل مسؤولية -->
+                            <button class="btn btn-xs btn-danger"
+                                    onclick="showLiabilityModal(@s.Id, '@s.FullName')">
+                                ⚠️ مسؤولية
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal إضافة مكافأة -->
+<div class="modal fade" id="bonusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            @using (Html.BeginForm("LogBonus", "Hr", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="staffId" id="bonusStaffId" />
+                <div class="modal-header"><h4 class="modal-title">🎁 إضافة مكافأة لـ: <span id="bonusName"></span></h4></div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>المبلغ (د.ل)</label>
+                        <input type="number" name="amount" class="form-control" step="0.001" min="0" required />
+                    </div>
+                    <div class="form-group">
+                        <label>السبب</label>
+                        <textarea name="reason" class="form-control" rows="2" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">حفظ المكافأة</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">إلغاء</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal تسجيل مسؤولية -->
+<div class="modal fade" id="liabilityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            @using (Html.BeginForm("LogLiability", "Hr", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="staffId" id="liabilityStaffId" />
+                <div class="modal-header bg-danger"><h4 class="modal-title">⚠️ تسجيل مسؤولية مالية: <span id="liabilityName"></span></h4></div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">يُعدّ هذا الإجراء إلزامياً للموظف ومسجَّلاً في قاعدة البيانات.</div>
+                    <div class="form-group">
+                        <label>المبلغ (د.ل)</label>
+                        <input type="number" name="amount" class="form-control" step="0.001" min="0" required />
+                    </div>
+                    <div class="form-group">
+                        <label>وصف الخطأ / السبب</label>
+                        <textarea name="reason" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">تأكيد تسجيل المسؤولية</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">إلغاء</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        function showBonusModal(id, name) {
+            $('#bonusStaffId').val(id);
+            $('#bonusName').text(name);
+            $('#bonusModal').modal('show');
+        }
+        function showLiabilityModal(id, name) {
+            $('#liabilityStaffId').val(id);
+            $('#liabilityName').text(name);
+            $('#liabilityModal').modal('show');
+        }
+    </script>
+}

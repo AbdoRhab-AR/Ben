@@ -1,0 +1,99 @@
+@model IEnumerable<KOSS.Web.Models.CustomerInquiry>
+@{
+    ViewBag.Title = "الاستفسارات والفرص البيعية (Leads & CRM)";
+}
+
+<div class="page-header">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>📞 الاستفسارات والفرص البيعية
+                <small>(المرحلة 1: تتبع العملاء والتأهيل)</small>
+            </h2>
+        </div>
+        <div class="col-md-4 text-left">
+            <a href="@Url.Action("Create")" class="btn btn-warning btn-lg">➕ تسجيل استفسار جديد</a>
+        </div>
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading"><h4>📋 قائمة الاستفسارات المسجلة (@Model.Count())</h4></div>
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="thead-koss">
+                <tr>
+                    <th>#</th>
+                    <th>العميل</th>
+                    <th>الهاتف</th>
+                    <th>الموقع</th>
+                    <th>المساحة التقديرية</th>
+                    <th>الميزانية</th>
+                    <th>الحالة</th>
+                    <th>الملاحظات</th>
+                    <th>الإجراء</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="9" class="text-center text-muted">لا توجد استفسارات مسجلة حتى الآن.</td></tr>
+                }
+                @foreach (var i in Model)
+                {
+                    <tr>
+                        <td>@i.Id</td>
+                        <td><strong>@(i.Customer != null ? i.Customer.Name : "-")</strong></td>
+                        <td dir="ltr">@(i.Customer != null ? i.Customer.Phone : "-")</td>
+                        <td>@i.Location</td>
+                        <td>
+                            @if (i.EstimatedAreaM2.HasValue)
+                            {
+                                <span>@i.EstimatedAreaM2 م²</span>
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </td>
+                        <td>
+                            @if (i.EstimatedBudget.HasValue)
+                            {
+                                <span>@i.EstimatedBudget.Value.ToString("N0") د.ل</span>
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </td>
+                        <td>
+                            @if (i.Status == InquiryStatus.ConvertedToRequest)
+                            {
+                                <span class="label label-success">@i.Status</span>
+                            }
+                            else
+                            {
+                                <span class="label label-info">@i.Status</span>
+                            }
+                        </td>
+                        <td><small>@i.Notes</small></td>
+                        <td>
+                            @if (i.Status != InquiryStatus.ConvertedToRequest)
+                            {
+                                using (Html.BeginForm("ConvertToRequest", "Inquiries", FormMethod.Post, new { style = "display:inline;" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="inquiryId" value="@i.Id" />
+                                    <button type="submit" class="btn btn-xs btn-success">🚀 تحويل لطلب مطبخ رسمي</button>
+                                }
+                            }
+                            else if (i.ConvertedKitchenRequestId.HasValue)
+                            {
+                                <a href="@Url.Action("Details", "Requests", new { id = i.ConvertedKitchenRequestId.Value })" class="btn btn-xs btn-primary">📁 فتح الطلب المرتبط</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

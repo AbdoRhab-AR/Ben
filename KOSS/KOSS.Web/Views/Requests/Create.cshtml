@@ -1,0 +1,101 @@
+@model KOSS.Web.Models.KitchenRequest
+@{
+    ViewBag.Title = "فتح طلب مطبخ جديد";
+}
+
+<div class="page-header">
+    <h2>➕ فتح طلب مطبخ جديد
+        <small>(بدء دورة حياة المشروع المركزي)</small>
+    </h2>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h4>بيانات الطلب والموقع</h4></div>
+            <div class="panel-body">
+                @using (Html.BeginForm("Create", "Requests", FormMethod.Post, new { @class = "form-horizontal" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">العميل</label>
+                        <div class="col-md-9">
+                            @if (ViewBag.CustomerId != null)
+                            {
+                                <input type="hidden" name="CustomerId" value="@ViewBag.CustomerId" />
+                                <input type="text" class="form-control" value="@ViewBag.CustomerName" disabled />
+                            }
+                            else
+                            {
+                                @Html.DropDownListFor(m => m.CustomerId, (SelectList)ViewBag.Customers, "--- اختر العميل ---", new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.CustomerId, "", new { @class = "text-danger" })
+                            }
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Location, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(m => m.Location, new { @class = "form-control", placeholder = "العنوان والموقع التفصيلي لمكان تركيب المطبخ" })
+                            @Html.ValidationMessageFor(m => m.Location, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.ProjectType, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-4">
+                            @Html.EnumDropDownListFor(m => m.ProjectType, new { @class = "form-control" })
+                        </div>
+                        @Html.LabelFor(m => m.LayoutType, new { @class = "col-md-2 control-label" })
+                        <div class="col-md-3">
+                            @Html.EnumDropDownListFor(m => m.LayoutType, new { @class = "form-control" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.AssignedSalesStaffId, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-4">
+                            @Html.DropDownListFor(m => m.AssignedSalesStaffId, (SelectList)ViewBag.Staff, "--- اختر مسؤول المبيعات ---", new { @class = "form-control" })
+                        </div>
+                        @Html.LabelFor(m => m.TargetDeliveryDate, new { @class = "col-md-2 control-label" })
+                        <div class="col-md-3">
+                            @Html.TextBoxFor(m => m.TargetDeliveryDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Notes, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-9">
+                            @Html.TextAreaFor(m => m.Notes, new { @class = "form-control", rows = 3, placeholder = "الاحتياجات الأولية، الألوان المفضلة، أي أجهزة خاصة..." })
+                        </div>
+                    </div>
+
+                    <hr />
+                    <div class="form-group">
+                        <div class="col-md-9 col-md-offset-3">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                💾 حفظ وفتح الطلب (Request Opened)
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-default btn-lg">إلغاء</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="panel panel-info">
+            <div class="panel-heading"><h4>ℹ️ ما بعد إنشاء الطلب</h4></div>
+            <div class="panel-body">
+                <ol>
+                    <li>يتم توليد رقم رسمي للطلب مثل <code>REQ-2026-00001</code>.</li>
+                    <li>ينتقل الطلب إلى حالة <strong>طلب مفتوح (Request Opened)</strong>.</li>
+                    <li>الخطوة التالية هي <strong>جدولة المعاينة الميدانية</strong> لرفع القياسات الفعلية وفحص نقاط الكهرباء والسباكة.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>

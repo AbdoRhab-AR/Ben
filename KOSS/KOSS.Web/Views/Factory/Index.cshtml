@@ -1,0 +1,91 @@
+@model IEnumerable<KOSS.Web.Models.Contract>
+@{
+    ViewBag.Title = "لوحة المصنع";
+}
+
+<div class="page-header">
+    <h2>🏭 لوحة تتبع التصنيع والتركيب</h2>
+</div>
+
+<div class="row">
+    <!-- تحت التصنيع -->
+    <div class="col-md-4">
+        <div class="panel panel-warning">
+            <div class="panel-heading"><h4>⚙️ تحت التصنيع</h4></div>
+            <div class="panel-body">
+                @foreach (var c in Model.Where(x => x.Status == ContractStatus.UnderProduction))
+                {
+                    <div class="factory-card">
+                        <strong>@(c.Client != null ? c.Client.Name : "-")</strong> <br />
+                        <small>@c.ContractNumber</small>
+                        @using (Html.BeginForm("MarkManufactured", "Factory", FormMethod.Post, new { @class = "form-inline", style = "margin-top:5px;" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@c.Id" />
+                            <button type="submit" class="btn btn-xs btn-success">✅ تم التصنيع</button>
+                        }
+                    </div>
+                }
+                @if (!Model.Any(x => x.Status == ContractStatus.UnderProduction))
+                {
+                    <p class="text-muted">لا توجد وحدات تحت التصنيع حالياً</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- تم التصنيع - انتظار التركيب -->
+    <div class="col-md-4">
+        <div class="panel panel-info">
+            <div class="panel-heading"><h4>📦 جاهز للتركيب</h4></div>
+            <div class="panel-body">
+                @foreach (var c in Model.Where(x => x.Status == ContractStatus.Manufactured))
+                {
+                    <div class="factory-card">
+                        <strong>@(c.Client != null ? c.Client.Name : "-")</strong><br />
+                        <small>@c.ContractNumber</small>
+                        @using (Html.BeginForm("MarkInstalled", "Factory", FormMethod.Post, new { style = "margin-top:5px;" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@c.Id" />
+                            <input type="text" name="technicianName" class="form-control input-sm"
+                                   placeholder="اسم الفني" style="margin-bottom:3px;" required />
+                            <input type="number" name="laborMeters" class="form-control input-sm"
+                                   placeholder="عدد الأمتار" step="0.01" min="0" required />
+                            <button type="submit" class="btn btn-xs btn-primary" style="margin-top:3px;">🔧 تم التركيب</button>
+                        }
+                    </div>
+                }
+                @if (!Model.Any(x => x.Status == ContractStatus.Manufactured))
+                {
+                    <p class="text-muted">لا توجد وحدات جاهزة للتركيب</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- تم التركيب - انتظار التشطيب -->
+    <div class="col-md-4">
+        <div class="panel panel-success">
+            <div class="panel-heading"><h4>🏁 انتظار التشطيب النهائي</h4></div>
+            <div class="panel-body">
+                @foreach (var c in Model.Where(x => x.Status == ContractStatus.Installed))
+                {
+                    <div class="factory-card">
+                        <strong>@(c.Client != null ? c.Client.Name : "-")</strong><br />
+                        <small>@c.ContractNumber</small><br />
+                        <small class="text-danger">المتبقي: @c.RemainingBalance.ToString("N3") د.ل</small>
+                        <a href="@Url.Action("Commission", new{id=c.Id})"
+                           class="btn btn-xs btn-success" style="margin-top:5px; display:block;">
+                            🎉 تشطيب وإغلاق الملف
+                        </a>
+                    </div>
+                }
+                @if (!Model.Any(x => x.Status == ContractStatus.Installed))
+                {
+                    <p class="text-muted">لا توجد وحدات تنتظر التشطيب</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

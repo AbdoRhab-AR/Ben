@@ -1,0 +1,107 @@
+@model IEnumerable<KOSS.Web.Models.Client>
+@{
+    ViewBag.Title = "العملاء";
+}
+
+<div class="page-header">
+    <h2>👤 إدارة العملاء
+        <a href="@Url.Action("Create")" class="btn btn-success pull-left">➕ تسجيل عميل جديد</a>
+    </h2>
+</div>
+
+<!-- فلتر البحث -->
+<div class="panel panel-default">
+    <div class="panel-body">
+        @using (Html.BeginForm("Index", "Clients", FormMethod.Get, new { @class = "form-inline" }))
+        {
+            <div class="form-group">
+                <label>بحث:</label>
+                <input type="text" name="search" value="@ViewBag.Search"
+                       class="form-control" placeholder="الاسم أو الهاتف أو العنوان" />
+            </div>
+            <div class="form-group" style="margin-right: 10px;">
+                <label>الحالة:</label>
+                <select name="status" class="form-control">
+                    <option value="">الكل</option>
+                    <option value="1" @(ViewBag.Status != null && (int)ViewBag.Status == 1 ? "selected" : "")>مهتم</option>
+                    <option value="2" @(ViewBag.Status != null && (int)ViewBag.Status == 2 ? "selected" : "")>غير مهتم</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-right:10px;">🔍 بحث</button>
+            <a href="@Url.Action("Index")" class="btn btn-default">↺ إعادة تعيين</a>
+            <span class="text-muted" style="margin-right:20px;">
+                النتائج: <strong>@ViewBag.Total</strong> عميل
+            </span>
+        }
+    </div>
+</div>
+
+<!-- جدول العملاء -->
+<div class="panel panel-default">
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="thead-koss">
+                <tr>
+                    <th>#</th>
+                    <th>الاسم</th>
+                    <th>الهاتف</th>
+                    <th>المنطقة</th>
+                    <th>الحالة</th>
+                    <th>العقود</th>
+                    <th>تاريخ التسجيل</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">لا يوجد عملاء مطابقون للبحث.</td>
+                    </tr>
+                }
+                @foreach (var client in Model)
+                {
+                    <tr>
+                        <td>@client.Id</td>
+                        <td><strong>@client.Name</strong></td>
+                        <td dir="ltr">@client.Phone</td>
+                        <td>@client.District</td>
+                        <td>
+                            <span class="label @(client.Status == ClientStatus.Interested ? "label-success" : "label-default")">
+                                @(client.Status == ClientStatus.Interested ? "✅ مهتم" : "❌ غير مهتم")
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge">@client.Contracts.Count</span>
+                        </td>
+                        <td>@client.CreatedAt.ToString("yyyy/MM/dd")</td>
+                        <td>
+                            <a href="@Url.Action("Details", new {id=client.Id})" class="btn btn-xs btn-info">📄 ملف</a>
+                            <a href="@Url.Action("Edit", new {id=client.Id})" class="btn btn-xs btn-warning">✏️ تعديل</a>
+                            @if (client.Status == ClientStatus.Interested && !client.Contracts.Any())
+                            {
+                                <a href="@Url.Action("Create","Contracts", new{clientId=client.Id})"
+                                   class="btn btn-xs btn-success">📋 عقد جديد</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- التنقل بين الصفحات -->
+@if (ViewBag.Pages > 1)
+{
+    <nav>
+        <ul class="pagination">
+            @for (int i = 1; i <= ViewBag.Pages; i++)
+            {
+                <li class="@(i == ViewBag.Page ? "active" : "")">
+                    <a href="@Url.Action("Index", new {page = i, search = ViewBag.Search, status = ViewBag.Status})">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}

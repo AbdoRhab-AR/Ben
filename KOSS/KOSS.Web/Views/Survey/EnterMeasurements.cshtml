@@ -1,0 +1,113 @@
+@model KOSS.Web.Models.Contract
+@{
+    ViewBag.Title = "إدخال القياسات الميدانية";
+}
+
+<div class="page-header">
+    <h2>📏 إدخال القياسات الميدانية
+        <small>العميل: <strong>@(Model.Client != null ? Model.Client.Name : "-")</strong> | العقد: @Model.ContractNumber</small>
+    </h2>
+</div>
+
+@using (Html.BeginForm("SaveMeasurements", "Survey", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="contractId" value="@Model.Id" />
+
+    <div class="row">
+        <div class="col-md-8">
+            @for (int i = 0; i < Model.Units.Count; i++)
+            {
+                var unit = Model.Units.ElementAt(i);
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4>📐 وحدة @(i + 1): <strong>@unit.UnitType</strong></h4>
+                    </div>
+                    <div class="panel-body">
+                        <input type="hidden" name="units[@i].Id" value="@unit.Id" />
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>الطول (سم)</label>
+                                    <input type="number" name="units[@i].LengthCm"
+                                           class="form-control" value="@unit.LengthCm"
+                                           step="0.1" min="0" placeholder="0.0" required />
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>العرض (سم)</label>
+                                    <input type="number" name="units[@i].WidthCm"
+                                           class="form-control" value="@unit.WidthCm"
+                                           step="0.1" min="0" placeholder="0.0" required />
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>الارتفاع (سم)</label>
+                                    <input type="number" name="units[@i].HeightCm"
+                                           class="form-control" value="@unit.HeightCm"
+                                           step="0.1" min="0" placeholder="0.0" required />
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>المساحة الكلية (م²)</label>
+                                    <input type="number" name="units[@i].TotalArea"
+                                           class="form-control" value="@unit.TotalArea"
+                                           step="0.01" min="0" placeholder="0.00" required />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            if (!Model.Units.Any())
+            {
+                <div class="alert alert-warning">
+                    ⚠️ لا توجد وحدات مضافة لهذا العقد. أضف وحدات أولاً من صفحة العقد.
+                </div>
+            }
+        </div>
+
+        <div class="col-md-4">
+            <div class="panel panel-info">
+                <div class="panel-heading"><h4>ℹ️ إرشادات القياس</h4></div>
+                <div class="panel-body">
+                    <ul>
+                        <li>جميع القياسات <strong>بالسنتيمتر</strong></li>
+                        <li>قِس الطول على طول الجدار الرئيسي</li>
+                        <li>قِس العرض من الجدار للجدار المقابل</li>
+                        <li>الارتفاع من الأرضية لأسفل السقف</li>
+                        <li>المساحة = مساحة أسطح الخزائن الفعلية</li>
+                        <li>سجّل أي عوائق (نوافذ / أعمدة)</li>
+                    </ul>
+                    <div class="alert alert-danger" style="font-size:.9em; margin-top:10px;">
+                        <strong>تنبيه:</strong> أنت مسؤول قانونياً عن دقة هذه القياسات.
+                        أي خطأ يترتب عليه خصم مالي.
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading"><h4>📋 ملخص العقد</h4></div>
+                <div class="panel-body">
+                    <table class="table table-condensed">
+                        <tr><td>العميل</td><td><strong>@(Model.Client != null ? Model.Client.Name : "-")</strong></td></tr>
+                        <tr><td>الهاتف</td><td dir="ltr">@(Model.Client != null ? Model.Client.Phone : "-")</td></tr>
+                        <tr><td>عدد الوحدات</td><td><strong>@Model.Units.Count</strong></td></tr>
+                        <tr><td>الحالة</td><td><span class="label label-info">@Model.Status</span></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-success btn-lg" @(!Model.Units.Any() ? "disabled" : "")>
+            💾 حفظ القياسات والانتقال لرسوم التصميم
+        </button>
+        <a href="@Url.Action("Index")" class="btn btn-default btn-lg">إلغاء</a>
+    </div>
+}

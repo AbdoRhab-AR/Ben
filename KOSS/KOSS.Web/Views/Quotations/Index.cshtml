@@ -1,0 +1,57 @@
+@model IEnumerable<KOSS.Web.Models.Quotation>
+@{
+    ViewBag.Title = "عروض الأسعار والتسعير";
+}
+
+<div class="page-header">
+    <h2>💰 عروض الأسعار والتسعير
+        <small>(المرحلة 5: إعداد العروض الرسمية وإرسالها للعميل)</small>
+    </h2>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading"><h4>📋 قائمة عروض الأسعار المسجلة (@Model.Count())</h4></div>
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="thead-koss">
+                <tr>
+                    <th>رقم العرض</th>
+                    <th>رقم الطلب</th>
+                    <th>العميل</th>
+                    <th>الإصدار</th>
+                    <th>القيمة الإجمالية</th>
+                    <th>تاريخ الصلاحية</th>
+                    <th>الحالة</th>
+                    <th>تاريخ الإنشاء</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="9" class="text-center text-muted">لا توجد عروض أسعار مسجلة حالياً.</td></tr>
+                }
+                @foreach (var q in Model)
+                {
+                    <tr>
+                        <td><strong>@q.QuotationNumber</strong></td>
+                        <td>
+                            <a href="@Url.Action("Details", "Requests", new { id = q.KitchenRequestId })" style="font-weight:bold;">
+                                📁 @(q.KitchenRequest != null ? q.KitchenRequest.RequestNumber : "-")
+                            </a>
+                        </td>
+                        <td><strong>@(q.KitchenRequest != null && q.KitchenRequest.Customer != null ? q.KitchenRequest.Customer.Name : "-")</strong></td>
+                        <td>V@(q.VersionNumber).0</td>
+                        <td class="text-success"><strong>@q.TotalAmount.ToString("N3") د.ل</strong></td>
+                        <td>@q.ExpiryDate.ToString("yyyy/MM/dd")</td>
+                        <td><span class="label @(q.Status == QuotationStatus.Accepted ? "label-success" : "label-default")">@q.Status</span></td>
+                        <td>@q.CreatedAt.ToString("yyyy/MM/dd")</td>
+                        <td>
+                            <a href="@Url.Action("Details", "Requests", new { id = q.KitchenRequestId })" class="btn btn-xs btn-primary">عرض بالطلب</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

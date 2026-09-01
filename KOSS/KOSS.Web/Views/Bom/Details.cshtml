@@ -1,0 +1,121 @@
+@model KOSS.Web.Models.PurchaseOrder
+@{
+    ViewBag.Title = "تفاصيل أمر الشراء - " + Model.PoNumber;
+    var nesting = ViewBag.NestingResult as KOSS.Web.Helpers.NestingResult;
+}
+
+<div class="page-header">
+    <h2>📦 أمر الشراء: <strong>@Model.PoNumber</strong>
+        <small>العقد: @(Model.Contract != null ? Model.Contract.ContractNumber : "-") | العميل: @(Model.Contract != null && Model.Contract.Client != null ? Model.Contract.Client.Name : "-")</small>
+        <a href="@Url.Action("Index")" class="btn btn-default pull-left">← العودة لقوائم المواد</a>
+    </h2>
+</div>
+
+<div class="row">
+    <!-- بطاقات الحالة والتداخل -->
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h4>📋 بيانات أمر الشراء</h4></div>
+            <div class="panel-body">
+                <table class="table table-condensed">
+                    <tr><td>رقم PO</td><td><strong>@Model.PoNumber</strong></td></tr>
+                    <tr><td>الحالة</td><td><span class="label label-primary">@Model.Status</span></td></tr>
+                    <tr><td>تاريخ الإنشاء</td><td>@Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td></tr>
+                    <tr><td>أُنشئ بواسطة</td><td>@Model.CreatedBy</td></tr>
+                    <tr><td>تاريخ الإرسال للمستودع</td><td>@(Model.SentToWarehouseAt.HasValue ? Model.SentToWarehouseAt.Value.ToString("yyyy/MM/dd") : "-")</td></tr>
+                    <tr><td>تاريخ الصرف للمصنع</td><td>@(Model.IssuedToFactoryAt.HasValue ? Model.IssuedToFactoryAt.Value.ToString("yyyy/MM/dd") : "-")</td></tr>
+                </table>
+
+                <div style="margin-top:15px;">
+                    @if (Model.Status == PurchaseOrderStatus.Draft)
+                    {
+                        using (Html.BeginForm("SendToWarehouse", "Bom", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit" class="btn btn-warning btn-block">📤 إرسال للمستودع</button>
+                        }
+                    }
+                    else if (Model.Status == PurchaseOrderStatus.SentToWarehouse || Model.Status == PurchaseOrderStatus.Approved)
+                    {
+                        using (Html.BeginForm("IssueToFactory", "Bom", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit" class="btn btn-success btn-block">🏭 صرف للمصنع وبدء التصنيع</button>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- حاسبة التداخل Nesting -->
+    <div class="col-md-6">
+        @if (nesting != null && nesting.IsValid)
+        {
+            <div class="panel panel-success">
+                <div class="panel-heading"><h4>📐 حساب الألواح الخشبية (Nesting Calculator)</h4></div>
+                <div class="panel-body">
+                    <table class="table table-condensed">
+                        <tr><td>قياس اللوح القياسي</td><td>2.80م × 1.22م = <strong>3.416 م²</strong></td></tr>
+                        <tr><td>مساحة الأسطح المطلوبة</td><td><strong>@nesting.TotalAreaM2.ToString("N2") م²</strong></td></tr>
+                        <tr><td>نسبة الهدر المحسوبة</td><td>@nesting.WastePercent%</td></tr>
+                        <tr class="success" style="font-size:1.1em;">
+                            <td><strong>عدد الألواح المطلوبة</strong></td>
+                            <td><strong style="color:#1a5f3c; font-size:1.3em;">@nesting.SheetsRequired لوح</strong></td>
+                        </tr>
+                        <tr><td>المساحة الكلية للألواح</td><td>@nesting.TotalSheetArea.ToString("N2") م²</td></tr>
+                        <tr><td>مساحة الهدر المتوقعة</td><td>@nesting.WasteAreaM2.ToString("N2") م² (@nesting.ActualWastePercent.ToString("F1")%)</td></tr>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- جدول بنود المواد -->
+<div class="panel panel-default" style="margin-top:15px;">
+    <div class="panel-heading"><h4>🔩 بنود المواد والإكسسوارات (BOM Items - @Model.BomItems.Count)</h4></div>
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="thead-koss">
+                <tr>
+                    <th>كود الصنف</th>
+                    <th>اسم الصنف</th>
+                    <th>الفئة</th>
+                    <th>الوحدة</th>
+                    <th>الكمية المطلوبة</th>
+                    <th>الكمية المصروفة</th>
+                    <th>سعر الوحدة (د.ل)</th>
+                    <th>الإجمالي (د.ل)</th>
+                    <th>حالة الصرف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.BomItems.Any())
+                {
+                    <tr><td colspan="9" class="text-center text-muted">لا توجد بنود مضافة لهذا الأمر حتى الآن</td></tr>
+                }
+                @foreach (var item in Model.BomItems)
+                {
+                    <tr>
+                        <td><code>#@item.ItemCode</code></td>
+                        <td><strong>@item.ItemName</strong></td>
+                        <td>@item.Category</td>
+                        <td>@item.Unit</td>
+                        <td>@item.QuantityRequired.ToString("N2")</td>
+                        <td>@item.QuantityIssued.ToString("N2")</td>
+                        <td>@item.UnitCost.ToString("N3")</td>
+                        <td>@item.TotalCost.ToString("N3")</td>
+                        <td>
+                            <span class="label @(item.IssuedToFactory ? "label-success" : "label-default")">
+                                @(item.IssuedToFactory ? "✅ تم الصرف" : "⏳ معلق")
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

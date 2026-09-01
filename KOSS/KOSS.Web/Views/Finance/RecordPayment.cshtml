@@ -1,0 +1,155 @@
+﻿@model KOSS.Web.Models.ViewModels.RecordPaymentViewModel
+@{
+    ViewBag.Title = "تسجيل دفعة مالية";
+}
+
+<div class="page-header">
+    <h2>💰 تسجيل دفعة مالية
+        <a href="@Url.Action("Index")" class="btn btn-default pull-left">← العودة</a>
+    </h2>
+</div>
+
+@if (ViewBag.ShowAllocation != null)
+{
+    <!-- نتيجة توزيع العربون -->
+    <div class="alert alert-success">
+        <h4>✅ تم تسجيل الدفعة بنجاح - رقم الإيصال: <strong>@ViewBag.ReceiptNo</strong></h4>
+    </div>
+    <div class="panel panel-info">
+        <div class="panel-heading"><h4>📊 نتيجة توزيع العربون (70%)</h4></div>
+        <div class="panel-body table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>الوحدة</th>
+                        <th>القيمة التقديرية</th>
+                        <th>المطلوب (70%)</th>
+                        <th>المُخصَّص</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.AllocationResults)
+                    {
+                        <tr>
+                            <td>@r.UnitName</td>
+                            <td>@r.EstimatedValue.ToString("N3") د.ل</td>
+                            <td>@r.Required70Pct.ToString("N3") د.ل</td>
+                            <td>@r.Allocated.ToString("N3") د.ل</td>
+                            <td>@r.Status</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="panel-footer">
+            <a href="@Url.Action("DownloadReceipt","Finance", new{id=0})"
+               class="btn btn-primary">🖨️ طباعة الإيصال PDF</a>
+            <a href="@Url.Action("Index")" class="btn btn-default">عودة للقائمة المالية</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-7">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4>
+                        العميل: <strong>@Model.ClientName</strong> &nbsp;|&nbsp;
+                        العقد: <strong>@Model.ContractNumber</strong>
+                    </h4>
+                </div>
+                <div class="panel-body">
+
+                    <!-- ملخص الحساب -->
+                    <div class="row koss-finance-summary">
+                        <div class="col-md-4 text-center">
+                            <div class="finance-box">
+                                <div class="finance-amount">@Model.TotalValue.ToString("N0")</div>
+                                <div class="finance-label">إجمالي العقد (د.ل)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="finance-box finance-paid">
+                                <div class="finance-amount">@Model.TotalPaid.ToString("N0")</div>
+                                <div class="finance-label">المدفوع (د.ل)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="finance-box finance-remaining">
+                                <div class="finance-amount">@Model.Remaining.ToString("N0")</div>
+                                <div class="finance-label">المتبقي (د.ل)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @using (Html.BeginForm("RecordPayment", "Finance", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.ContractId)
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.Amount, new { @class = "control-label" })
+                            <div class="input-group">
+                                @Html.TextBoxFor(m => m.Amount, new { @class = "form-control input-lg", placeholder = "0.000" })
+                                <span class="input-group-addon">د.ل</span>
+                            </div>
+                            @Html.ValidationMessageFor(m => m.Amount, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.PaymentType, new { @class = "control-label" })
+                                    @Html.EnumDropDownListFor(m => m.PaymentType, new { @class = "form-control" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.PaymentMethod, new { @class = "control-label" })
+                                    @Html.EnumDropDownListFor(m => m.PaymentMethod, new { @class = "form-control" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.ReferenceNumber, new { @class = "control-label" })
+                            @Html.TextBoxFor(m => m.ReferenceNumber, new { @class = "form-control", placeholder = "رقم الشيك أو مرجع التحويل (اختياري)" })
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.Notes, new { @class = "control-label" })
+                            @Html.TextAreaFor(m => m.Notes, new { @class = "form-control", rows = 2, placeholder = "ملاحظات إضافية" })
+                        </div>
+
+                        <hr />
+                        <button type="submit" class="btn btn-success btn-lg">
+                            💾 تسجيل الدفعة وتوزيع العربون
+                        </button>
+                        <a href="@Url.Action("Index")" class="btn btn-default btn-lg">إلغاء</a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="panel panel-warning">
+                <div class="panel-heading"><h4>⚖️ قاعدة العربون 70%</h4></div>
+                <div class="panel-body">
+                    <p>وفق سياسة الشركة:</p>
+                    <ul>
+                        <li>كل وحدة تحتاج <strong>70%</strong> من قيمتها لإطلاق التصنيع</li>
+                        <li>يوزَّع العربون على الوحدات حسب الأولوية</li>
+                        <li>الوحدات غير المكتملة تُصبح <span class="label label-warning">موقوفة</span></li>
+                        <li>يُصدَر إيصال رقمي فوري بعد كل دفعة</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

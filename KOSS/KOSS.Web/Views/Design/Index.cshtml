@@ -1,0 +1,55 @@
+@model IEnumerable<KOSS.Web.Models.Contract>
+@{
+    ViewBag.Title = "قسم التصميم";
+}
+
+<div class="page-header">
+    <h2>🎨 إدارة التصاميم</h2>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="thead-koss">
+                <tr>
+                    <th>رقم العقد</th><th>العميل</th><th>عدد الوحدات</th>
+                    <th>الحالة</th><th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td><strong>@c.ContractNumber</strong></td>
+                        <td>@(c.Client != null ? c.Client.Name : "-")</td>
+                        <td><span class="badge">@c.Units.Count</span></td>
+                        <td>
+                            <span class="label @(c.Status == ContractStatus.Designed ? "label-success" : "label-warning")">
+                                @c.Status
+                            </span>
+                        </td>
+                        <td>
+                            @if (c.Status == ContractStatus.FeePaid)
+                            {
+                                using (Html.BeginForm("MarkDesigned", "Design", FormMethod.Post, new { @class = "form-inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="contractId" value="@c.Id" />
+                                    <input type="text" name="notes" class="form-control input-sm"
+                                           placeholder="ملاحظة (اختياري)" style="width:180px; margin-left:5px;" />
+                                    <button type="submit" class="btn btn-xs btn-success">
+                                        ✅ تأكيد اكتمال التصميم (+مكافأة)
+                                    </button>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-success">✅ مكتمل</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

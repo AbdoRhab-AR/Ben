@@ -1,0 +1,65 @@
+@model IEnumerable<KOSS.Web.Models.Contract>
+@{
+    ViewBag.Title = "العقود الرسمية";
+}
+
+<div class="page-header">
+    <h2>📋 العقود الرسمية للمطابخ
+        <small>(المرحلة 6: تفعيل العقود وجداول الدفعات)</small>
+    </h2>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading"><h4>📋 قائمة العقود المسجلة (@Model.Count())</h4></div>
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="thead-koss">
+                <tr>
+                    <th>رقم العقد</th>
+                    <th>رقم الطلب</th>
+                    <th>العميل</th>
+                    <th>إجمالي القيمة</th>
+                    <th>المدفوع</th>
+                    <th>المتبقي</th>
+                    <th>نسبة السداد</th>
+                    <th>الحالة</th>
+                    <th>تاريخ التوقيع</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="10" class="text-center text-muted">لا توجد عقود مسجلة حالياً.</td></tr>
+                }
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td><strong>@c.ContractNumber</strong></td>
+                        <td>
+                            <a href="@Url.Action("Details", "Requests", new { id = c.KitchenRequestId })" style="font-weight:bold;">
+                                📁 @(c.KitchenRequest != null ? c.KitchenRequest.RequestNumber : "-")
+                            </a>
+                        </td>
+                        <td><strong>@(c.KitchenRequest != null && c.KitchenRequest.Customer != null ? c.KitchenRequest.Customer.Name : (c.Client != null ? c.Client.Name : "-"))</strong></td>
+                        <td>@c.TotalValue.ToString("N3") د.ل</td>
+                        <td class="text-success"><strong>@c.TotalPaid.ToString("N3") د.ل</strong></td>
+                        <td class="text-danger"><strong>@c.RemainingBalance.ToString("N3") د.ل</strong></td>
+                        <td>
+                            <div class="progress" style="margin-bottom:0; min-width:80px;">
+                                <div class="progress-bar @(c.PaymentPercentage >= 70 ? "progress-bar-success" : "progress-bar-warning")" style="width:@c.PaymentPercentage.ToString("F0")%">
+                                    @c.PaymentPercentage.ToString("F0")%
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="label @(c.Status == ContractStatus.Active ? "label-success" : "label-default")">@c.Status</span></td>
+                        <td>@(c.SignedDate.HasValue ? c.SignedDate.Value.ToString("yyyy/MM/dd") : "-")</td>
+                        <td>
+                            <a href="@Url.Action("Details", "Requests", new { id = c.KitchenRequestId })" class="btn btn-xs btn-primary">📁 فتح ملف المشروع</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,94 @@
+@model KOSS.Web.Models.ViewModels.RegisterViewModel
+@{
+    ViewBag.Title = "إنشاء حساب مستخدم جديد";
+}
+
+<div class="page-header">
+    <h2>👤 إضافة مستخدم جديد للنظام
+        <small>(خاص بالمدير التنفيذي)</small>
+    </h2>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h4>بيانات الحساب الجديد</h4></div>
+            <div class="panel-body">
+                @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "form-horizontal" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.FullName, new { @class = "col-md-4 control-label" })
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", placeholder = "الاسم الكامل للموظف", autofocus = "autofocus" })
+                            @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Email, new { @class = "col-md-4 control-label" })
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "name@koss.ly", dir = "ltr" })
+                            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Role, new { @class = "col-md-4 control-label" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(m => m.Role, (SelectList)ViewBag.Roles, "--- اختر الدور الوظيفي ---", new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.Role, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Password, new { @class = "col-md-4 control-label" })
+                        <div class="col-md-8">
+                            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "كلمة المرور (6 أحرف على الأقل)" })
+                            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.ConfirmPassword, new { @class = "col-md-4 control-label" })
+                        <div class="col-md-8">
+                            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "تأكيد كلمة المرور" })
+                            @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-8 col-md-offset-4">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                💾 إنشاء الحساب وتعيين الصلاحيات
+                            </button>
+                            <a href="@Url.Action("Index", "Hr")" class="btn btn-default btn-lg">إلغاء</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="panel panel-info">
+            <div class="panel-heading"><h4>ℹ️ مصفوفة الصلاحيات (RBAC)</h4></div>
+            <div class="panel-body">
+                <table class="table table-condensed">
+                    <tr><td><strong>Executive</strong></td><td>كامل الصلاحيات والتقارير</td></tr>
+                    <tr><td><strong>Finance</strong></td><td>الحسابات، الدفعات، سعر المتر</td></tr>
+                    <tr><td><strong>SalesStaff</strong></td><td>إدخال العملاء، العقود</td></tr>
+                    <tr><td><strong>Designer</strong></td><td>التصاميم، قوائم المواد BOM</td></tr>
+                    <tr><td><strong>FieldSurveyor</strong></td><td>القياسات الميدانية</td></tr>
+                    <tr><td><strong>FactoryManager</strong></td><td>لوحة المصنع، صرف المواد</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

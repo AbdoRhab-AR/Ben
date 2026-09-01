@@ -1,0 +1,107 @@
+@model IEnumerable<KOSS.Web.Models.KitchenRequest>
+@{
+    ViewBag.Title = "طلبات المطابخ والمشاريع";
+}
+
+<div class="page-header">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>📂 طلبات المطابخ والمشاريع
+                <small>(المحور المركزي لكافة العمليات)</small>
+            </h2>
+        </div>
+        <div class="col-md-4 text-left">
+            <a href="@Url.Action("Create")" class="btn btn-warning btn-lg">
+                ➕ فتح طلب مطبخ جديد
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- فلاتر البحث -->
+<div class="panel panel-default">
+    <div class="panel-body">
+        @using (Html.BeginForm("Index", "Requests", FormMethod.Get, new { @class = "form-inline" }))
+        {
+            <div class="form-group">
+                <input type="text" name="search" class="form-control" placeholder="بحث برقم الطلب، اسم العميل، الهاتف، الموقع..." value="@ViewBag.Search" style="width:300px;" />
+            </div>
+            <div class="form-group">
+                @Html.DropDownList("status", EnumHelper.GetSelectList(typeof(KOSS.Web.Models.KitchenRequestStatus)), "--- كافة الحالات (24) ---", new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                @Html.DropDownList("projectType", EnumHelper.GetSelectList(typeof(KOSS.Web.Models.ProjectType)), "--- كافة أنواع المشاريع ---", new { @class = "form-control" })
+            </div>
+            <button type="submit" class="btn btn-primary">🔍 تصفية</button>
+            <a href="@Url.Action("Index")" class="btn btn-default">إلغاء التصفية</a>
+        }
+    </div>
+</div>
+
+<!-- جدول الطلبات -->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4>📋 قائمة طلبات ومشاريع المطابخ (@ViewBag.Total)</h4>
+    </div>
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="thead-koss">
+                <tr>
+                    <th>رقم الطلب</th>
+                    <th>العميل</th>
+                    <th>الهاتف</th>
+                    <th>الموقع</th>
+                    <th>التخطيط</th>
+                    <th>المسؤول</th>
+                    <th>الحالة الراهنة (Workflow)</th>
+                    <th>قيمة العقد</th>
+                    <th>تاريخ الإنشاء</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="10" class="text-center text-muted" style="padding:30px;">لا توجد طلبات مطابخ مسجلة مطابقة للبحث.</td></tr>
+                }
+                @foreach (var r in Model)
+                {
+                    var contract = r.ActiveContract ?? r.Contracts.FirstOrDefault();
+                    <tr>
+                        <td>
+                            <a href="@Url.Action("Details", new { id = r.Id })" style="font-weight:bold; font-size:1.1em; color:#2980b9;">
+                                📁 @r.RequestNumber
+                            </a>
+                        </td>
+                        <td><strong>@(r.Customer != null ? r.Customer.Name : "-")</strong></td>
+                        <td dir="ltr">@(r.Customer != null ? r.Customer.Phone : "-")</td>
+                        <td><small>@r.Location</small></td>
+                        <td><span class="label label-default">@r.LayoutType</span></td>
+                        <td><small>@(r.AssignedSalesStaff != null ? r.AssignedSalesStaff.FullName : "-")</small></td>
+                        <td>
+                            <span class="label label-info" style="font-size:0.95em;">
+                                @r.Status
+                            </span>
+                        </td>
+                        <td>
+                            @if (contract != null)
+                            {
+                                <strong class="text-success">@contract.TotalValue.ToString("N0") د.ل</strong>
+                            }
+                            else
+                            {
+                                <span class="text-muted">قيد الإعداد</span>
+                            }
+                        </td>
+                        <td><small>@r.CreatedAt.ToString("yyyy/MM/dd")</small></td>
+                        <td>
+                            <a href="@Url.Action("Details", new { id = r.Id })" class="btn btn-xs btn-primary">
+                                📊 تفاصيل المشروع
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

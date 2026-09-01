@@ -1,0 +1,61 @@
+﻿@model KOSS.Web.Models.ViewModels.LoginViewModel
+@{
+    ViewBag.Title = "تسجيل الدخول";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    body { background: linear-gradient(135deg, #1a5f3c 0%, #0d3d26 100%); min-height: 100vh; }
+    .login-box { max-width: 420px; margin: 80px auto; background: #fff; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.3); overflow: hidden; }
+    .login-header { background: linear-gradient(135deg, #1a5f3c, #2d8a5e); padding: 30px; text-align: center; color: white; }
+    .login-header h2 { margin: 0; font-size: 1.8em; }
+    .login-header p { margin: 5px 0 0; opacity: .8; }
+    .login-body { padding: 30px; }
+    .btn-login { background: #1a5f3c; color: white; width: 100%; padding: 12px; font-size: 1.1em; border-radius: 8px; border: none; }
+    .btn-login:hover { background: #2d8a5e; color: white; }
+    .form-control { border-radius: 6px; padding: 10px 14px; font-size: 1em; text-align: right; }
+    .koss-footer, .koss-navbar, .price-alert { display: none; }
+</style>
+
+<div class="login-box">
+    <div class="login-header">
+        <div style="font-size:3em; margin-bottom:10px;">🏠</div>
+        <h2>نظام KOSS</h2>
+        <p>نظام إدارة المطابخ المتكامل</p>
+        <p style="font-size:.85em; opacity:.7">شركة بن سوما للمطابخ</p>
+    </div>
+    <div class="login-body">
+        @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal" }))
+        {
+            @Html.AntiForgeryToken()
+
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+            <div class="form-group">
+                @Html.LabelFor(m => m.Email, new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "أدخل البريد الإلكتروني", autofocus = "autofocus" })
+                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(m => m.Password, new { @class = "control-label" })
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "أدخل كلمة المرور" })
+                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>
+                    @Html.CheckBoxFor(m => m.RememberMe) تذكرني
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-login">
+                🔑 دخول إلى النظام
+            </button>
+        }
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

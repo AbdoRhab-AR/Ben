@@ -1,0 +1,150 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace KOSS.Web.Models
+{
+    // ============================================================
+    //  فئات بنود عرض السعر
+    // ============================================================
+    public enum QuotationItemCategory
+    {
+        [Display(Name = "خامات وألواح الخشب")]
+        WoodMaterials = 1,
+
+        [Display(Name = "مفصلات وإكسسوارات ومقابض")]
+        HardwareAndAccessories = 2,
+
+        [Display(Name = "أسطح (رخام / كوارتز / جرانيت)")]
+        Countertops = 3,
+
+        [Display(Name = "أجهزة كهرومنزلية وحوض")]
+        AppliancesAndSinks = 4,
+
+        [Display(Name = "أجور المصنعية والتصنيع")]
+        ManufacturingLabor = 5,
+
+        [Display(Name = "خدمات النقل والتركيب")]
+        InstallationAndDelivery = 6,
+
+        [Display(Name = "أخرى")]
+        Other = 7
+    }
+
+    // ============================================================
+    //  عروض الأسعار (Quotation) - دعم الإصدارات والاعتماد
+    // ============================================================
+    public class Quotation
+    {
+        public int Id { get; set; }
+
+        [Required]
+        [Display(Name = "طلب المطبخ")]
+        public int KitchenRequestId { get; set; }
+
+        [Display(Name = "إصدار التصميم المرتبط")]
+        public int? DesignVersionId { get; set; }
+
+        [Display(Name = "رقم عرض السعر")]
+        [StringLength(50)]
+        [Index("IX_Quotation_Number", IsUnique = true)]
+        public string QuotationNumber { get; set; }
+
+        [Display(Name = "رقم الإصدار")]
+        public int VersionNumber { get; set; } = 1;
+
+        [Display(Name = "المجموع قبل الخصم (د.ل)")]
+        public decimal SubTotal { get; set; }
+
+        [Display(Name = "قيمة الخصم (د.ل)")]
+        public decimal Discount { get; set; } = 0;
+
+        [Display(Name = "الضريبة (إن وجدت) (د.ل)")]
+        public decimal TaxAmount { get; set; } = 0;
+
+        [Display(Name = "صافي القيمة الإجمالية (د.ل)")]
+        public decimal TotalAmount { get; set; }
+
+        [Display(Name = "مدة صلاحية العرض (أيام)")]
+        public int ValidityDays { get; set; } = 15;
+
+        [Display(Name = "تاريخ انتهاء الصلاحية")]
+        public DateTime ExpiryDate => CreatedAt.AddDays(ValidityDays);
+
+        [Display(Name = "شروط الدفع المتفق عليها")]
+        [StringLength(500)]
+        public string PaymentTerms { get; set; } = "30% عربون عند التعاقد، 40% عند بدء التصنيع، 20% عند الجاهزية للتركيب، 10% عند التسليم النهائي.";
+
+        [Display(Name = "حالة عرض السعر")]
+        public QuotationStatus Status { get; set; } = QuotationStatus.Draft;
+
+        [Display(Name = "المعتمد إدارياً")]
+        public string ApprovedBy { get; set; }
+
+        [Display(Name = "تاريخ الاعتماد الداخلي")]
+        public DateTime? ApprovedAt { get; set; }
+
+        [Display(Name = "تاريخ الإرسال للعميل")]
+        public DateTime? SentToCustomerAt { get; set; }
+
+        [Display(Name = "تاريخ قبول العميل")]
+        public DateTime? AcceptedAt { get; set; }
+
+        [Display(Name = "ملاحظات إضافية")]
+        [StringLength(1000)]
+        public string Notes { get; set; }
+
+        [Display(Name = "تاريخ الإنشاء")]
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        [Display(Name = "أُنشئ بواسطة")]
+        public string CreatedBy { get; set; }
+
+        // العلاقات
+        public virtual KitchenRequest KitchenRequest { get; set; }
+        public virtual DesignVersion DesignVersion { get; set; }
+        public virtual ICollection<QuotationItem> Items { get; set; } = new List<QuotationItem>();
+    }
+
+    // ============================================================
+    //  بند في عرض السعر (QuotationItem)
+    // ============================================================
+    public class QuotationItem
+    {
+        public int Id { get; set; }
+
+        [Required]
+        public int QuotationId { get; set; }
+
+        [Display(Name = "فئة البند")]
+        public QuotationItemCategory Category { get; set; } = QuotationItemCategory.WoodMaterials;
+
+        [Display(Name = "اسم البند / الصنف")]
+        [Required, StringLength(200)]
+        public string ItemName { get; set; }
+
+        [Display(Name = "الوصف والمواصفات الفنية")]
+        [StringLength(500)]
+        public string Description { get; set; }
+
+        [Display(Name = "الوحدة")]
+        [StringLength(30)]
+        public string Unit { get; set; } = "متر";
+
+        [Display(Name = "الكمية")]
+        public decimal Quantity { get; set; } = 1;
+
+        [Display(Name = "سعر الوحدة (د.ل)")]
+        public decimal UnitPrice { get; set; }
+
+        [Display(Name = "خصم البند (د.ل)")]
+        public decimal Discount { get; set; } = 0;
+
+        [Display(Name = "الإجمالي (د.ل)")]
+        public decimal TotalPrice { get; set; }
+
+        // العلاقة
+        public virtual Quotation Quotation { get; set; }
+    }
+}

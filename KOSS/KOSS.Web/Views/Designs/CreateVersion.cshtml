@@ -1,0 +1,72 @@
+@model KOSS.Web.Models.DesignVersion
+@{
+    ViewBag.Title = "إضافة إصدار تصميم جديد";
+    var request = ViewBag.Request as KOSS.Web.Models.KitchenRequest;
+}
+
+<div class="page-header">
+    <h2>🎨 إضافة إصدار تصميم جديد
+        <small>الطلب: <strong>@(request != null ? request.RequestNumber : "-")</strong> | العميل: <strong>@(request != null && request.Customer != null ? request.Customer.Name : "-")</strong></small>
+    </h2>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h4>بيانات الإصدار @Model.VersionCode</h4></div>
+            <div class="panel-body">
+                @using (Html.BeginForm("CreateVersion", "Designs", FormMethod.Post, new { @class = "form-horizontal" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.KitchenRequestId)
+                    @Html.HiddenFor(m => m.VersionNumber)
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.DesignerId, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-9">
+                            @Html.DropDownListFor(m => m.DesignerId, (SelectList)ViewBag.Designers, "--- اختر المصمم المسؤول ---", new { @class = "form-control" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.SoftwareUsed, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-4">
+                            @Html.TextBoxFor(m => m.SoftwareUsed, new { @class = "form-control", placeholder = "SketchUp / 3ds Max" })
+                        </div>
+                        @Html.LabelFor(m => m.EstimatedLinearMeters, new { @class = "col-md-2 control-label" })
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                @Html.TextBoxFor(m => m.EstimatedLinearMeters, new { @class = "form-control", placeholder = "0.0" })
+                                <span class="input-group-addon">م</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Notes, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-9">
+                            @Html.TextAreaFor(m => m.Notes, new { @class = "form-control", rows = 4, placeholder = "شرح فكرة التصميم، توزيع الخزائن، نوع المقابض والألوان المقترحة..." })
+                        </div>
+                    </div>
+
+                    <hr />
+                    <div class="form-group">
+                        <div class="col-md-9 col-md-offset-3">
+                            <button type="submit" class="btn btn-warning btn-lg">💾 حفظ إصدار التصميم وإرساله للمراجعة</button>
+                            <a href="@Url.Action("Details", "Requests", new { id = Model.KitchenRequestId })" class="btn btn-default btn-lg">إلغاء</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="panel panel-info">
+            <div class="panel-heading"><h4>ℹ️ قاعدة أمان الإصدارات</h4></div>
+            <div class="panel-body">
+                <p>بمجرد اعتماد هذا الإصدار من قبل العميل، سيتم <strong>قفله تلقائياً (Locked)</strong> منعاً للتعديل المباشر، وأي تعديل مستقبلي ينشئ إصداراً جديداً برقم <code>V@(Model.VersionNumber + 1).0</code>.</p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,696 @@
+@using KOSS.Web.Models
+@using KOSS.Web.Helpers
+@model KOSS.Web.Models.KitchenRequest
+@{
+    ViewBag.Title = "ملف المشروع - " + Model.RequestNumber;
+    var contract = Model.ActiveContract ?? (Model.Contracts != null ? Model.Contracts.FirstOrDefault() : null);
+    var wo = Model.CurrentWorkOrder ?? (Model.WorkOrders != null ? Model.WorkOrders.FirstOrDefault() : null);
+    var prof = ViewBag.Profitability as KOSS.Web.Helpers.ProjectProfitabilityReport;
+    var closing = ViewBag.ClosingCheck as KOSS.Web.Helpers.ProjectClosingCheckResult;
+
+    int siteVisitsCount = Model.SiteVisits != null ? Model.SiteVisits.Count : 0;
+    int designsCount = Model.DesignVersions != null ? Model.DesignVersions.Count : 0;
+    int quotationsCount = Model.Quotations != null ? Model.Quotations.Count : 0;
+    int schedulesCount = (contract != null && contract.PaymentSchedules != null) ? contract.PaymentSchedules.Count : 0;
+    int historiesCount = Model.StatusHistories != null ? Model.StatusHistories.Count : 0;
+}
+
+<div class="page-header" style="margin-top:10px; margin-bottom:15px;">
+    <div class="row">
+        <div class="col-md-7">
+            <h2><i class="glyphicon glyphicon-folder-open text-primary"></i> مشروع: <strong>@Model.RequestNumber</strong>
+                <small>العميل: <strong>@(Model.Customer != null ? Model.Customer.Name : "-")</strong></small>
+            </h2>
+        </div>
+        <div class="col-md-5 text-left">
+            <span class="label label-primary" style="font-size:1.1em; padding:8px 12px;">
+                الحالة: @Model.Status
+            </span>
+            <a href="@Url.Action("Index")" class="btn btn-default">← كافة الطلبات</a>
+        </div>
+    </div>
+</div>
+
+<!-- شريط مسار العمل Workflow Pipeline -->
+<div class="panel panel-default" style="background:#fff; padding:15px; margin-bottom:20px; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+    <div class="row text-center" style="font-size:0.85em; font-weight:600;">
+        <div class="col-xs-2">
+            <span style="font-size:1.5em;"><i class="glyphicon glyphicon-list-alt"></i></span><br />1. الطلب
+        </div>
+        <div class="col-xs-2">
+            <span style="font-size:1.5em;"><i class="glyphicon glyphicon-resize-full"></i></span><br />2. المعاينة
+        </div>
+        <div class="col-xs-2">
+            <span style="font-size:1.5em;"><i class="glyphicon glyphicon-picture"></i></span><br />3. التصميم
+        </div>
+        <div class="col-xs-2">
+            <span style="font-size:1.5em;"><i class="glyphicon glyphicon-edit"></i></span><br />4. العقد والعربون
+        </div>
+        <div class="col-xs-2">
+            <span style="font-size:1.5em;"><i class="glyphicon glyphicon-wrench"></i></span><br />5. التصنيع والجودة
+        </div>
+        <div class="col-xs-2">
+            <span style="font-size:1.5em;"><i class="glyphicon glyphicon-ok-circle"></i></span><br />6. التسليم والإغلاق
+        </div>
+    </div>
+</div>
+
+<!-- بطاقات الملخص المالي والربحية السريعة -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="stat-card stat-blue">
+            <div class="stat-icon"><i class="glyphicon glyphicon-list-alt"></i></div>
+            <div class="stat-info">
+                <h3>@(contract != null ? contract.TotalValue.ToString("N0") : "0") <small>د.ل</small></h3>
+                <p>قيمة العقد الإجمالية</p>
+                <small>الموقع: @Model.Location</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-green">
+            <div class="stat-icon"><i class="glyphicon glyphicon-usd"></i></div>
+            <div class="stat-info">
+                <h3>@(contract != null ? contract.TotalPaid.ToString("N0") : "0") <small>د.ل</small></h3>
+                <p>المحصل حتى الآن</p>
+                <small>المتبقي: @(contract != null ? contract.RemainingBalance.ToString("N0") : "0") د.ل</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-orange">
+            <div class="stat-icon"><i class="glyphicon glyphicon-shopping-cart"></i></div>
+            <div class="stat-info">
+                <h3>@(prof != null ? prof.TotalProjectCost.ToString("N0") : "0") <small>د.ل</small></h3>
+                <p>إجمالي التكاليف المباشرة</p>
+                <small>خامات ومشتريات وأجور</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-purple">
+            <div class="stat-icon"><i class="glyphicon glyphicon-stats"></i></div>
+            <div class="stat-info">
+                <h3>@(prof != null ? prof.NetProfit.ToString("N0") : "0") <small>د.ل</small></h3>
+                <p>صافي الربح التقديري</p>
+                <small>هامش الربح: @(prof != null ? prof.ProfitMarginPercentage.ToString("F1") : "0")%</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- تبويبات تفاصيل المشروع المركزي -->
+<div style="margin-top:20px;">
+    <ul class="nav nav-tabs" role="tablist" style="font-weight:700; font-size:1.05em;">
+        <li class="active"><a href="#tab-overview" data-toggle="tab"><i class="glyphicon glyphicon-info-sign"></i> نظرة عامة والإجراءات</a></li>
+        <li><a href="#tab-sitevisit" data-toggle="tab"><i class="glyphicon glyphicon-resize-full"></i> المعاينة <span class="badge">@siteVisitsCount</span></a></li>
+        <li><a href="#tab-designs" data-toggle="tab"><i class="glyphicon glyphicon-picture"></i> التصاميم <span class="badge">@designsCount</span></a></li>
+        <li><a href="#tab-quotations" data-toggle="tab"><i class="glyphicon glyphicon-usd"></i> عروض الأسعار <span class="badge">@quotationsCount</span></a></li>
+        <li><a href="#tab-contract" data-toggle="tab"><i class="glyphicon glyphicon-list-alt"></i> العقد والدفعات <span class="badge">@schedulesCount</span></a></li>
+        <li><a href="#tab-workorder" data-toggle="tab"><i class="glyphicon glyphicon-cog"></i> أمر التنفيذ والـ BOM</a></li>
+        <li><a href="#tab-manufacturing" data-toggle="tab"><i class="glyphicon glyphicon-wrench"></i> التصنيع وفحص الجودة</a></li>
+        <li><a href="#tab-installation" data-toggle="tab"><i class="glyphicon glyphicon-send"></i> التركيب ومحضر التسليم</a></li>
+        <li><a href="#tab-costing" data-toggle="tab"><i class="glyphicon glyphicon-stats"></i> محاسبة التكاليف والربحية</a></li>
+        <li><a href="#tab-history" data-toggle="tab"><i class="glyphicon glyphicon-time"></i> سجل الحالات <span class="badge">@historiesCount</span></a></li>
+    </ul>
+
+    <div class="tab-content" style="background:#fff; padding:20px; border:1px solid #ddd; border-top:none; min-height:400px;">
+        
+        <!-- 1. نظرة عامة والإجراءات -->
+        <div class="tab-pane active" id="tab-overview">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading"><h4>بيانات العميل والمشروع</h4></div>
+                        <div class="panel-body">
+                            <table class="table table-condensed">
+                                <tr><td>العميل</td><td><strong>@(Model.Customer != null ? Model.Customer.Name : "-")</strong></td></tr>
+                                <tr><td>الهاتف الأساسي</td><td dir="ltr">@(Model.Customer != null ? Model.Customer.Phone : "-")</td></tr>
+                                <tr><td>الموقع والعنوان</td><td>@Model.Location</td></tr>
+                                <tr><td>نوع المشروع</td><td>@Model.ProjectType</td></tr>
+                                <tr><td>تخطيط المطبخ</td><td>@Model.LayoutType</td></tr>
+                                <tr><td>مسؤول المبيعات</td><td>@(Model.AssignedSalesStaff != null ? Model.AssignedSalesStaff.FullName : "-")</td></tr>
+                                <tr><td>تاريخ التسليم المستهدف</td><td>@(Model.TargetDeliveryDate.HasValue ? Model.TargetDeliveryDate.Value.ToString("yyyy/MM/dd") : "-")</td></tr>
+                            </table>
+                            @if (!string.IsNullOrEmpty(Model.Notes))
+                            {
+                                <div class="alert alert-info"><strong>ملاحظات:</strong> @Model.Notes</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <!-- لوحة الإجراء السريع للخطوة التالية -->
+                    <div class="panel panel-primary">
+                        <div class="panel-heading"><h4>⚡ الإجراء المطلوب للمرحلة الراهنة</h4></div>
+                        <div class="panel-body">
+                            @if (Model.Status == KitchenRequestStatus.RequestOpened)
+                            {
+                                <p>الطلب مفتوح حديثاً. الخطوة التالية هي <strong>جدولة موعد المعاينة الميدانية</strong> لرفع القياسات.</p>
+                                <a href="@Url.Action("Schedule", "SiteVisits", new { requestId = Model.Id })" class="btn btn-primary btn-block btn-lg">
+                                    📏 جدولة موعد المعاينة الميدانية
+                                </a>
+                            }
+                            else if (Model.Status == KitchenRequestStatus.SiteVisitCompleted)
+                            {
+                                <p>تم اعتماد المعاينة والقياسات. الخطوة التالية هي <strong>إعداد إصدار التصميم V1.0</strong>.</p>
+                                <a href="@Url.Action("CreateVersion", "Designs", new { requestId = Model.Id })" class="btn btn-warning btn-block btn-lg">
+                                    🎨 فتح مهمة تصميم جديدة
+                                </a>
+                            }
+                            else if (Model.Status == KitchenRequestStatus.InPricing)
+                            {
+                                <p>التصميم معتمد من العميل. الخطوة التالية هي <strong>إعداد عرض السعر الرسمي</strong>.</p>
+                                <a href="@Url.Action("Create", "Quotations", new { requestId = Model.Id })" class="btn btn-success btn-block btn-lg">
+                                    💰 إعداد عرض السعر الرسمي
+                                </a>
+                            }
+                            else if (Model.Status == KitchenRequestStatus.AwaitingContractAndDeposit)
+                            {
+                                <p>تم قبول عرض السعر. يرجى <strong>تحرير العقد الرسمي وتسجيل دفعة العربون (30%)</strong> للتفعيل.</p>
+                                if (contract == null)
+                                {
+                                    <a href="@Url.Action("Create", "Contracts", new { requestId = Model.Id })" class="btn btn-success btn-block btn-lg">
+                                        📋 تحرير العقد الرسمي
+                                    </a>
+                                }
+                            }
+                            else if (Model.Status == KitchenRequestStatus.InPlanning)
+                            {
+                                <p>العقد نشط والعربون مسدد. الخطوة التالية هي <strong>تحديد قائمة المواد (BOM) وبدء التصنيع</strong>.</p>
+                                if (wo != null)
+                                {
+                                    <a href="@Url.Action("Details", "WorkOrders", new { id = wo.Id })" class="btn btn-warning btn-block btn-lg">
+                                        ⚙️ مراجعة الـ BOM وبدء التصنيع
+                                    </a>
+                                }
+                            }
+                            else if (Model.Status == KitchenRequestStatus.ReadyForInstallation)
+                            {
+                                <p>تم الانتهاء من التصنيع واجتياز فحص الجودة. الخطوة التالية هي <strong>جدولة التركيب الميداني</strong>.</p>
+                            }
+                            else
+                            {
+                                <p class="text-muted">الطلب يسير وفق مسار العمل المعتمد. يمكنك الانتقال لأي تبويب لإدارته.</p>
+                            }
+
+                            <!-- تغيير الحالة يدوياً مع تطبيق شروط الأمان -->
+                            <hr />
+                            <h5>الانتقال المباشر للحالة (مع التحقق الصارم):</h5>
+                            @using (Html.BeginForm("Transition", "Requests", FormMethod.Post, new { @class = "form-inline" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="requestId" value="@Model.Id" />
+                                <div class="form-group">
+                                    <select name="targetStatus" class="form-control input-sm">
+                                        @foreach (KitchenRequestStatus st in Enum.GetValues(typeof(KitchenRequestStatus)))
+                                        {
+                                            <option value="@st" @(st == Model.Status ? "selected" : "")>@st</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" name="reason" class="form-control input-sm" placeholder="سبب التغيير..." />
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-default">تغيير</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. المعاينات -->
+        <div class="tab-pane" id="tab-sitevisit">
+            <div class="row">
+                <div class="col-md-12">
+                    <a href="@Url.Action("Schedule", "SiteVisits", new { requestId = Model.Id })" class="btn btn-sm btn-primary pull-left">➕ جدولة معاينة جديدة</a>
+                    <h4>📏 سجل المعاينات الميدانية</h4>
+                    <table class="table table-bordered table-striped" style="margin-top:15px;">
+                        <thead class="thead-koss">
+                            <tr>
+                                <th>#</th>
+                                <th>المهندس</th>
+                                <th>الموعد المجدول</th>
+                                <th>الأبعاد (سم)</th>
+                                <th>المساحة (م²)</th>
+                                <th>الحالة</th>
+                                <th>تقرير المهندس</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.SiteVisits.Any())
+                            {
+                                <tr><td colspan="8" class="text-center text-muted">لا توجد معاينات مجدولة لهذا الطلب بعد.</td></tr>
+                            }
+                            @foreach (var v in Model.SiteVisits)
+                            {
+                                <tr>
+                                    <td>@v.Id</td>
+                                    <td>@(v.AssignedSurveyor != null ? v.AssignedSurveyor.FullName : "غير معين")</td>
+                                    <td>@(v.ScheduledDate.HasValue ? v.ScheduledDate.Value.ToString("yyyy/MM/dd") : "-")</td>
+                                    <td>
+                                        @if (v.WallLength1Cm.HasValue)
+                                        {
+                                            <span>@v.WallLength1Cm x @v.WallLength2Cm (ارتفاع @v.CeilingHeightCm)</span>
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (v.EstimatedAreaM2.HasValue)
+                                        {
+                                            <span>@v.EstimatedAreaM2 م²</span>
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+                                    </td>
+                                    <td><span class="label label-primary">@v.Status</span></td>
+                                    <td><small>@v.SurveyorReport</small></td>
+                                    <td>
+                                        <a href="@Url.Action("RecordMeasurements", "SiteVisits", new { id = v.Id })" class="btn btn-xs btn-default">📐 إدخال القياسات</a>
+                                        @if (v.Status != SiteVisitStatus.Approved)
+                                        {
+                                            using (Html.BeginForm("Approve", "SiteVisits", FormMethod.Post, new { style = "display:inline;" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="visitId" value="@v.Id" />
+                                                <button type="submit" class="btn btn-xs btn-success">✅ اعتماد</button>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. التصاميم -->
+        <div class="tab-pane" id="tab-designs">
+            <a href="@Url.Action("CreateVersion", "Designs", new { requestId = Model.Id })" class="btn btn-sm btn-warning pull-left">➕ إضافة إصدار تصميم جديد</a>
+            <h4>🎨 إصدارات المخططات ثلاثية الأبعاد (3D Design Versions)</h4>
+            <table class="table table-bordered table-striped" style="margin-top:15px;">
+                <thead class="thead-koss">
+                    <tr>
+                        <th>الإصدار</th>
+                        <th>المصمم</th>
+                        <th>الأمتار الطولية</th>
+                        <th>الحالة</th>
+                        <th>مقفل؟</th>
+                        <th>تاريخ الإنشاء</th>
+                        <th>ملاحظات العميل</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.DesignVersions.Any())
+                    {
+                        <tr><td colspan="8" class="text-center text-muted">لا توجد تصاميم مسجلة لهذا الطلب حتى الآن.</td></tr>
+                    }
+                    @foreach (var d in Model.DesignVersions)
+                    {
+                        <tr>
+                            <td><strong>@d.VersionCode</strong></td>
+                            <td>@(d.Designer != null ? d.Designer.FullName : "-")</td>
+                            <td>
+                                @if (d.EstimatedLinearMeters.HasValue)
+                                {
+                                    <span>@d.EstimatedLinearMeters م</span>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
+                            <td><span class="label label-info">@d.Status</span></td>
+                            <td>@(d.IsLocked ? "🔒 نعم" : "مفتوح")</td>
+                            <td>@d.CreatedAt.ToString("yyyy/MM/dd")</td>
+                            <td><small>@d.CustomerFeedback</small></td>
+                            <td>
+                                @if (d.Status == DesignVersionStatus.InternalReview)
+                                {
+                                    using (Html.BeginForm("SendToCustomer", "Designs", FormMethod.Post, new { style = "display:inline;" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="versionId" value="@d.Id" />
+                                        <button type="submit" class="btn btn-xs btn-primary">📤 إرسال للعميل</button>
+                                    }
+                                }
+                                @if (d.Status == DesignVersionStatus.SentToCustomer)
+                                {
+                                    using (Html.BeginForm("ApproveByCustomer", "Designs", FormMethod.Post, new { style = "display:inline;" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="versionId" value="@d.Id" />
+                                        <button type="submit" class="btn btn-xs btn-success">✅ اعتماد العميل</button>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 4. عروض الأسعار -->
+        <div class="tab-pane" id="tab-quotations">
+            <a href="@Url.Action("Create", "Quotations", new { requestId = Model.Id })" class="btn btn-sm btn-success pull-left">➕ إعداد عرض سعر جديد</a>
+            <h4>💰 عروض الأسعار وإصداراتها</h4>
+            <table class="table table-bordered table-striped" style="margin-top:15px;">
+                <thead class="thead-koss">
+                    <tr>
+                        <th>رقم العرض</th>
+                        <th>الإصدار</th>
+                        <th>الإجمالي (د.ل)</th>
+                        <th>صالح حتى</th>
+                        <th>الحالة</th>
+                        <th>شروط الدفع</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Quotations.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted">لا توجد عروض أسعار مسجلة.</td></tr>
+                    }
+                    @foreach (var q in Model.Quotations)
+                    {
+                        <tr>
+                            <td><strong>@q.QuotationNumber</strong></td>
+                            <td>V@(q.VersionNumber).0</td>
+                            <td class="text-success"><strong>@q.TotalAmount.ToString("N3") د.ل</strong></td>
+                            <td>@q.ExpiryDate.ToString("yyyy/MM/dd")</td>
+                            <td><span class="label label-primary">@q.Status</span></td>
+                            <td><small>@q.PaymentTerms</small></td>
+                            <td>
+                                @if (q.Status == QuotationStatus.Draft || q.Status == QuotationStatus.Approved)
+                                {
+                                    using (Html.BeginForm("SendToCustomer", "Quotations", FormMethod.Post, new { style = "display:inline;" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="quotationId" value="@q.Id" />
+                                        <button type="submit" class="btn btn-xs btn-primary">📤 إرسال للعميل</button>
+                                    }
+                                }
+                                @if (q.Status == QuotationStatus.SentToCustomer)
+                                {
+                                    using (Html.BeginForm("Accept", "Quotations", FormMethod.Post, new { style = "display:inline;" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="quotationId" value="@q.Id" />
+                                        <button type="submit" class="btn btn-xs btn-success">✅ قبول العرض</button>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 5. العقد والدفعات -->
+        <div class="tab-pane" id="tab-contract">
+            @if (contract == null)
+            {
+                <div class="alert alert-info">لم يتم تحرير عقد لهذا الطلب بعد. <a href="@Url.Action("Create", "Contracts", new { requestId = Model.Id })" class="btn btn-sm btn-success">تحرير العقد الآن</a></div>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>📋 بيانات العقد (@contract.ContractNumber)</h4>
+                        <table class="table table-bordered table-condensed">
+                            <tr><td>قيمة العقد الإجمالية</td><td><strong class="text-success">@contract.TotalValue.ToString("N3") د.ل</strong></td></tr>
+                            <tr><td>العربون المطلوب (30%)</td><td><strong>@contract.RequiredDeposit.ToString("N3") د.ل</strong></td></tr>
+                            <tr><td>إجمالي المقبوضات</td><td><strong class="text-primary">@contract.TotalPaid.ToString("N3") د.ل</strong></td></tr>
+                            <tr><td>الرصيد المتبقي</td><td><strong class="text-danger">@contract.RemainingBalance.ToString("N3") د.ل</strong></td></tr>
+                            <tr><td>حالة العقد</td><td><span class="label label-success">@contract.Status</span></td></tr>
+                            <tr><td>تاريخ التوقيع</td><td>@(contract.SignedDate.HasValue ? contract.SignedDate.Value.ToString("yyyy/MM/dd") : "-")</td></tr>
+                        </table>
+
+                        <!-- نموذج تسجيل دفعة / عربون -->
+                        <div class="panel panel-success" style="margin-top:15px;">
+                            <div class="panel-heading"><h5>💵 تسجيل دفعة / إيصال قبض</h5></div>
+                            <div class="panel-body">
+                                @using (Html.BeginForm("RecordDeposit", "Contracts", FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="contractId" value="@contract.Id" />
+                                    <div class="form-group">
+                                        <label>المبلغ المستلم (د.ل)</label>
+                                        <input type="number" name="amount" class="form-control" value="@contract.RequiredDeposit" step="0.001" min="0" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label>طريقة الدفع</label>
+                                        <select name="paymentMethod" class="form-control">
+                                            <option value="نقداً">نقداً</option>
+                                            <option value="تحويل مصرفي">تحويل مصرفي</option>
+                                            <option value="صك مصدق">صك مصدق</option>
+                                            <option value="بطاقة مصرفية">بطاقة مصرفية</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-block">✅ تأكيد استلام الدفعة وإصدار الإيصال</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h4>📅 جدول الدفعات المجدولة</h4>
+                        <table class="table table-bordered">
+                            <thead class="thead-koss">
+                                <tr><th>المرحلة</th><th>النسبة</th><th>المبلغ</th><th>الحالة</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ps in contract.PaymentSchedules)
+                                {
+                                    <tr>
+                                        <td>@ps.StageName</td>
+                                        <td>@ps.Percentage.ToString("F0")%</td>
+                                        <td><strong>@ps.Amount.ToString("N3") د.ل</strong></td>
+                                        <td>@(ps.IsPaid ? "✅ مسددة" : "⏳ مستحقة")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        <h4>💵 سجل إيصالات القبض المستلمة</h4>
+                        <table class="table table-striped table-condensed">
+                            <thead><tr><th>رقم الإيصال</th><th>المبلغ</th><th>النوع</th><th>التاريخ</th></tr></thead>
+                            <tbody>
+                                @foreach (var p in contract.Payments)
+                                {
+                                    <tr>
+                                        <td><strong>@p.ReceiptNumber</strong></td>
+                                        <td class="text-success">@p.Amount.ToString("N3") د.ل</td>
+                                        <td>@p.PaymentMethod</td>
+                                        <td>@p.PaidAt.ToString("yyyy/MM/dd")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- 6. أمر التنفيذ والـ BOM -->
+        <div class="tab-pane" id="tab-workorder">
+            @if (wo == null)
+            {
+                <div class="alert alert-warning">أمر التنفيذ يصدر تلقائياً بمجرد تفعيل العقد وسداد العربون.</div>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4>⚙️ أمر التنفيذ رقم <strong>@wo.OrderNumber</strong>
+                            <a href="@Url.Action("Details", "WorkOrders", new { id = wo.Id })" class="btn btn-xs btn-primary pull-left">الانتقال لصفحة أمر التشغيل الكاملة</a>
+                        </h4>
+                        <table class="table table-bordered" style="margin-top:10px;">
+                            <thead class="thead-koss">
+                                <tr><th>الصنف</th><th>الفئة</th><th>الكمية المطلوبة</th><th>المصروف</th><th>المتبقي للشراء</th><th>التكلفة التقديرية</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var m in wo.MaterialRequirements)
+                                {
+                                    <tr>
+                                        <td><strong>@m.ItemName</strong></td>
+                                        <td>@m.Category</td>
+                                        <td>@m.QuantityRequired @m.Unit</td>
+                                        <td class="text-success">@m.QuantityIssued @m.Unit</td>
+                                        <td class="text-danger">@m.QuantityToPurchase @m.Unit</td>
+                                        <td>@m.TotalEstimatedCost.ToString("N3") د.ل</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- 7. التصنيع وفحص الجودة -->
+        <div class="tab-pane" id="tab-manufacturing">
+            <h4>🏭 مراحل التصنيع وفحص الجودة بالمصنع</h4>
+            @if (wo != null && wo.Tasks.Any())
+            {
+                <div class="row">
+                    <div class="col-md-7">
+                        <table class="table table-bordered">
+                            <thead class="thead-koss"><tr><th>المرحلة</th><th>الفني</th><th>الحالة</th><th>تاريخ الإنجاز</th></tr></thead>
+                            <tbody>
+                                @foreach (var t in wo.Tasks)
+                                {
+                                    <tr>
+                                        <td><strong>@t.TaskName</strong></td>
+                                        <td>@t.TechnicianName</td>
+                                        <td><span class="label label-primary">@t.Status</span></td>
+                                        <td>@(t.CompletedAt.HasValue ? t.CompletedAt.Value.ToString("yyyy/MM/dd HH:mm") : "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="panel panel-info">
+                            <div class="panel-heading"><h5>فحص الجودة والمطابقة</h5></div>
+                            <div class="panel-body">
+                                @if (wo.QualityChecks != null && wo.QualityChecks.Any())
+                                {
+                                    var qc = wo.QualityChecks.LastOrDefault();
+                                    if (qc != null)
+                                    {
+                                        <p>تقرير رقم: <strong>@qc.ReportNumber</strong></p>
+                                        <p>النتيجة: <span class="label label-success">@(qc.Passed ? "ناجح ومطابق" : "يوجد ملاحظات")</span></p>
+                                        <p>المفتش: @qc.InspectorName</p>
+                                    }
+                                }
+                                else
+                                {
+                                    <p class="text-muted">لم يتم تنفيذ فحص الجودة بعد.</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">مراحل التصنيع تبدأ بعد إصدار أمر التشغيل.</p>
+            }
+        </div>
+
+        <!-- 8. التركيب والتسليم -->
+        <div class="tab-pane" id="tab-installation">
+            <h4>🚚 التركيب الميداني ومحضر التسليم الرسمي</h4>
+            @if (wo != null && wo.HandoverDocuments != null && wo.HandoverDocuments.Any())
+            {
+                var h = wo.HandoverDocuments.LastOrDefault();
+                if (h != null)
+                {
+                    <div class="alert alert-success">
+                        <h4>🎉 تم توقيع محضر التسليم الرسمي رقم <strong>@h.DocumentNumber</strong></h4>
+                        <p>المستلم: <strong>@h.CustomerSignerName</strong> | ممثل الشركة: @h.CompanyRepresentative | التاريخ: @h.HandoverDate.ToString("yyyy/MM/dd")</p>
+                        <p>ملاحظات العميل: @h.CustomerRemarks</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted">لم يتم توقيع محضر التسليم بعد.</p>
+            }
+        </div>
+
+        <!-- 9. محاسبة التكاليف والربحية -->
+        <div class="tab-pane" id="tab-costing">
+            <h4>📈 كشف التكاليف المباشرة والأرباح الفعلية للمشروع</h4>
+            @if (prof != null)
+            {
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <tr><td><strong>إجمالي إيراد المشروع (العقد)</strong></td><td><strong style="font-size:1.2em;">@prof.ContractRevenue.ToString("N3") د.ل</strong></td></tr>
+                            <tr><td>- تكلفة المواد المصروفة من المخزن</td><td class="text-danger">- @prof.MaterialCost.ToString("N3") د.ل</td></tr>
+                            <tr><td>- تكلفة المشتريات المباشرة</td><td class="text-danger">- @prof.DirectPurchasesCost.ToString("N3") د.ل</td></tr>
+                            <tr><td>- أجور التركيب والمصنعية</td><td class="text-danger">- @prof.InstallationLaborCost.ToString("N3") د.ل</td></tr>
+                            <tr><td>- المصروفات الإضافية المباشرة</td><td class="text-danger">- @prof.DirectExpensesCost.ToString("N3") د.ل</td></tr>
+                            <tr><td><strong>إجمالي تكلفة المشروع الكلية</strong></td><td><strong>@prof.TotalProjectCost.ToString("N3") د.ل</strong></td></tr>
+                            <tr style="font-size:1.3em;">
+                                <td><strong>صافي الربح الفعلي</strong></td>
+                                <td><strong>@prof.NetProfit.ToString("N3") د.ل (@prof.ProfitMarginPercentage.ToString("F1")%)</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="col-md-6">
+                        <!-- تسجيل مصروف مباشر على المشروع -->
+                        <div class="panel panel-default">
+                            <div class="panel-heading"><h5>➕ تسجيل مصروف مباشر على مركز تكلفة المشروع</h5></div>
+                            <div class="panel-body">
+                                @using (Html.BeginForm("AddExpense", "Requests", FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="kitchenRequestId" value="@Model.Id" />
+                                    <div class="form-group">
+                                        <label>نوع المصروف</label>
+                                        <select name="expenseType" class="form-control">
+                                            <option value="نقل وشحن">نقل وشحن</option>
+                                            <option value="مقاول تركيب خارجي">مقاول تركيب خارجي</option>
+                                            <option value="عمالة طارئة">عمالة طارئة</option>
+                                            <option value="إكسسوارات طارئة">إكسسوارات طارئة</option>
+                                            <option value="رافعة / معدات خاصة">رافعة / معدات خاصة</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>المبلغ (د.ل)</label>
+                                        <input type="number" name="amount" class="form-control" step="0.001" min="0" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label>المدفوع له والشرح</label>
+                                        <input type="text" name="paidTo" class="form-control" placeholder="اسم المستفيد والتفاصيل..." />
+                                    </div>
+                                    <button type="submit" class="btn btn-warning btn-block">💾 قيد المصروف على المشروع</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- 10. سجل الحالات التاريخي -->
+        <div class="tab-pane" id="tab-history">
+            <h4>🕒 سجل تدقيق الحالات التاريخي (Request Status Audit Log)</h4>
+            <table class="table table-bordered table-striped" style="margin-top:15px;">
+                <thead class="thead-koss">
+                    <tr><th>التاريخ والوقت</th><th>الحالة السابقة</th><th>الحالة الجديدة</th><th>المستخدم</th><th>الملاحظات</th></tr>
+                </thead>
+                <tbody>
+                    @if (Model.StatusHistories != null)
+                    {
+                        foreach (var h in Model.StatusHistories.OrderByDescending(x => x.ChangedAt))
+                        {
+                            <tr>
+                                <td>@h.ChangedAt.ToString("yyyy/MM/dd HH:mm:ss")</td>
+                                <td><span class="label label-default">@h.OldStatus</span></td>
+                                <td><span class="label label-primary">@h.NewStatus</span></td>
+                                <td><small>@h.ChangedBy</small></td>
+                                <td>@h.Notes</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>

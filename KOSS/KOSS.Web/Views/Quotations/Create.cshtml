@@ -1,0 +1,90 @@
+@model KOSS.Web.Models.Quotation
+@{
+    ViewBag.Title = "إعداد عرض سعر جديد";
+    var request = ViewBag.Request as KOSS.Web.Models.KitchenRequest;
+    var design = ViewBag.Design as KOSS.Web.Models.DesignVersion;
+}
+
+<div class="page-header">
+    <h2>💰 إعداد عرض سعر رسمي جديد
+        <small>الطلب: <strong>@(request != null ? request.RequestNumber : "-")</strong> | العميل: <strong>@(request != null && request.Customer != null ? request.Customer.Name : "-")</strong> | التصميم: <strong>@(design != null ? design.VersionCode : "-")</strong></small>
+    </h2>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h4>بيانات عرض السعر</h4></div>
+            <div class="panel-body">
+                @using (Html.BeginForm("Create", "Quotations", FormMethod.Post, new { @class = "form-horizontal" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.KitchenRequestId)
+                    @Html.HiddenFor(m => m.DesignVersionId)
+                    @Html.HiddenFor(m => m.QuotationNumber)
+
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">رقم العرض</label>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" value="@Model.QuotationNumber" disabled />
+                        </div>
+                        @Html.LabelFor(m => m.ValidityDays, new { @class = "col-md-2 control-label" })
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                @Html.TextBoxFor(m => m.ValidityDays, new { @class = "form-control" })
+                                <span class="input-group-addon">يوم</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.TotalAmount, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-9">
+                            <div class="input-group">
+                                @Html.TextBoxFor(m => m.TotalAmount, new { @class = "form-control input-lg", placeholder = "0.000" })
+                                <span class="input-group-addon">د.ل</span>
+                            </div>
+                            @Html.ValidationMessageFor(m => m.TotalAmount, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.PaymentTerms, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-9">
+                            @Html.TextAreaFor(m => m.PaymentTerms, new { @class = "form-control", rows = 2 })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Notes, new { @class = "col-md-3 control-label" })
+                        <div class="col-md-9">
+                            @Html.TextAreaFor(m => m.Notes, new { @class = "form-control", rows = 3, placeholder = "ملاحظات إضافية، الضمانات، الشروط الفنية..." })
+                        </div>
+                    </div>
+
+                    <hr />
+                    <div class="form-group">
+                        <div class="col-md-9 col-md-offset-3">
+                            <button type="submit" class="btn btn-success btn-lg">💾 حفظ مسودة عرض السعر</button>
+                            <a href="@Url.Action("Details", "Requests", new { id = Model.KitchenRequestId })" class="btn btn-default btn-lg">إلغاء</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="panel panel-info">
+            <div class="panel-heading"><h4>ℹ️ شروط الدفع المعتمدة بالمنظومة</h4></div>
+            <div class="panel-body">
+                <ul>
+                    <li><strong>30% عربون:</strong> عند توقيع العقد وقبل بدء التخطيط.</li>
+                    <li><strong>40% دفعة تصنيع:</strong> عند جاهزية المواد وبدء التصنيع.</li>
+                    <li><strong>20% دفعة تركيب:</strong> عند جاهزية المطبخ للتركيب.</li>
+                    <li><strong>10% رصيد ختامي:</strong> عند توقيع محضر التسليم النهائي.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

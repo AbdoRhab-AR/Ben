@@ -1,0 +1,72 @@
+@model KOSS.Web.Models.ViewModels.UpdatePriceViewModel
+@{
+    ViewBag.Title = "تحديث سعر المتر";
+}
+
+<div class="page-header">
+    <h2>📈 تحديث سعر المتر اليومي
+        <small>(خاص بالمسؤول المالي)</small>
+    </h2>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h4>تعديل السعر</h4></div>
+            <div class="panel-body">
+                @using (Html.BeginForm("UpdatePrice", "Finance", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="form-group">
+                        <label>السعر الحالي للمتر</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control input-lg" value="@Model.CurrentPrice.ToString("N3")" disabled />
+                            <span class="input-group-addon">د.ل</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.NewPricePerMeter, new { @class = "control-label" })
+                        <div class="input-group">
+                            @Html.TextBoxFor(m => m.NewPricePerMeter, new { @class = "form-control input-lg", placeholder = "0.000", autofocus = "autofocus" })
+                            <span class="input-group-addon">د.ل</span>
+                        </div>
+                        @Html.ValidationMessageFor(m => m.NewPricePerMeter, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Reason, new { @class = "control-label" })
+                        @Html.TextAreaFor(m => m.Reason, new { @class = "form-control", rows = 3, placeholder = "مثال: ارتفاع أسعار المواد الخام في السوق المحلي..." })
+                        @Html.ValidationMessageFor(m => m.Reason, "", new { @class = "text-danger" })
+                    </div>
+
+                    <hr />
+                    <button type="submit" class="btn btn-warning btn-lg">
+                        💾 حفظ السعر الجديد وتعميمه
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-default btn-lg">إلغاء</a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="panel panel-warning">
+            <div class="panel-heading"><h4>⚠️ تنبيه هام حول تعديل الأسعار</h4></div>
+            <div class="panel-body">
+                <ul>
+                    <li>تعديل سعر المتر يظهر كـ <strong>تنبيه فوري</strong> لجميع موظفي المبيعات.</li>
+                    <li>السعر الجديد يُطبّق تلقائياً على <strong>العقود الجديدة فقط</strong>.</li>
+                    <li>العقود الموقعة مسبقاً تحتفظ بسعرها الثابت دون تغيير.</li>
+                    <li>يتم توثيق كل تعديل في <strong>سجل التدقيق (Audit Log)</strong> مع اسم المستخدم والتاريخ.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

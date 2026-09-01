@@ -1,0 +1,62 @@
+@model KOSS.Web.Models.SiteVisit
+@{
+    ViewBag.Title = "جدولة موعد معاينة ميدانية";
+    var request = ViewBag.Request as KOSS.Web.Models.KitchenRequest;
+}
+
+<div class="page-header">
+    <h2>📏 جدولة موعد معاينة ميدانية
+        <small>الطلب: <strong>@(request != null ? request.RequestNumber : "-")</strong> | العميل: <strong>@(request != null && request.Customer != null ? request.Customer.Name : "-")</strong></small>
+    </h2>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h4>تفاصيل الزيارة والتكليف</h4></div>
+            <div class="panel-body">
+                @using (Html.BeginForm("Schedule", "SiteVisits", FormMethod.Post, new { @class = "form-horizontal" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.KitchenRequestId)
+
+                    <div class="form-group">
+                        <label class="col-md-4 control-label">موقع المطبخ</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" value="@(request != null ? request.Location : "-")" disabled />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.AssignedSurveyorId, new { @class = "col-md-4 control-label" })
+                        <div class="col-md-8">
+                            @Html.DropDownListFor(m => m.AssignedSurveyorId, (SelectList)ViewBag.Surveyors, "--- اختر مهندس المعاينة ---", new { @class = "form-control" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.ScheduledDate, new { @class = "col-md-4 control-label" })
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(m => m.ScheduledDate, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.SurveyorReport, new { @class = "col-md-4 control-label" })
+                        <div class="col-md-8">
+                            @Html.TextAreaFor(m => m.SurveyorReport, new { @class = "form-control", rows = 3, placeholder = "توجيهات خاصة للمهندس الزائر..." })
+                        </div>
+                    </div>
+
+                    <hr />
+                    <div class="form-group">
+                        <div class="col-md-8 col-md-offset-4">
+                            <button type="submit" class="btn btn-primary btn-lg">💾 حفظ وتكليف المهندس</button>
+                            <a href="@Url.Action("Details", "Requests", new { id = Model.KitchenRequestId })" class="btn btn-default btn-lg">إلغاء</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

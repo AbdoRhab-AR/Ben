@@ -1,0 +1,185 @@
+@model IEnumerable<KOSS.Web.Models.KitchenRequest>
+@{
+    ViewBag.Title = "لوحة التحكم التنفيذية والإجرائية";
+}
+
+<div class="page-header" style="margin-top:10px; margin-bottom:20px;">
+    <h2>📊 لوحة التحكم التنفيذية والإجرائية
+        <small>(مؤشرات العمل الفورية لخط سير مشاريع المطابخ)</small>
+    </h2>
+</div>
+
+<!-- 1. شريط بطاقات الإجراءات الفورية (Actionable Items) -->
+<div class="row">
+    <div class="col-md-2 col-sm-4 col-xs-6">
+        <a href="@Url.Action("Index", "Inquiries")" style="text-decoration:none;">
+            <div class="stat-card stat-blue text-center">
+                <h3 style="margin:0; font-size:2.2em;">@ViewBag.NewInquiriesCount</h3>
+                <p style="margin:5px 0 0 0; font-weight:700;">📞 استفسارات جديدة</p>
+                <small>تحتاج متابعة وتأهيل</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 col-sm-4 col-xs-6">
+        <a href="@Url.Action("Index", "SiteVisits")" style="text-decoration:none;">
+            <div class="stat-card stat-green text-center">
+                <h3 style="margin:0; font-size:2.2em;">@ViewBag.TodayVisitsCount</h3>
+                <p style="margin:5px 0 0 0; font-weight:700;">📏 معاينات اليوم</p>
+                <small>زيارات مجدولة</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 col-sm-4 col-xs-6">
+        <a href="@Url.Action("Index", "Designs")" style="text-decoration:none;">
+            <div class="stat-card stat-gold text-center">
+                <h3 style="margin:0; font-size:2.2em;">@ViewBag.PendingDesignsCount</h3>
+                <p style="margin:5px 0 0 0; font-weight:700;">🎨 تصاميم قيد المراجعة</p>
+                <small>بانتظار الاعتماد</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 col-sm-4 col-xs-6">
+        <a href="@Url.Action("Index", "Contracts")" style="text-decoration:none;">
+            <div class="stat-card stat-red text-center">
+                <h3 style="margin:0; font-size:2.2em;">@ViewBag.ContractsWaitingDepositCount</h3>
+                <p style="margin:5px 0 0 0; font-weight:700;">📋 عقود بانتظار العربون</p>
+                <small>لتفعيل أمر التشغيل</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 col-sm-4 col-xs-6">
+        <a href="@Url.Action("Index", "Manufacturing")" style="text-decoration:none;">
+            <div class="stat-card stat-blue text-center">
+                <h3 style="margin:0; font-size:2.2em;">@ViewBag.ProjectsInManufacturingCount</h3>
+                <p style="margin:5px 0 0 0; font-weight:700;">🏭 قيد التصنيع</p>
+                <small>في ورش المصنع</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 col-sm-4 col-xs-6">
+        <a href="@Url.Action("Index", "Installation")" style="text-decoration:none;">
+            <div class="stat-card stat-green text-center">
+                <h3 style="margin:0; font-size:2.2em;">@ViewBag.WeeklyInstallationsCount</h3>
+                <p style="margin:5px 0 0 0; font-weight:700;">🚚 تركيبات الأسبوع</p>
+                <small>مجدولة بالموقع</small>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- 2. جدول خط السير المباشر لطلبات المطابخ النشطة -->
+<div class="row" style="margin-top:20px;">
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <a href="@Url.Action("Create", "Requests")" class="btn btn-xs btn-warning pull-left">➕ فتح طلب جديد</a>
+                <h4>📂 خط السير المباشر لمشاريع وطلبات المطابخ النشطة (Pipeline)</h4>
+            </div>
+            <div class="panel-body table-responsive">
+                <table class="table table-striped table-hover table-bordered">
+                    <thead class="thead-koss">
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>العميل</th>
+                            <th>الموقع</th>
+                            <th>المسؤول</th>
+                            <th>المرحلة الراهنة (24 Workflow)</th>
+                            <th>تاريخ التحديث</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr><td colspan="7" class="text-center text-muted" style="padding:25px;">لا توجد مشاريع نشطة حالياً. ابدأ بفتح طلب مطبخ جديد.</td></tr>
+                        }
+                        @foreach (var r in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="@Url.Action("Details", "Requests", new { id = r.Id })" style="font-weight:bold; color:#2980b9;">
+                                        📁 @r.RequestNumber
+                                    </a>
+                                </td>
+                                <td><strong>@(r.Customer != null ? r.Customer.Name : "-")</strong></td>
+                                <td><small>@r.Location</small></td>
+                                <td><small>@(r.AssignedSalesStaff != null ? r.AssignedSalesStaff.FullName : "-")</small></td>
+                                <td>
+                                    <span class="label label-info" style="font-size:0.95em;">
+                                        @r.Status
+                                    </span>
+                                </td>
+                                <td><small>@r.UpdatedAt.ToString("yyyy/MM/dd HH:mm")</small></td>
+                                <td>
+                                    <a href="@Url.Action("Details", "Requests", new { id = r.Id })" class="btn btn-xs btn-primary">
+                                        ⚡ إدارة الطلب
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. النوافذ الجانبية: تنبيهات المخزون والمعاينات القريبة -->
+    <div class="col-md-4">
+        <!-- تنبيهات أصناف تحت حد الطلب -->
+        <div class="panel panel-danger">
+            <div class="panel-heading">
+                <a href="@Url.Action("Index", "Inventory")" class="btn btn-xs btn-default pull-left">المخزن</a>
+                <h4>⚠️ خامات تحت حد الطلب (@ViewBag.LowStockItemsCount)</h4>
+            </div>
+            <div class="panel-body">
+                @{
+                    var lowList = ViewBag.LowStockList as List<KOSS.Web.Models.StockItem>;
+                }
+                @if (lowList == null || !lowList.Any())
+                {
+                    <p class="text-muted">مستويات المخزون ممتازة لجميع الأصناف.</p>
+                }
+                else
+                {
+                    <ul class="list-group">
+                        @foreach (var it in lowList)
+                        {
+                            <li class="list-group-item">
+                                <strong>@it.ItemMaster.Name</strong>
+                                <span class="badge badge-danger">متاح: @it.AvailableQuantity @it.ItemMaster.Unit</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+
+        <!-- المعاينات القريبة -->
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <a href="@Url.Action("Index", "SiteVisits")" class="btn btn-xs btn-default pull-left">كافة المعاينات</a>
+                <h4>📏 المعاينات الميدانية القادمة</h4>
+            </div>
+            <div class="panel-body">
+                @{
+                    var visits = ViewBag.UpcomingVisits as List<KOSS.Web.Models.SiteVisit>;
+                }
+                @if (visits == null || !visits.Any())
+                {
+                    <p class="text-muted">لا توجد معاينات مجدولة قادمة.</p>
+                }
+                else
+                {
+                    foreach (var v in visits)
+                    {
+                        <div style="border-bottom:1px solid #eee; padding:5px 0;">
+                            <strong>@(v.KitchenRequest != null && v.KitchenRequest.Customer != null ? v.KitchenRequest.Customer.Name : "-")</strong>
+                            <span class="text-muted pull-left">@(v.ScheduledDate.HasValue ? v.ScheduledDate.Value.ToString("yyyy/MM/dd") : "")</span><br />
+                            <small class="text-muted">المهندس: @(v.AssignedSurveyor != null ? v.AssignedSurveyor.FullName : "غير محدد")</small>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
