@@ -1,80 +1,69 @@
-@model KOSS.Web.Models.CustomerInquiry
+﻿@model KOSS.Web.Models.CustomerInquiry
 @{
-    ViewBag.Title = "تسجيل استفسار جديد";
+    ViewData["Title"] = "تسجيل استفسار بيعي";
+    var customers = ViewBag.Customers as List<KOSS.Web.Models.Customer> ?? new List<KOSS.Web.Models.Customer>();
 }
 
-<div class="page-header">
-    <h2>📞 تسجيل استفسار وفرصة بيعية جديدة
-        <small>(المرحلة 1: تتبع العملاء)</small>
-    </h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-headset text-primary me-2"></i> تسجيل استفسار وفرصة بيع جديدة</h3>
+        <p class="text-muted mb-0">المرحلة الأولى في مسار العمل (تسجيل العميل المحتمل والاهتمامات)</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-right me-1"></i> العودة للاستفسارات
+    </a>
 </div>
 
-<div class="row">
-    <div class="col-md-7">
-        <div class="panel panel-default">
-            <div class="panel-heading"><h4>بيانات الاستفسار</h4></div>
-            <div class="panel-body">
-                @using (Html.BeginForm("Create", "Inquiries", FormMethod.Post, new { @class = "form-horizontal" }))
-                {
-                    @Html.AntiForgeryToken()
-                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+<div class="card card-custom" style="max-width: 800px;">
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
 
-                    <div class="form-group">
-                        <label class="col-md-4 control-label">العميل</label>
-                        <div class="col-md-8">
-                            @Html.DropDownListFor(m => m.CustomerId, (SelectList)ViewBag.Customers, "--- اختر العميل ---", new { @class = "form-control" })
-                            @Html.ValidationMessageFor(m => m.CustomerId, "", new { @class = "text-danger" })
-                            <small><a href="@Url.Action("Create", "Clients")" target="_blank">➕ إضافة عميل جديد إن لم يكن موجوداً</a></small>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.Location, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.TextBoxFor(m => m.Location, new { @class = "form-control", placeholder = "موقع المطبخ / المدينة / الحي" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.EstimatedAreaM2, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.TextBoxFor(m => m.EstimatedAreaM2, new { @class = "form-control", placeholder = "المساحة التقريبية (م²)" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.EstimatedBudget, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            <div class="input-group">
-                                @Html.TextBoxFor(m => m.EstimatedBudget, new { @class = "form-control", placeholder = "الميزانية المتوقعة للعميل" })
-                                <span class="input-group-addon">د.ل</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.PreferredLayout, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.EnumDropDownListFor(m => m.PreferredLayout, new { @class = "form-control" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.Notes, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.TextAreaFor(m => m.Notes, new { @class = "form-control", rows = 3, placeholder = "تفاصيل أول اتصال، متطلبات خاصة..." })
-                        </div>
-                    </div>
-
-                    <hr />
-                    <div class="form-group">
-                        <div class="col-md-8 col-md-offset-4">
-                            <button type="submit" class="btn btn-warning btn-lg">💾 حفظ الاستفسار</button>
-                            <a href="@Url.Action("Index")" class="btn btn-default btn-lg">إلغاء</a>
-                        </div>
-                    </div>
-                }
+            <div class="mb-3">
+                <label asp-for="CustomerId" class="form-label fw-bold"></label>
+                <select asp-for="CustomerId" class="form-select">
+                    <option value="0">--- عميل جديد (أدخل البيانات بالأسفل) ---</option>
+                    @foreach (var c in customers)
+                    {
+                        <option value="@c.Id" selected="@(c.Id == Model.CustomerId ? "selected" : null)">@c.Name (@c.Phone)</option>
+                    }
+                </select>
             </div>
-        </div>
+
+            <div class="p-3 bg-light rounded mb-3 border">
+                <h6 class="fw-bold text-secondary mb-2">أو بيانات عميل جديد:</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">اسم العميل</label>
+                        <input type="text" name="customerName" class="form-control" placeholder="الاسم كاملاً" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">رقم الهاتف</label>
+                        <input type="text" name="customerPhone" class="form-control" placeholder="09xxxxxxxx" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="PreferredLayout" class="form-label fw-bold"></label>
+                    <select asp-for="PreferredLayout" asp-items="Html.GetEnumSelectList<KitchenLayoutType>()" class="form-select"></select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Location" class="form-label fw-bold"></label>
+                    <input asp-for="Location" class="form-control" placeholder="المدينة / المنطقة" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label fw-bold"></label>
+                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="تفاصيل الطلب والاحتياجات المبدئية..."></textarea>
+            </div>
+
+            <hr />
+            <button type="submit" class="btn btn-koss-primary px-4 py-2">
+                <i class="fa-solid fa-floppy-disk me-1"></i> حفظ الاستفسار
+            </button>
+        </form>
     </div>
 </div>

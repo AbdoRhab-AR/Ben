@@ -1,29 +1,29 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using KOSS.Web.Models;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
-using System.Net;
-using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using KOSS.Web.Helpers;
-using KOSS.Web.Models;
+using System.Threading.Tasks;
 
 namespace KOSS.Web.Controllers
 {
     [Authorize]
     public class ContractsController : Controller
     {
-        private readonly KossDbContext db = new KossDbContext();
+        private readonly AppDbContext _context;
 
-        // ──────────────────────────────────────────────
-        //  GET: /Contracts  -  قائمة العقود الرسمية
-        // ──────────────────────────────────────────────
-        public ActionResult Index(ContractStatus? status)
+        public ContractsController(AppDbContext context)
         {
-            var query = db.Contracts
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index(ContractStatus? status)
+        {
+            var query = _context.Contracts
                 .Include(c => c.KitchenRequest)
-                .Include(c => c.KitchenRequest.Customer)
-                .Include(c => c.Quotation)
+                    .ThenInclude(r => r.Customer)
                 .Include(c => c.PaymentSchedules)
                 .Include(c => c.Payments)
                 .AsQueryable();
@@ -31,213 +31,193 @@ namespace KOSS.Web.Controllers
             if (status.HasValue)
                 query = query.Where(c => c.Status == status.Value);
 
-            var list = query.OrderByDescending(c => c.CreatedAt).ToList();
+            var list = await query.OrderByDescending(c => c.CreatedAt).ToListAsync();
             ViewBag.Status = status;
             return View(list);
         }
 
-        // ──────────────────────────────────────────────
-        //  GET: /Contracts/Create?requestId=5
-        // ──────────────────────────────────────────────
-        public ActionResult Create(int? requestId, int? clientId)
+        public async Task<IActionResult> Create(int? requestId, int? quotationId)
         {
-            KitchenRequest request = null;
+            KitchenRequest req = null;
+            Quotation quo = null;
+            DesignVersion des = null;
+
             if (requestId.HasValue)
             {
-                request = db.KitchenRequests
+                req = await _context.KitchenRequests
                     .Include(r => r.Customer)
-                    .Include(r => r.Quotations)
                     .Include(r => r.DesignVersions)
-                    .FirstOrDefault(r => r.Id == requestId.Value);
-            }
-            else if (clientId.HasValue)
-            {
-                request = db.KitchenRequests.FirstOrDefault(r => r.CustomerId == clientId.Value);
-            }
+                    .Include(r => r.Quotations)
+                    .FirstOrDefaultAsync(r => r.Id == requestId.Value);
 
-            if (request == null)
-            {
-                TempData["Error"] = "يرجى تحديد طلب مطبخ لإنشاء العقد.";
-                return RedirectToAction("Index", "Requests");
-            }
-
-            var acceptedQuo = request.AcceptedQuotation ?? request.Quotations.OrderByDescending(q => q.Id).FirstOrDefault();
-            var approvedDesign = request.ApprovedDesign ?? request.DesignVersions.OrderByDescending(d => d.Id).FirstOrDefault();
-
-            decimal totalVal = acceptedQuo != null ? acceptedQuo.TotalAmount : 15000m;
-            decimal deposit30 = totalVal * 0.30m;
-
-            int lastId = db.Contracts.Any() ? db.Contracts.Max(c => c.Id) : 0;
-            string contractNum = $"KOSS-CNT-{DateTime.Now.Year}-{(lastId + 1):D5}";
-
-            ViewBag.Request = request;
-            ViewBag.Quotation = acceptedQuo;
-            ViewBag.Design = approvedDesign;
-
-            return View(new Contract
-            {
-                KitchenRequestId = request.Id,
-                ClientId = request.CustomerId,
-                QuotationId = acceptedQuo?.Id,
-                DesignVersionId = approvedDesign?.Id,
-                ContractNumber = contractNum,
-                TotalValue = totalVal,
-                RequiredDeposit = deposit30,
-                PricePerMeter = 850m,
-                TotalMeters = approvedDesign?.EstimatedLinearMeters ?? 10m,
-                SignedDate = DateTime.Now,
-                TargetCompletionDate = DateTime.Now.AddDays(35)
-            });
-        }
-
-        // ──────────────────────────────────────────────
-        //  POST: /Contracts/Create
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult Create(Contract contract)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(contract);
-            }
-
-            contract.Status = ContractStatus.AwaitingDeposit;
-            contract.CreatedAt = DateTime.Now;
-            contract.UpdatedAt = DateTime.Now;
-            contract.CreatedBy = User.Identity.GetUserName();
-
-            // إنشاء جدول الدفعات القياسي (30% عربون، 40% تصنيع، 20% تركيب، 10% تسليم)
-            contract.PaymentSchedules = new List<PaymentSchedule>
-            {
-                new PaymentSchedule
+                if (req != null)
                 {
-                    StageName = "عربون توقيع العقد (30%)",
-                    Percentage = 30m,
-                    Amount = contract.TotalValue * 0.30m,
-                    DueDate = contract.SignedDate ?? DateTime.Now,
-                    Condition = "عند توقيع العقد وقبل بدء التخطيط"
-                },
-                new PaymentSchedule
-                {
-                    StageName = "دفعة بدء التصنيع بالمصنع (40%)",
-                    Percentage = 40m,
-                    Amount = contract.TotalValue * 0.40m,
-                    DueDate = (contract.SignedDate ?? DateTime.Now).AddDays(10),
-                    Condition = "عند جاهزية المواد وبدء التصنيع"
-                },
-                new PaymentSchedule
-                {
-                    StageName = "دفعة الجاهزية للتركيب (20%)",
-                    Percentage = 20m,
-                    Amount = contract.TotalValue * 0.20m,
-                    DueDate = (contract.SignedDate ?? DateTime.Now).AddDays(25),
-                    Condition = "عند انتهاء التصنيع وفحص الجودة"
-                },
-                new PaymentSchedule
-                {
-                    StageName = "رصيد التسليم النهائي (10%)",
-                    Percentage = 10m,
-                    Amount = contract.TotalValue * 0.10m,
-                    DueDate = contract.TargetCompletionDate ?? (contract.SignedDate ?? DateTime.Now).AddDays(35),
-                    Condition = "عند توقيع محضر التسليم النهائي"
+                    quo = quotationId.HasValue ? req.Quotations.FirstOrDefault(q => q.Id == quotationId.Value)
+                                               : req.Quotations.FirstOrDefault(q => q.Status == QuotationStatus.Accepted) ?? req.Quotations.LastOrDefault();
+
+                    des = req.DesignVersions.FirstOrDefault(d => d.Status == DesignVersionStatus.ApprovedByCustomer) ?? req.DesignVersions.LastOrDefault();
                 }
+            }
+
+            ViewBag.Request = req;
+            ViewBag.Quotation = quo;
+            ViewBag.Design = des;
+
+            decimal totalVal = quo != null ? quo.TotalAmount : 12500m;
+            decimal deposit = totalVal * 0.30m;
+
+            var model = new Contract
+            {
+                KitchenRequestId = requestId ?? (req?.Id ?? 0),
+                QuotationId = quo?.Id,
+                DesignVersionId = des?.Id,
+                ContractNumber = $"CNT-{DateTime.Now.Year}-{new Random().Next(1000, 9999)}",
+                SignedDate = DateTime.Now,
+                TargetCompletionDate = DateTime.Now.AddDays(35),
+                TotalValue = totalVal,
+                RequiredDeposit = deposit,
+                PricePerMeter = des != null && des.EstimatedLinearMeters > 0 ? (totalVal / des.EstimatedLinearMeters.Value) : 950,
+                TotalMeters = des?.EstimatedLinearMeters ?? 6,
+                Status = ContractStatus.Draft
             };
 
-            db.Contracts.Add(contract);
-
-            // تحديث حالة طلب المطبخ
-            var request = db.KitchenRequests.Find(contract.KitchenRequestId);
-            if (request != null)
-            {
-                RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.AwaitingContractAndDeposit, User.Identity.GetUserName(), $"تحرير العقد الرسمي {contract.ContractNumber} بقيمة {contract.TotalValue:N3} د.ل وبانتظار سداد العربون.");
-            }
-
-            db.SaveChanges();
-            TempData["Success"] = $"تم إنشاء العقد رقم {contract.ContractNumber} بنجاح! تم إنشاء جدول الدفعات وبانتظار سداد العربون ({contract.RequiredDeposit:N3} د.ل).";
-            return RedirectToAction("Details", "Requests", new { id = contract.KitchenRequestId });
+            return View(model);
         }
 
-        // ──────────────────────────────────────────────
-        //  POST: /Contracts/RecordDeposit  -  تسجيل سداد العربون وتفعيل العقد رسمياً
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult RecordDeposit(int contractId, decimal amount, string paymentMethod, string notes)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Contract model)
         {
-            var contract = db.Contracts.Include(c => c.KitchenRequest).Include(c => c.PaymentSchedules).FirstOrDefault(c => c.Id == contractId);
-            if (contract == null) return HttpNotFound();
+            if (ModelState.IsValid)
+            {
+                model.CreatedAt = DateTime.Now;
+                model.UpdatedAt = DateTime.Now;
+                model.CreatedBy = User.Identity?.Name ?? "Admin";
+                model.Status = ContractStatus.AwaitingDeposit;
+
+                if (model.RequiredDeposit <= 0)
+                {
+                    model.RequiredDeposit = model.TotalValue * 0.30m;
+                }
+
+                model.PaymentSchedules = new List<PaymentSchedule>
+                {
+                    new PaymentSchedule { StageName = "عربون التعاقد", Percentage = 30, Amount = model.TotalValue * 0.30m, DueDate = DateTime.Now, Condition = "عند توقيع العقد", IsPaid = false },
+                    new PaymentSchedule { StageName = "دفعة بدء التصنيع والقص", Percentage = 40, Amount = model.TotalValue * 0.40m, DueDate = DateTime.Now.AddDays(10), Condition = "عند تجهيز وقص الخامات بالمصنع", IsPaid = false },
+                    new PaymentSchedule { StageName = "دفعة بدء التركيب والتوريد", Percentage = 20, Amount = model.TotalValue * 0.20m, DueDate = DateTime.Now.AddDays(25), Condition = "عند توريد المطبخ للموقع", IsPaid = false },
+                    new PaymentSchedule { StageName = "مخالصة التسليم النهائي", Percentage = 10, Amount = model.TotalValue * 0.10m, DueDate = model.TargetCompletionDate ?? DateTime.Now.AddDays(35), Condition = "عند توقيع محضر التسليم", IsPaid = false }
+                };
+
+                _context.Contracts.Add(model);
+
+                var req = await _context.KitchenRequests.FindAsync(model.KitchenRequestId);
+                if (req != null)
+                {
+                    req.Status = KitchenRequestStatus.AwaitingContractAndDeposit;
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["Success"] = $"تم حفظ العقد الرسمي ({model.ContractNumber}) وتوليد جدول الدفعات الرباعي بنجاح.";
+                return RedirectToAction("Details", "Requests", new { id = model.KitchenRequestId });
+            }
+
+            ViewBag.Request = await _context.KitchenRequests.Include(r => r.Customer).FirstOrDefaultAsync(r => r.Id == model.KitchenRequestId);
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecordDeposit(int contractId, decimal amount, PaymentMethod method, string referenceNumber)
+        {
+            var contract = await _context.Contracts
+                .Include(c => c.KitchenRequest)
+                .Include(c => c.PaymentSchedules)
+                .FirstOrDefaultAsync(c => c.Id == contractId);
+
+            if (contract == null) return NotFound();
 
             if (amount <= 0)
             {
-                TempData["Error"] = "يجب أن يكون مبلغ الدفعة أكبر من صفر.";
+                TempData["Error"] = "يرجى إدخال مبلغ صحيح لإيصال القبض.";
                 return RedirectToAction("Details", "Requests", new { id = contract.KitchenRequestId });
             }
 
-            // توليد رقم إيصال قبض
-            int lastPayId = db.Payments.Any() ? db.Payments.Max(p => p.Id) : 0;
-            string receiptNo = $"RCT-{DateTime.Now.Year}-{(lastPayId + 1):D5}";
-
             var payment = new Payment
             {
-                ContractId = contract.Id,
-                ReceiptNumber = receiptNo,
+                ContractId = contractId,
+                ReceiptNumber = $"REC-{DateTime.Now.Year}-{new Random().Next(1000, 9999)}",
                 Amount = amount,
                 PaymentType = PaymentType.Deposit,
-                PaymentMethod = paymentMethod == "تحويل مصرفي" ? PaymentMethod.BankTransfer : (paymentMethod == "صك مصدق" ? PaymentMethod.Cheque : PaymentMethod.Cash),
-                ReceivedBy = User.Identity.GetUserName(),
+                PaymentMethod = method,
+                ReferenceNumber = referenceNumber,
                 PaidAt = DateTime.Now,
-                Notes = notes
+                ReceivedBy = User.Identity?.Name ?? "Admin",
+                Notes = "سداد عربون تفعيل العقد والبدء في أمر التشغيل"
             };
 
-            db.Payments.Add(payment);
+            _context.Payments.Add(payment);
             contract.TotalPaid += amount;
 
-            // تحديث جدول الدفعات
-            var depositSched = contract.PaymentSchedules.FirstOrDefault(ps => ps.Percentage == 30m || ps.StageName.Contains("عربون"));
-            if (depositSched != null)
+            var depositStage = contract.PaymentSchedules.FirstOrDefault(s => s.Percentage == 30);
+            if (depositStage != null)
             {
-                depositSched.IsPaid = true;
-                depositSched.PaidAt = DateTime.Now;
+                depositStage.IsPaid = true;
+                depositStage.PaidAt = DateTime.Now;
             }
 
-            // إذا تم سداد العربون المطلوب، يتم تفعيل العقد وترقية حالة المشروع
             if (contract.TotalPaid >= contract.RequiredDeposit)
             {
                 contract.Status = ContractStatus.Active;
-
-                var request = contract.KitchenRequest;
-                if (request != null)
+                var req = contract.KitchenRequest;
+                if (req != null)
                 {
-                    RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.ContractActive, User.Identity.GetUserName(), $"استلام دفعة العربون ({amount:N3} د.ل) بالإيصال #{receiptNo} وتفعيل العقد رسمياً.");
-                    
-                    // إنشاء أمر التنفيذ آلياً
-                    int lastWoId = db.WorkOrders.Any() ? db.WorkOrders.Max(w => w.Id) : 0;
-                    var wo = new WorkOrder
-                    {
-                        KitchenRequestId = request.Id,
-                        ContractId = contract.Id,
-                        OrderNumber = $"WO-{DateTime.Now.Year}-{(lastWoId + 1):D5}",
-                        Priority = PriorityLevel.Normal,
-                        Status = WorkOrderStatus.Planning,
-                        PlannedStartDate = DateTime.Now,
-                        ExpectedEndDate = contract.TargetCompletionDate,
-                        CreatedAt = DateTime.Now,
-                        CreatedBy = User.Identity.GetUserName()
-                    };
-                    db.WorkOrders.Add(wo);
+                    req.Status = KitchenRequestStatus.ContractActive;
 
-                    RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.InPlanning, User.Identity.GetUserName(), $"إصدار أمر التنفيذ #{wo.OrderNumber} وبدء مرحلة التخطيط والخامات.");
+                    var existingWo = await _context.WorkOrders.FirstOrDefaultAsync(w => w.KitchenRequestId == req.Id);
+                    if (existingWo == null)
+                    {
+                        var wo = new WorkOrder
+                        {
+                            KitchenRequestId = req.Id,
+                            ContractId = contract.Id,
+                            OrderNumber = $"WO-{DateTime.Now.Year}-{new Random().Next(1000, 9999)}",
+                            ExpectedEndDate = contract.TargetCompletionDate ?? DateTime.Now.AddDays(25),
+                            Status = WorkOrderStatus.Planning,
+                            CreatedBy = User.Identity?.Name ?? "Admin",
+                            MaterialRequirements = new List<MaterialRequirement>
+                            {
+                                new MaterialRequirement { ItemName = "ألواح خشب HDF إسباني 18 ملم", Category = "أخشاب", QuantityRequired = 14, Unit = "لوح", EstimatedUnitCost = 185 },
+                                new MaterialRequirement { ItemName = "ألواح خشب أبيض ميلامين داخلي", Category = "أخشاب", QuantityRequired = 10, Unit = "لوح", EstimatedUnitCost = 120 },
+                                new MaterialRequirement { ItemName = "شريط حواف PVC تركي 2 ملم", Category = "إكسسوارات", QuantityRequired = 80, Unit = "متر", EstimatedUnitCost = 2.5m },
+                                new MaterialRequirement { ItemName = "مفصلات هيدروليك ناعمة الإغلاق Blum", Category = "إكسسوارات", QuantityRequired = 28, Unit = "قطعة", EstimatedUnitCost = 14 },
+                                new MaterialRequirement { ItemName = "سحابات أدراج مخفية Tandembox", Category = "إكسسوارات", QuantityRequired = 6, Unit = "طقم", EstimatedUnitCost = 85 },
+                                new MaterialRequirement { ItemName = "مقابض ألمنيوم مخفية Gola Profile", Category = "ألمنيوم", QuantityRequired = 12, Unit = "متر", EstimatedUnitCost = 35 }
+                            },
+                            Tasks = new List<ManufacturingTask>
+                            {
+                                new ManufacturingTask { TaskName = "1. قص الألواح وتجهيز الهياكل", Status = "Pending" },
+                                new ManufacturingTask { TaskName = "2. لصق شريط الحواف CNC", Status = "Pending" },
+                                new ManufacturingTask { TaskName = "3. التثقيب والتجميع الميكانيكي", Status = "Pending" },
+                                new ManufacturingTask { TaskName = "4. فحص الجودة والتغليف", Status = "Pending" }
+                            }
+                        };
+                        _context.WorkOrders.Add(wo);
+                    }
+
+                    _context.RequestStatusHistories.Add(new RequestStatusHistory
+                    {
+                        KitchenRequestId = req.Id,
+                        OldStatus = KitchenRequestStatus.AwaitingContractAndDeposit,
+                        NewStatus = KitchenRequestStatus.ContractActive,
+                        ChangedBy = User.Identity?.Name ?? "Admin",
+                        Notes = $"تم قبض العربون ({amount:N3} د.ل) وتفعيل العقد رسمياً وإصدار أمر التنفيذ والـ BOM."
+                    });
                 }
             }
 
-            db.SaveChanges();
-            TempData["Success"] = $"تم تسجيل إيصال القبض #{receiptNo} بمبلغ {amount:N3} د.ل وتفعيل العقد وأمر التنفيذ بنجاح!";
+            await _context.SaveChangesAsync();
+            TempData["Success"] = $"تم تسجيل إيصال القبض ({payment.ReceiptNumber}) بقيمة {amount:N3} د.ل وتفعيل العقد بنجاح.";
             return RedirectToAction("Details", "Requests", new { id = contract.KitchenRequestId });
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing) db.Dispose();
-            base.Dispose(disposing);
         }
     }
 }

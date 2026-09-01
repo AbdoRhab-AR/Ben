@@ -206,7 +206,14 @@
                                     <select name="targetStatus" class="form-control input-sm">
                                         @foreach (KitchenRequestStatus st in Enum.GetValues(typeof(KitchenRequestStatus)))
                                         {
-                                            <option value="@st" @(st == Model.Status ? "selected" : "")>@st</option>
+                                            if (st == Model.Status)
+                                            {
+                                                <option value="@st" selected="selected">@st</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@st">@st</option>
+                                            }
                                         }
                                     </select>
                                 </div>

@@ -1,154 +1,141 @@
-using System;
-using System.Data.Entity;
-using System.Linq;
-using System.Net;
-using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using KOSS.Web.Helpers;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using KOSS.Web.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace KOSS.Web.Controllers
 {
     [Authorize]
     public class DesignsController : Controller
     {
-        private readonly KossDbContext db = new KossDbContext();
+        private readonly AppDbContext _context;
 
-        // ──────────────────────────────────────────────
-        //  GET: /Designs  -  قائمة التصاميم ومراحلها
-        // ──────────────────────────────────────────────
-        public ActionResult Index(DesignVersionStatus? status)
+        public DesignsController(AppDbContext context)
         {
-            var query = db.DesignVersions
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index(DesignVersionStatus? status)
+        {
+            var query = _context.DesignVersions
                 .Include(d => d.KitchenRequest)
-                .Include(d => d.KitchenRequest.Customer)
+                    .ThenInclude(r => r.Customer)
                 .Include(d => d.Designer)
                 .AsQueryable();
 
             if (status.HasValue)
                 query = query.Where(d => d.Status == status.Value);
 
-            var list = query.OrderByDescending(d => d.CreatedAt).ToList();
+            var list = await query.OrderByDescending(d => d.CreatedAt).ToListAsync();
             ViewBag.Status = status;
             return View(list);
         }
 
-        // ──────────────────────────────────────────────
-        //  GET: /Designs/CreateVersion?requestId=5
-        // ──────────────────────────────────────────────
-        public ActionResult CreateVersion(int? requestId)
+        public async Task<IActionResult> CreateVersion(int requestId)
         {
-            if (requestId == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-
-            var request = db.KitchenRequests
+            var req = await _context.KitchenRequests
                 .Include(r => r.Customer)
-                .Include(r => r.SiteVisits)
-                .FirstOrDefault(r => r.Id == requestId.Value);
+                .Include(r => r.DesignVersions)
+                .FirstOrDefaultAsync(r => r.Id == requestId);
 
-            if (request == null) return HttpNotFound();
+            if (req == null) return NotFound();
 
-            // فحص إلزامي: هل المعاينة معتمدة؟
-            if (!request.SiteVisits.Any(s => s.Status == SiteVisitStatus.Approved))
+            int nextVersion = (req.DesignVersions.Any() ? req.DesignVersions.Max(d => d.VersionNumber) : 0) + 1;
+
+            ViewBag.Request = req;
+            ViewBag.Designers = await _context.StaffMembers.Where(s => s.Role == StaffRole.Designer && s.IsActive).ToListAsync();
+
+            var model = new DesignVersion
             {
-                TempData["Error"] = "لا يمكن فتح مهمة تصميم إلا بعد اعتماد المعاينة الميدانية والقياسات.";
-                return RedirectToAction("Details", "Requests", new { id = requestId });
-            }
-
-            int currentVersionsCount = db.DesignVersions.Count(d => d.KitchenRequestId == requestId.Value);
-            int nextVer = currentVersionsCount + 1;
-
-            ViewBag.Request = request;
-            ViewBag.Designers = new SelectList(db.StaffMembers.Where(s => s.Role == StaffRole.Designer).ToList(), "Id", "FullName");
-
-            return View(new DesignVersion
-            {
-                KitchenRequestId = request.Id,
-                VersionNumber = nextVer,
+                KitchenRequestId = requestId,
+                VersionNumber = nextVersion,
                 SoftwareUsed = "SketchUp"
-            });
+            };
+            return View(model);
         }
 
-        // ──────────────────────────────────────────────
-        //  POST: /Designs/CreateVersion
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult CreateVersion(DesignVersion version)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateVersion(DesignVersion model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                ViewBag.Designers = new SelectList(db.StaffMembers.Where(s => s.Role == StaffRole.Designer).ToList(), "Id", "FullName", version.DesignerId);
-                return View(version);
+                model.CreatedAt = DateTime.Now;
+                model.CreatedBy = User.Identity?.Name ?? "Admin";
+                model.Status = DesignVersionStatus.InternalReview;
+
+                _context.DesignVersions.Add(model);
+
+                var req = await _context.KitchenRequests.FindAsync(model.KitchenRequestId);
+                if (req != null)
+                {
+                    req.Status = KitchenRequestStatus.AwaitingDesignApproval;
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["Success"] = $"تم حفظ إصدار التصميم ({model.VersionCode}) بنجاح.";
+                return RedirectToAction("Details", "Requests", new { id = model.KitchenRequestId });
             }
 
-            version.Status = DesignVersionStatus.InternalReview;
-            version.CreatedAt = DateTime.Now;
-            version.CreatedBy = User.Identity.GetUserName();
-
-            db.DesignVersions.Add(version);
-
-            // تحديث حالة الطلب
-            var request = db.KitchenRequests.Find(version.KitchenRequestId);
-            if (request != null && request.Status < KitchenRequestStatus.InDesign)
-            {
-                RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.InDesign, User.Identity.GetUserName(), $"إعداد إصدار التصميم {version.VersionCode}");
-            }
-
-            db.SaveChanges();
-            TempData["Success"] = $"تم حفظ إصدار التصميم {version.VersionCode} بنجاح وإرساله للمراجعة.";
-            return RedirectToAction("Details", "Requests", new { id = version.KitchenRequestId });
+            ViewBag.Request = await _context.KitchenRequests.Include(r => r.Customer).FirstOrDefaultAsync(r => r.Id == model.KitchenRequestId);
+            ViewBag.Designers = await _context.StaffMembers.Where(s => s.Role == StaffRole.Designer && s.IsActive).ToListAsync();
+            return View(model);
         }
 
-        // ──────────────────────────────────────────────
-        //  POST: /Designs/SendToCustomer  -  إرسال التصميم للعميل للاعتماد
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult SendToCustomer(int versionId)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendToCustomer(int designId)
         {
-            var version = db.DesignVersions.Include(d => d.KitchenRequest).FirstOrDefault(d => d.Id == versionId);
-            if (version == null) return HttpNotFound();
+            var design = await _context.DesignVersions.FindAsync(designId);
+            if (design == null) return NotFound();
 
-            version.Status = DesignVersionStatus.SentToCustomer;
-
-            var request = version.KitchenRequest;
-            if (request != null)
-            {
-                RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.AwaitingDesignApproval, User.Identity.GetUserName(), $"إرسال إصدار التصميم {version.VersionCode} للعميل للاعتماد.");
-            }
-
-            db.SaveChanges();
-            TempData["Success"] = $"تم إرسال التصميم {version.VersionCode} للعميل بنجاح وبانتظار موافقته.";
-            return RedirectToAction("Details", "Requests", new { id = version.KitchenRequestId });
+            design.Status = DesignVersionStatus.SentToCustomer;
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "تم إرسال المخططات ثلاثية الأبعاد للعميل للاعتماد.";
+            return RedirectToAction("Details", "Requests", new { id = design.KitchenRequestId });
         }
 
-        // ──────────────────────────────────────────────
-        //  POST: /Designs/ApproveByCustomer  -  اعتماد العميل للتصميم وقفل الإصدار
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult ApproveByCustomer(int versionId, string feedback)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveByCustomer(int designId, string feedback)
         {
-            var version = db.DesignVersions.Include(d => d.KitchenRequest).FirstOrDefault(d => d.Id == versionId);
-            if (version == null) return HttpNotFound();
+            var design = await _context.DesignVersions.Include(d => d.KitchenRequest).FirstOrDefaultAsync(d => d.Id == designId);
+            if (design == null) return NotFound();
 
-            version.Status = DesignVersionStatus.ApprovedByCustomer;
-            version.IsLocked = true; // قفل الإصدار المعتمد منعاً للتعديل المباشر
-            version.CustomerApprovedAt = DateTime.Now;
-            version.CustomerFeedback = feedback;
+            design.Status = DesignVersionStatus.ApprovedByCustomer;
+            design.IsLocked = true;
+            design.CustomerApprovedAt = DateTime.Now;
+            design.CustomerFeedback = feedback ?? "معتمد بدون ملاحظات";
 
-            var request = version.KitchenRequest;
-            if (request != null)
+            var otherVersions = await _context.DesignVersions
+                .Where(d => d.KitchenRequestId == design.KitchenRequestId && d.Id != designId && !d.IsLocked)
+                .ToListAsync();
+
+            foreach (var v in otherVersions)
             {
-                RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.InPricing, User.Identity.GetUserName(), $"اعتماد العميل للتصميم {version.VersionCode} رسمياً. جاهز للتسعير.");
+                v.IsLocked = true;
             }
 
-            db.SaveChanges();
-            TempData["Success"] = $"تم اعتماد التصميم {version.VersionCode} وقفل الإصدار. الطلب جاهز الآن لإعداد عرض السعر.";
-            return RedirectToAction("Details", "Requests", new { id = version.KitchenRequestId });
-        }
+            var req = design.KitchenRequest;
+            if (req != null)
+            {
+                req.Status = KitchenRequestStatus.InPricing;
+                _context.RequestStatusHistories.Add(new RequestStatusHistory
+                {
+                    KitchenRequestId = req.Id,
+                    OldStatus = KitchenRequestStatus.AwaitingDesignApproval,
+                    NewStatus = KitchenRequestStatus.InPricing,
+                    ChangedBy = User.Identity?.Name ?? "Admin",
+                    Notes = $"تم اعتماد إصدار التصميم {design.VersionCode} رسمياً وقفل الإصدار والانتقال للتسعير."
+                });
+            }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing) db.Dispose();
-            base.Dispose(disposing);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = $"تم اعتماد التصميم {design.VersionCode} رسمياً وقفله، والمشروع جاهز للتسعير.";
+            return RedirectToAction("Details", "Requests", new { id = design.KitchenRequestId });
         }
     }
 }

@@ -1,29 +1,28 @@
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Net;
-using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using KOSS.Web.Helpers;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using KOSS.Web.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace KOSS.Web.Controllers
 {
     [Authorize]
     public class WorkOrdersController : Controller
     {
-        private readonly KossDbContext db = new KossDbContext();
+        private readonly AppDbContext _context;
 
-        // ──────────────────────────────────────────────
-        //  GET: /WorkOrders  -  قائمة أوامر التنفيذ
-        // ──────────────────────────────────────────────
-        public ActionResult Index(WorkOrderStatus? status)
+        public WorkOrdersController(AppDbContext context)
         {
-            var query = db.WorkOrders
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index(WorkOrderStatus? status)
+        {
+            var query = _context.WorkOrders
                 .Include(w => w.KitchenRequest)
-                .Include(w => w.KitchenRequest.Customer)
-                .Include(w => w.Contract)
+                    .ThenInclude(r => r.Customer)
                 .Include(w => w.MaterialRequirements)
                 .Include(w => w.Tasks)
                 .AsQueryable();
@@ -31,105 +30,53 @@ namespace KOSS.Web.Controllers
             if (status.HasValue)
                 query = query.Where(w => w.Status == status.Value);
 
-            var list = query.OrderByDescending(w => w.CreatedAt).ToList();
+            var list = await query.OrderByDescending(w => w.CreatedAt).ToListAsync();
             ViewBag.Status = status;
             return View(list);
         }
 
-        // ──────────────────────────────────────────────
-        //  GET: /WorkOrders/Details/5  -  تفاصيل أمر التنفيذ وقائمة الـ BOM
-        // ──────────────────────────────────────────────
-        public ActionResult Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-
-            var wo = db.WorkOrders
+            var wo = await _context.WorkOrders
                 .Include(w => w.KitchenRequest)
-                .Include(w => w.KitchenRequest.Customer)
-                .Include(w => w.Contract)
+                    .ThenInclude(r => r.Customer)
                 .Include(w => w.MaterialRequirements)
-                .Include(w => w.StockIssues.Select(si => si.Items.Select(sii => sii.ItemMaster)))
                 .Include(w => w.Tasks)
-                .Include(w => w.QualityChecks.Select(qc => qc.SnagItems))
+                .Include(w => w.QualityChecks)
                 .Include(w => w.InstallationOrders)
                 .Include(w => w.HandoverDocuments)
-                .FirstOrDefault(w => w.Id == id.Value);
+                .FirstOrDefaultAsync(w => w.Id == id);
 
-            if (wo == null) return HttpNotFound();
-
-            ViewBag.Warehouses = new SelectList(db.Warehouses.Where(w => w.IsActive).ToList(), "Id", "Name");
-            ViewBag.ItemMasters = db.ItemMasters.Where(i => i.IsActive).OrderBy(i => i.Category).ThenBy(i => i.Name).ToList();
-
+            if (wo == null) return NotFound();
             return View(wo);
         }
 
-        // ──────────────────────────────────────────────
-        //  POST: /WorkOrders/AddMaterialRequirement  -  إضافة بند لقائمة الـ BOM
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult AddMaterialRequirement(int workOrderId, int itemMasterId, decimal quantity)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> StartProduction(int workOrderId)
         {
-            var item = db.ItemMasters.Find(itemMasterId);
-            if (item == null || quantity <= 0)
-            {
-                TempData["Error"] = "يرجى اختيار الصنف وتحديد كمية صحيحة.";
-                return RedirectToAction("Details", new { id = workOrderId });
-            }
-
-            var mat = new MaterialRequirement
-            {
-                WorkOrderId = workOrderId,
-                ItemCode = item.ItemCode,
-                ItemName = item.Name,
-                Category = item.Category,
-                Unit = item.Unit,
-                QuantityRequired = quantity,
-                EstimatedUnitCost = item.StandardCost
-            };
-
-            db.MaterialRequirements.Add(mat);
-            db.SaveChanges();
-
-            TempData["Success"] = $"تم إضافة الصنف [{item.Name}] بكمية {quantity} {item.Unit} إلى قائمة المواد.";
-            return RedirectToAction("Details", new { id = workOrderId });
-        }
-
-        // ──────────────────────────────────────────────
-        //  POST: /WorkOrders/StartManufacturing  -  بدء التصنيع بالمصنع
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult StartManufacturing(int workOrderId)
-        {
-            var wo = db.WorkOrders.Include(w => w.KitchenRequest).Include(w => w.Tasks).FirstOrDefault(w => w.Id == workOrderId);
-            if (wo == null) return HttpNotFound();
+            var wo = await _context.WorkOrders.Include(w => w.KitchenRequest).FirstOrDefaultAsync(w => w.Id == workOrderId);
+            if (wo == null) return NotFound();
 
             wo.Status = WorkOrderStatus.Manufacturing;
 
-            // إنشاء مهام التصنيع الأساسية إن لم تكن موجودة
-            if (!wo.Tasks.Any())
+            var req = wo.KitchenRequest;
+            if (req != null)
             {
-                wo.Tasks.Add(new ManufacturingTask { TaskName = "1. تقطيع الألواح الخشبية (CNC / Sizing)", Status = "InProgress", StartedAt = DateTime.Now });
-                wo.Tasks.Add(new ManufacturingTask { TaskName = "2. شريط حواف PVC وحماية الأطراف", Status = "Pending" });
-                wo.Tasks.Add(new ManufacturingTask { TaskName = "3. تجميع هياكل الخزائن (Carcass Assembly)", Status = "Pending" });
-                wo.Tasks.Add(new ManufacturingTask { TaskName = "4. تركيب المفصلات وسكك الأدراج والإكسسوارات", Status = "Pending" });
-                wo.Tasks.Add(new ManufacturingTask { TaskName = "5. التغليف وتجهيز النقل", Status = "Pending" });
+                req.Status = KitchenRequestStatus.InManufacturing;
+                _context.RequestStatusHistories.Add(new RequestStatusHistory
+                {
+                    KitchenRequestId = req.Id,
+                    OldStatus = KitchenRequestStatus.InPlanning,
+                    NewStatus = KitchenRequestStatus.InManufacturing,
+                    ChangedBy = User.Identity?.Name ?? "Admin",
+                    Notes = $"بدء تصنيع وقص خامات المطبخ بالمصنع بموجب أمر التشغيل رقم {wo.OrderNumber}."
+                });
             }
 
-            var request = wo.KitchenRequest;
-            if (request != null)
-            {
-                RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.InManufacturing, User.Identity.GetUserName(), $"بدء تصنيع المطبخ بالمصنع بموجب أمر التشغيل #{wo.OrderNumber}.");
-            }
-
-            db.SaveChanges();
-            TempData["Success"] = "تم بدء مرحلة التصنيع بالمصنع وتوليد مراحل الإنتاج بنجاح!";
-            return RedirectToAction("Details", new { id = workOrderId });
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing) db.Dispose();
-            base.Dispose(disposing);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "تم بدء مرحلة التصنيع بالمصنع بنجاح.";
+            return RedirectToAction(nameof(Details), new { id = workOrderId });
         }
     }
 }

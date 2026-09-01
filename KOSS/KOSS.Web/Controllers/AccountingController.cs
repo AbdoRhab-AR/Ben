@@ -1,100 +1,53 @@
-using System;
-using System.Data.Entity;
-using System.Linq;
-using System.Net;
-using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using KOSS.Web.Helpers;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using KOSS.Web.Models;
+using KOSS.Web.Helpers;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace KOSS.Web.Controllers
 {
     [Authorize]
     public class AccountingController : Controller
     {
-        private readonly KossDbContext db = new KossDbContext();
+        private readonly AppDbContext _context;
 
-        // ──────────────────────────────────────────────
-        //  GET: /Accounting  -  مصفوفة تحليل ربحية المشاريع وإغلاق الحسابات
-        // ──────────────────────────────────────────────
-        public ActionResult Index()
+        public AccountingController(AppDbContext context)
         {
-            var requests = db.KitchenRequests
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var requests = await _context.KitchenRequests
                 .Include(r => r.Customer)
-                .Include(r => r.Contracts.Select(c => c.Payments))
-                .Include(r => r.WorkOrders.Select(w => w.StockIssues))
-                .Include(r => r.WorkOrders.Select(w => w.InstallationOrders))
+                .Include(r => r.Contracts)
+                .Include(r => r.WorkOrders)
                 .Include(r => r.Expenses)
-                .Where(r => r.Status >= KitchenRequestStatus.ContractActive)
-                .OrderByDescending(r => r.UpdatedAt)
-                .ToList();
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
 
-            var reports = requests.Select(r => ProfitabilityCalculator.Calculate(r)).ToList();
-
-            ViewBag.TotalRevenue = reports.Sum(r => r.ContractRevenue);
-            ViewBag.TotalCost = reports.Sum(r => r.TotalProjectCost);
-            ViewBag.TotalNetProfit = reports.Sum(r => r.NetProfit);
-
+            var reports = requests.Select(ProfitabilityCalculator.Calculate).ToList();
             return View(reports);
         }
 
-        // ──────────────────────────────────────────────
-        //  GET: /Accounting/ProjectCosting/5  -  كشف تكاليف وأرباح مشروع تفصيلي
-        // ──────────────────────────────────────────────
-        public ActionResult ProjectCosting(int? id)
+        public async Task<IActionResult> ProjectCosting(int id)
         {
-            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-
-            var request = db.KitchenRequests
+            var req = await _context.KitchenRequests
                 .Include(r => r.Customer)
-                .Include(r => r.Contracts.Select(c => c.Payments))
-                .Include(r => r.Contracts.Select(c => c.PaymentSchedules))
-                .Include(r => r.WorkOrders.Select(w => w.StockIssues.Select(si => si.Items.Select(sii => sii.ItemMaster))))
-                .Include(r => r.WorkOrders.Select(w => w.InstallationOrders))
-                .Include(r => r.WorkOrders.Select(w => w.QualityChecks.Select(qc => qc.SnagItems)))
-                .Include(r => r.WorkOrders.Select(w => w.HandoverDocuments))
+                .Include(r => r.Contracts)
+                    .ThenInclude(c => c.Payments)
+                .Include(r => r.WorkOrders)
+                    .ThenInclude(w => w.StockIssues)
                 .Include(r => r.Expenses)
-                .FirstOrDefault(r => r.Id == id.Value);
+                .FirstOrDefaultAsync(r => r.Id == id);
 
-            if (request == null) return HttpNotFound();
+            if (req == null) return NotFound();
 
-            ViewBag.Report = ProfitabilityCalculator.Calculate(request);
-            ViewBag.ClosingCheck = RequestWorkflowEngine.VerifyClosingConditions(request);
-
-            return View(request);
-        }
-
-        // ──────────────────────────────────────────────
-        //  POST: /Accounting/CloseProject  -  إغلاق المشروع محاسبياً وأرشفته
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult CloseProject(int kitchenRequestId, string notes)
-        {
-            var request = db.KitchenRequests
-                .Include(r => r.Contracts.Select(c => c.Payments))
-                .Include(r => r.WorkOrders.Select(w => w.QualityChecks.Select(qc => qc.SnagItems)))
-                .FirstOrDefault(r => r.Id == kitchenRequestId);
-
-            if (request == null) return HttpNotFound();
-
-            var check = RequestWorkflowEngine.VerifyClosingConditions(request);
-            if (!check.CanClose)
-            {
-                TempData["Error"] = $"لا يمكن إغلاق المشروع حتى استيفاء الشروط التالية: {string.Join("، ", check.PendingConditions)}";
-                return RedirectToAction("ProjectCosting", new { id = kitchenRequestId });
-            }
-
-            RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.Closed, User.Identity.GetUserName(), $"إغلاق المشروع محاسبياً وتنفيذياً ومراجعة تقرير الربحية: {notes}");
-            db.SaveChanges();
-
-            TempData["Success"] = $"تم إغلاق المشروع [{request.RequestNumber}] رسمياً وترحيل كامل قيود الربحية.";
-            return RedirectToAction("Index");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing) db.Dispose();
-            base.Dispose(disposing);
+            var report = ProfitabilityCalculator.Calculate(req);
+            ViewBag.Request = req;
+            return View(report);
         }
     }
 }

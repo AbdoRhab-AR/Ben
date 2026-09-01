@@ -1,25 +1,26 @@
-using System;
-using System.Data.Entity;
-using System.Linq;
-using System.Net;
-using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using KOSS.Web.Helpers;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using KOSS.Web.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace KOSS.Web.Controllers
 {
     [Authorize]
     public class InquiriesController : Controller
     {
-        private readonly KossDbContext db = new KossDbContext();
+        private readonly AppDbContext _context;
 
-        // ──────────────────────────────────────────────
-        //  GET: /Inquiries  -  قائمة الاستفسارات والفرص البيعية
-        // ──────────────────────────────────────────────
-        public ActionResult Index(InquiryStatus? status, string search)
+        public InquiriesController(AppDbContext context)
         {
-            var query = db.CustomerInquiries
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index(InquiryStatus? status, string search)
+        {
+            var query = _context.CustomerInquiries
                 .Include(i => i.Customer)
                 .Include(i => i.ConvertedKitchenRequest)
                 .AsQueryable();
@@ -30,89 +31,105 @@ namespace KOSS.Web.Controllers
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(i => i.Customer.Name.Contains(search) || i.Customer.Phone.Contains(search) || i.Location.Contains(search));
 
-            var list = query.OrderByDescending(i => i.CreatedAt).ToList();
+            var list = await query.OrderByDescending(i => i.CreatedAt).ToListAsync();
             ViewBag.Status = status;
             ViewBag.Search = search;
             return View(list);
         }
 
-        // ──────────────────────────────────────────────
-        //  GET: /Inquiries/Create
-        // ──────────────────────────────────────────────
-        public ActionResult Create(int? customerId)
+        public async Task<IActionResult> Create(int? customerId)
         {
-            ViewBag.Customers = new SelectList(db.Customers.OrderBy(c => c.Name).ToList(), "Id", "Name", customerId);
-            return View(new CustomerInquiry { CustomerId = customerId ?? 0 });
+            ViewBag.Customers = await _context.Customers.OrderBy(c => c.Name).ToListAsync();
+            var model = new CustomerInquiry { CustomerId = customerId ?? 0 };
+            return View(model);
         }
 
-        // ──────────────────────────────────────────────
-        //  POST: /Inquiries/Create
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult Create(CustomerInquiry inquiry)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(CustomerInquiry model, string customerName, string customerPhone, string customerDistrict)
         {
-            if (inquiry.CustomerId <= 0)
-                ModelState.AddModelError("CustomerId", "يرجى اختيار العميل.");
-
-            if (!ModelState.IsValid)
+            if (model.CustomerId == 0)
             {
-                ViewBag.Customers = new SelectList(db.Customers.OrderBy(c => c.Name).ToList(), "Id", "Name", inquiry.CustomerId);
-                return View(inquiry);
+                if (string.IsNullOrWhiteSpace(customerName) || string.IsNullOrWhiteSpace(customerPhone))
+                {
+                    ModelState.AddModelError("", "يرجى تحديد عميل مسجل أو إدخال اسم ورقم هاتف العميل الجديد.");
+                }
+                else
+                {
+                    var existing = await _context.Customers.FirstOrDefaultAsync(c => c.Phone == customerPhone.Trim());
+                    if (existing != null)
+                    {
+                        model.CustomerId = existing.Id;
+                    }
+                    else
+                    {
+                        var newCust = new Customer
+                        {
+                            Name = customerName.Trim(),
+                            Phone = customerPhone.Trim(),
+                            District = customerDistrict,
+                            CreatedBy = User.Identity?.Name ?? "Admin"
+                        };
+                        _context.Customers.Add(newCust);
+                        await _context.SaveChangesAsync();
+                        model.CustomerId = newCust.Id;
+                    }
+                }
             }
 
-            inquiry.CreatedAt = DateTime.Now;
-            inquiry.CreatedBy = User.Identity.GetUserName();
-            db.CustomerInquiries.Add(inquiry);
-            db.SaveChanges();
+            if (ModelState.IsValid)
+            {
+                model.CreatedAt = DateTime.Now;
+                model.CreatedBy = User.Identity?.Name ?? "Admin";
+                model.Status = InquiryStatus.New;
 
-            TempData["Success"] = "تم تسجيل الاستفسار بنجاح.";
-            return RedirectToAction("Index");
+                _context.CustomerInquiries.Add(model);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "تم تسجيل الاستفسار بنجاح.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            ViewBag.Customers = await _context.Customers.OrderBy(c => c.Name).ToListAsync();
+            return View(model);
         }
 
-        // ──────────────────────────────────────────────
-        //  POST: /Inquiries/ConvertToRequest  -  تحويل الاستفسار إلى طلب مطبخ رسمي
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult ConvertToRequest(int inquiryId)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConvertToRequest(int inquiryId)
         {
-            var inquiry = db.CustomerInquiries.Include(i => i.Customer).FirstOrDefault(i => i.Id == inquiryId);
-            if (inquiry == null) return HttpNotFound();
+            var inq = await _context.CustomerInquiries.Include(i => i.Customer).FirstOrDefaultAsync(i => i.Id == inquiryId);
+            if (inq == null) return NotFound();
 
-            int lastId = db.KitchenRequests.Any() ? db.KitchenRequests.Max(r => r.Id) : 0;
-            var request = new KitchenRequest
+            var req = new KitchenRequest
             {
-                RequestNumber = $"REQ-{DateTime.Now.Year}-{(lastId + 1):D5}",
-                CustomerId = inquiry.CustomerId,
-                Location = !string.IsNullOrEmpty(inquiry.Location) ? inquiry.Location : (inquiry.Customer.Address ?? "طرابلس"),
-                LayoutType = inquiry.PreferredLayout ?? KitchenLayoutType.Straight,
-                ProjectType = ProjectType.Villa,
-                Status = KitchenRequestStatus.RequestOpened,
-                Notes = $"تحويل من استفسار #{inquiry.Id}: {inquiry.Notes}",
-                TargetDeliveryDate = DateTime.Now.AddDays(30),
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
-                CreatedBy = User.Identity.GetUserName()
+                RequestNumber = $"REQ-{DateTime.Now.Year}-{new Random().Next(10000, 99999)}",
+                CustomerId = inq.CustomerId,
+                Location = inq.Location ?? inq.Customer.District ?? "طرابلس",
+                LayoutType = inq.PreferredLayout ?? KitchenLayoutType.Straight,
+                Status = KitchenRequestStatus.AwaitingSiteVisit,
+                Notes = $"تحويل من استفسار رقم #{inq.Id}. {inq.Notes}",
+                CreatedBy = User.Identity?.Name ?? "Admin"
             };
 
-            db.KitchenRequests.Add(request);
-            db.SaveChanges();
+            _context.KitchenRequests.Add(req);
+            await _context.SaveChangesAsync();
 
-            // تحديث حالة الاستفسار
-            inquiry.Status = InquiryStatus.ConvertedToRequest;
-            inquiry.ConvertedKitchenRequestId = request.Id;
+            inq.Status = InquiryStatus.ConvertedToRequest;
+            inq.ConvertedKitchenRequestId = req.Id;
 
-            // تسجيل حركة الانتقال
-            RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.RequestOpened, User.Identity.GetUserName(), $"تحويل من استفسار #{inquiry.Id}");
-            db.SaveChanges();
+            _context.RequestStatusHistories.Add(new RequestStatusHistory
+            {
+                KitchenRequestId = req.Id,
+                OldStatus = KitchenRequestStatus.NewInquiry,
+                NewStatus = KitchenRequestStatus.AwaitingSiteVisit,
+                ChangedBy = User.Identity?.Name ?? "Admin",
+                Notes = "تم فتح الطلب وتحويله من استفسار بيعي رسمي."
+            });
 
-            TempData["Success"] = $"تم تحويل الاستفسار إلى طلب مطبخ رسمي رقم [{request.RequestNumber}] بنجاح!";
-            return RedirectToAction("Details", "Requests", new { id = request.Id });
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing) db.Dispose();
-            base.Dispose(disposing);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = $"تم تحويل الاستفسار إلى طلب مطبخ رسمي رقم: {req.RequestNumber}";
+            return RedirectToAction("Details", "Requests", new { id = req.Id });
         }
     }
 }

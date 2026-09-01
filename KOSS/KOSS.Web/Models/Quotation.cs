@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -6,109 +6,108 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace KOSS.Web.Models
 {
     // ============================================================
-    //  فئات بنود عرض السعر
+    //  ÙØ¦Ø§Øª Ø¨Ù†ÙˆØ¯ Ø¹Ø±Ø¶ Ø§Ù„Ø³Ø¹Ø±
     // ============================================================
     public enum QuotationItemCategory
     {
-        [Display(Name = "خامات وألواح الخشب")]
+        [Display(Name = "Ø®Ø§Ù…Ø§Øª ÙˆØ£Ù„ÙˆØ§Ø­ Ø§Ù„Ø®Ø´Ø¨")]
         WoodMaterials = 1,
 
-        [Display(Name = "مفصلات وإكسسوارات ومقابض")]
+        [Display(Name = "Ù…ÙØµÙ„Ø§Øª ÙˆØ¥ÙƒØ³Ø³ÙˆØ§Ø±Ø§Øª ÙˆÙ…Ù‚Ø§Ø¨Ø¶")]
         HardwareAndAccessories = 2,
 
-        [Display(Name = "أسطح (رخام / كوارتز / جرانيت)")]
+        [Display(Name = "Ø£Ø³Ø·Ø­ (Ø±Ø®Ø§Ù… / ÙƒÙˆØ§Ø±ØªØ² / Ø¬Ø±Ø§Ù†ÙŠØª)")]
         Countertops = 3,
 
-        [Display(Name = "أجهزة كهرومنزلية وحوض")]
+        [Display(Name = "Ø£Ø¬Ù‡Ø²Ø© ÙƒÙ‡Ø±ÙˆÙ…Ù†Ø²Ù„ÙŠØ© ÙˆØ­ÙˆØ¶")]
         AppliancesAndSinks = 4,
 
-        [Display(Name = "أجور المصنعية والتصنيع")]
+        [Display(Name = "Ø£Ø¬ÙˆØ± Ø§Ù„Ù…ØµÙ†Ø¹ÙŠØ© ÙˆØ§Ù„ØªØµÙ†ÙŠØ¹")]
         ManufacturingLabor = 5,
 
-        [Display(Name = "خدمات النقل والتركيب")]
+        [Display(Name = "Ø®Ø¯Ù…Ø§Øª Ø§Ù„Ù†Ù‚Ù„ ÙˆØ§Ù„ØªØ±ÙƒÙŠØ¨")]
         InstallationAndDelivery = 6,
 
-        [Display(Name = "أخرى")]
+        [Display(Name = "Ø£Ø®Ø±Ù‰")]
         Other = 7
     }
 
     // ============================================================
-    //  عروض الأسعار (Quotation) - دعم الإصدارات والاعتماد
+    //  Ø¹Ø±ÙˆØ¶ Ø§Ù„Ø£Ø³Ø¹Ø§Ø± (Quotation) - Ø¯Ø¹Ù… Ø§Ù„Ø¥ØµØ¯Ø§Ø±Ø§Øª ÙˆØ§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯
     // ============================================================
     public class Quotation
     {
         public int Id { get; set; }
 
         [Required]
-        [Display(Name = "طلب المطبخ")]
+        [Display(Name = "Ø·Ù„Ø¨ Ø§Ù„Ù…Ø·Ø¨Ø®")]
         public int KitchenRequestId { get; set; }
 
-        [Display(Name = "إصدار التصميم المرتبط")]
+        [Display(Name = "Ø¥ØµØ¯Ø§Ø± Ø§Ù„ØªØµÙ…ÙŠÙ… Ø§Ù„Ù…Ø±ØªØ¨Ø·")]
         public int? DesignVersionId { get; set; }
 
-        [Display(Name = "رقم عرض السعر")]
+        [Display(Name = "Ø±Ù‚Ù… Ø¹Ø±Ø¶ Ø§Ù„Ø³Ø¹Ø±")]
         [StringLength(50)]
-        [Index("IX_Quotation_Number", IsUnique = true)]
         public string QuotationNumber { get; set; }
 
-        [Display(Name = "رقم الإصدار")]
+        [Display(Name = "Ø±Ù‚Ù… Ø§Ù„Ø¥ØµØ¯Ø§Ø±")]
         public int VersionNumber { get; set; } = 1;
 
-        [Display(Name = "المجموع قبل الخصم (د.ل)")]
+        [Display(Name = "Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ù‚Ø¨Ù„ Ø§Ù„Ø®ØµÙ… (Ø¯.Ù„)")]
         public decimal SubTotal { get; set; }
 
-        [Display(Name = "قيمة الخصم (د.ل)")]
+        [Display(Name = "Ù‚ÙŠÙ…Ø© Ø§Ù„Ø®ØµÙ… (Ø¯.Ù„)")]
         public decimal Discount { get; set; } = 0;
 
-        [Display(Name = "الضريبة (إن وجدت) (د.ل)")]
+        [Display(Name = "Ø§Ù„Ø¶Ø±ÙŠØ¨Ø© (Ø¥Ù† ÙˆØ¬Ø¯Øª) (Ø¯.Ù„)")]
         public decimal TaxAmount { get; set; } = 0;
 
-        [Display(Name = "صافي القيمة الإجمالية (د.ل)")]
+        [Display(Name = "ØµØ§ÙÙŠ Ø§Ù„Ù‚ÙŠÙ…Ø© Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠØ© (Ø¯.Ù„)")]
         public decimal TotalAmount { get; set; }
 
-        [Display(Name = "مدة صلاحية العرض (أيام)")]
+        [Display(Name = "Ù…Ø¯Ø© ØµÙ„Ø§Ø­ÙŠØ© Ø§Ù„Ø¹Ø±Ø¶ (Ø£ÙŠØ§Ù…)")]
         public int ValidityDays { get; set; } = 15;
 
-        [Display(Name = "تاريخ انتهاء الصلاحية")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ©")]
         public DateTime ExpiryDate => CreatedAt.AddDays(ValidityDays);
 
-        [Display(Name = "شروط الدفع المتفق عليها")]
+        [Display(Name = "Ø´Ø±ÙˆØ· Ø§Ù„Ø¯ÙØ¹ Ø§Ù„Ù…ØªÙÙ‚ Ø¹Ù„ÙŠÙ‡Ø§")]
         [StringLength(500)]
-        public string PaymentTerms { get; set; } = "30% عربون عند التعاقد، 40% عند بدء التصنيع، 20% عند الجاهزية للتركيب، 10% عند التسليم النهائي.";
+        public string PaymentTerms { get; set; } = "30% Ø¹Ø±Ø¨ÙˆÙ† Ø¹Ù†Ø¯ Ø§Ù„ØªØ¹Ø§Ù‚Ø¯ØŒ 40% Ø¹Ù†Ø¯ Ø¨Ø¯Ø¡ Ø§Ù„ØªØµÙ†ÙŠØ¹ØŒ 20% Ø¹Ù†Ø¯ Ø§Ù„Ø¬Ø§Ù‡Ø²ÙŠØ© Ù„Ù„ØªØ±ÙƒÙŠØ¨ØŒ 10% Ø¹Ù†Ø¯ Ø§Ù„ØªØ³Ù„ÙŠÙ… Ø§Ù„Ù†Ù‡Ø§Ø¦ÙŠ.";
 
-        [Display(Name = "حالة عرض السعر")]
+        [Display(Name = "Ø­Ø§Ù„Ø© Ø¹Ø±Ø¶ Ø§Ù„Ø³Ø¹Ø±")]
         public QuotationStatus Status { get; set; } = QuotationStatus.Draft;
 
-        [Display(Name = "المعتمد إدارياً")]
+        [Display(Name = "Ø§Ù„Ù…Ø¹ØªÙ…Ø¯ Ø¥Ø¯Ø§Ø±ÙŠØ§Ù‹")]
         public string ApprovedBy { get; set; }
 
-        [Display(Name = "تاريخ الاعتماد الداخلي")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯ Ø§Ù„Ø¯Ø§Ø®Ù„ÙŠ")]
         public DateTime? ApprovedAt { get; set; }
 
-        [Display(Name = "تاريخ الإرسال للعميل")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¥Ø±Ø³Ø§Ù„ Ù„Ù„Ø¹Ù…ÙŠÙ„")]
         public DateTime? SentToCustomerAt { get; set; }
 
-        [Display(Name = "تاريخ قبول العميل")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® Ù‚Ø¨ÙˆÙ„ Ø§Ù„Ø¹Ù…ÙŠÙ„")]
         public DateTime? AcceptedAt { get; set; }
 
-        [Display(Name = "ملاحظات إضافية")]
+        [Display(Name = "Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø¥Ø¶Ø§ÙÙŠØ©")]
         [StringLength(1000)]
         public string Notes { get; set; }
 
-        [Display(Name = "تاريخ الإنشاء")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¥Ù†Ø´Ø§Ø¡")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        [Display(Name = "أُنشئ بواسطة")]
+        [Display(Name = "Ø£ÙÙ†Ø´Ø¦ Ø¨ÙˆØ§Ø³Ø·Ø©")]
         public string CreatedBy { get; set; }
 
-        // العلاقات
+        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
         public virtual KitchenRequest KitchenRequest { get; set; }
         public virtual DesignVersion DesignVersion { get; set; }
         public virtual ICollection<QuotationItem> Items { get; set; } = new List<QuotationItem>();
     }
 
     // ============================================================
-    //  بند في عرض السعر (QuotationItem)
+    //  Ø¨Ù†Ø¯ ÙÙŠ Ø¹Ø±Ø¶ Ø§Ù„Ø³Ø¹Ø± (QuotationItem)
     // ============================================================
     public class QuotationItem
     {
@@ -117,34 +116,35 @@ namespace KOSS.Web.Models
         [Required]
         public int QuotationId { get; set; }
 
-        [Display(Name = "فئة البند")]
+        [Display(Name = "ÙØ¦Ø© Ø§Ù„Ø¨Ù†Ø¯")]
         public QuotationItemCategory Category { get; set; } = QuotationItemCategory.WoodMaterials;
 
-        [Display(Name = "اسم البند / الصنف")]
+        [Display(Name = "Ø§Ø³Ù… Ø§Ù„Ø¨Ù†Ø¯ / Ø§Ù„ØµÙ†Ù")]
         [Required, StringLength(200)]
         public string ItemName { get; set; }
 
-        [Display(Name = "الوصف والمواصفات الفنية")]
+        [Display(Name = "Ø§Ù„ÙˆØµÙ ÙˆØ§Ù„Ù…ÙˆØ§ØµÙØ§Øª Ø§Ù„ÙÙ†ÙŠØ©")]
         [StringLength(500)]
         public string Description { get; set; }
 
-        [Display(Name = "الوحدة")]
+        [Display(Name = "Ø§Ù„ÙˆØ­Ø¯Ø©")]
         [StringLength(30)]
-        public string Unit { get; set; } = "متر";
+        public string Unit { get; set; } = "Ù…ØªØ±";
 
-        [Display(Name = "الكمية")]
+        [Display(Name = "Ø§Ù„ÙƒÙ…ÙŠØ©")]
         public decimal Quantity { get; set; } = 1;
 
-        [Display(Name = "سعر الوحدة (د.ل)")]
+        [Display(Name = "Ø³Ø¹Ø± Ø§Ù„ÙˆØ­Ø¯Ø© (Ø¯.Ù„)")]
         public decimal UnitPrice { get; set; }
 
-        [Display(Name = "خصم البند (د.ل)")]
+        [Display(Name = "Ø®ØµÙ… Ø§Ù„Ø¨Ù†Ø¯ (Ø¯.Ù„)")]
         public decimal Discount { get; set; } = 0;
 
-        [Display(Name = "الإجمالي (د.ل)")]
+        [Display(Name = "Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ (Ø¯.Ù„)")]
         public decimal TotalPrice { get; set; }
 
-        // العلاقة
+        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø©
         public virtual Quotation Quotation { get; set; }
     }
 }
+

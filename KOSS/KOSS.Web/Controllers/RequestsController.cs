@@ -1,233 +1,199 @@
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Net;
-using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using KOSS.Web.Helpers;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using KOSS.Web.Models;
+using KOSS.Web.Helpers;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace KOSS.Web.Controllers
 {
     [Authorize]
     public class RequestsController : Controller
     {
-        private readonly KossDbContext db = new KossDbContext();
+        private readonly AppDbContext _context;
 
-        // ──────────────────────────────────────────────
-        //  GET: /Requests  -  قائمة طلبات المطابخ والمشاريع
-        // ──────────────────────────────────────────────
-        public ActionResult Index(string search, KitchenRequestStatus? status, ProjectType? projectType, int page = 1)
+        public RequestsController(AppDbContext context)
         {
-            var query = db.KitchenRequests
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index(KitchenRequestStatus? status, string search)
+        {
+            var query = _context.KitchenRequests
                 .Include(r => r.Customer)
-                .Include(r => r.AssignedSalesStaff)
                 .Include(r => r.Contracts)
+                .Include(r => r.WorkOrders)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(r => r.RequestNumber.Contains(search) ||
-                                         r.Customer.Name.Contains(search) ||
-                                         r.Customer.Phone.Contains(search) ||
-                                         r.Location.Contains(search));
-            }
-
             if (status.HasValue)
-            {
                 query = query.Where(r => r.Status == status.Value);
-            }
 
-            if (projectType.HasValue)
-            {
-                query = query.Where(r => r.ProjectType == projectType.Value);
-            }
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(r => r.RequestNumber.Contains(search) || r.Customer.Name.Contains(search) || r.Customer.Phone.Contains(search) || r.Location.Contains(search));
 
-            int pageSize = 15;
-            int total = query.Count();
-            var requests = query
-                .OrderByDescending(r => r.UpdatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            ViewBag.Search = search;
+            var list = await query.OrderByDescending(r => r.CreatedAt).ToListAsync();
             ViewBag.Status = status;
-            ViewBag.ProjectType = projectType;
-            ViewBag.Page = page;
-            ViewBag.Pages = (int)Math.Ceiling((double)total / pageSize);
-            ViewBag.Total = total;
-
-            return View(requests);
+            ViewBag.Search = search;
+            return View(list);
         }
 
-        // ──────────────────────────────────────────────
-        //  GET: /Requests/Create?customerId=5  -  إنشاء طلب مطبخ جديد
-        // ──────────────────────────────────────────────
-        public ActionResult Create(int? customerId)
+        public async Task<IActionResult> Create(int? customerId)
         {
-            if (customerId.HasValue)
+            ViewBag.Customers = await _context.Customers.OrderBy(c => c.Name).ToListAsync();
+            var model = new KitchenRequest
             {
-                var customer = db.Customers.Find(customerId.Value);
-                if (customer != null)
-                {
-                    ViewBag.CustomerName = customer.Name;
-                    ViewBag.CustomerId = customer.Id;
-                }
-            }
-
-            ViewBag.Customers = new SelectList(db.Customers.OrderBy(c => c.Name).ToList(), "Id", "Name", customerId);
-            ViewBag.Staff = new SelectList(db.StaffMembers.Where(s => s.IsActive).OrderBy(s => s.FullName).ToList(), "Id", "FullName");
-
-            return View(new KitchenRequest
-            {
+                RequestNumber = $"REQ-{DateTime.Now.Year}-{new Random().Next(1000, 9999)}",
                 CustomerId = customerId ?? 0,
-                TargetDeliveryDate = DateTime.Now.AddDays(30)
-            });
+                Status = KitchenRequestStatus.RequestOpened
+            };
+            return View(model);
         }
 
-        // ──────────────────────────────────────────────
-        //  POST: /Requests/Create
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult Create(KitchenRequest request)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(KitchenRequest model)
         {
-            if (request.CustomerId <= 0)
+            if (model.CustomerId == 0)
             {
-                ModelState.AddModelError("CustomerId", "يرجى اختيار العميل.");
+                ModelState.AddModelError("CustomerId", "يرجى اختيار العميل أو تسجيل عميل جديد أولاً.");
             }
 
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                ViewBag.Customers = new SelectList(db.Customers.OrderBy(c => c.Name).ToList(), "Id", "Name", request.CustomerId);
-                ViewBag.Staff = new SelectList(db.StaffMembers.Where(s => s.IsActive).OrderBy(s => s.FullName).ToList(), "Id", "FullName", request.AssignedSalesStaffId);
-                return View(request);
+                if (string.IsNullOrEmpty(model.RequestNumber))
+                {
+                    model.RequestNumber = $"REQ-{DateTime.Now.Year}-{new Random().Next(10000, 99999)}";
+                }
+
+                model.CreatedAt = DateTime.Now;
+                model.UpdatedAt = DateTime.Now;
+                model.CreatedBy = User.Identity?.Name ?? "Admin";
+                model.Status = KitchenRequestStatus.AwaitingSiteVisit;
+
+                _context.KitchenRequests.Add(model);
+                await _context.SaveChangesAsync();
+
+                _context.RequestStatusHistories.Add(new RequestStatusHistory
+                {
+                    KitchenRequestId = model.Id,
+                    OldStatus = KitchenRequestStatus.RequestOpened,
+                    NewStatus = KitchenRequestStatus.AwaitingSiteVisit,
+                    ChangedBy = User.Identity?.Name ?? "Admin",
+                    Notes = "تم فتح الطلب وتحويله تلقائياً لانتظار المعاينة والقياسات الميدانية."
+                });
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction("Details", new { id = model.Id });
             }
 
-            // توليد رقم الطلب تلقائياً
-            int lastId = db.KitchenRequests.Any() ? db.KitchenRequests.Max(r => r.Id) : 0;
-            request.RequestNumber = $"REQ-{DateTime.Now.Year}-{(lastId + 1):D5}";
-            request.Status = KitchenRequestStatus.RequestOpened;
-            request.CreatedAt = DateTime.Now;
-            request.UpdatedAt = DateTime.Now;
-            request.CreatedBy = User.Identity.GetUserName();
-
-            db.KitchenRequests.Add(request);
-            db.SaveChanges();
-
-            // تسجيل في السجل التاريخي
-            RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.RequestOpened, User.Identity.GetUserName(), "إنشاء طلب مطبخ رسمي جديد للعميل.");
-            db.SaveChanges();
-
-            TempData["Success"] = $"تم فتح طلب المطبخ رقم {request.RequestNumber} بنجاح!";
-            return RedirectToAction("Details", new { id = request.Id });
+            ViewBag.Customers = await _context.Customers.OrderBy(c => c.Name).ToListAsync();
+            return View(model);
         }
 
-        // ──────────────────────────────────────────────
-        //  GET: /Requests/Details/5  -  لوحة المشروع المركزية الشاملة
-        // ──────────────────────────────────────────────
-        public ActionResult Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            try
-            {
-                if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-
-                var request = db.KitchenRequests
-                    .Include("Customer")
-                    .Include("AssignedSalesStaff")
-                    .Include("StatusHistories")
-                    .Include("SiteVisits.AssignedSurveyor")
-                    .Include("DesignVersions.Designer")
-                    .Include("Quotations.Items")
-                    .Include("Contracts.PaymentSchedules")
-                    .Include("Contracts.Payments")
-                    .Include("WorkOrders.MaterialRequirements")
-                    .Include("WorkOrders.Tasks")
-                    .Include("WorkOrders.QualityChecks")
-                    .Include("WorkOrders.HandoverDocuments")
-                    .Include("Expenses")
-                    .FirstOrDefault(r => r.Id == id.Value);
-
-                if (request == null) return HttpNotFound();
-
-                // حساب الربحية الراهنة
-                ViewBag.Profitability = ProfitabilityCalculator.Calculate(request);
-                ViewBag.ClosingCheck = RequestWorkflowEngine.VerifyClosingConditions(request);
-
-                return View(request);
-            }
-            catch (Exception ex)
-            {
-                return Content("DETAILS_EXCEPTION: " + ex.ToString());
-            }
-        }
-
-        // ──────────────────────────────────────────────
-        //  POST: /Requests/Transition  -  تغيير حالة الطلب بمحرك الحالات
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult Transition(int requestId, KitchenRequestStatus targetStatus, string reason)
-        {
-            var request = db.KitchenRequests
+            var req = await _context.KitchenRequests
                 .Include(r => r.Customer)
                 .Include(r => r.SiteVisits)
+                    .ThenInclude(v => v.AssignedSurveyor)
                 .Include(r => r.DesignVersions)
+                    .ThenInclude(d => d.Designer)
                 .Include(r => r.Quotations)
-                .Include(r => r.Contracts.Select(c => c.Payments))
-                .Include(r => r.WorkOrders.Select(w => w.QualityChecks.Select(qc => qc.SnagItems)))
-                .Include(r => r.WorkOrders.Select(w => w.HandoverDocuments))
-                .FirstOrDefault(r => r.Id == requestId);
+                    .ThenInclude(q => q.Items)
+                .Include(r => r.Contracts)
+                    .ThenInclude(c => c.PaymentSchedules)
+                .Include(r => r.Contracts)
+                    .ThenInclude(c => c.Payments)
+                .Include(r => r.WorkOrders)
+                    .ThenInclude(w => w.MaterialRequirements)
+                .Include(r => r.WorkOrders)
+                    .ThenInclude(w => w.Tasks)
+                .Include(r => r.WorkOrders)
+                    .ThenInclude(w => w.QualityChecks)
+                .Include(r => r.WorkOrders)
+                    .ThenInclude(w => w.InstallationOrders)
+                .Include(r => r.WorkOrders)
+                    .ThenInclude(w => w.HandoverDocuments)
+                .Include(r => r.Expenses)
+                .Include(r => r.StatusHistories)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
-            if (request == null) return HttpNotFound();
+            if (req == null) return NotFound();
 
-            var check = RequestWorkflowEngine.CanTransition(request, targetStatus);
+            var profitability = ProfitabilityCalculator.Calculate(req);
+            ViewBag.Profitability = profitability;
+            ViewBag.ClosingCheck = RequestWorkflowEngine.VerifyClosingConditions(req);
+
+            return View(req);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TransitionStatus(int requestId, KitchenRequestStatus targetStatus, string reason)
+        {
+            var req = await _context.KitchenRequests
+                .Include(r => r.Contracts)
+                .Include(r => r.WorkOrders)
+                    .ThenInclude(w => w.QualityChecks)
+                .Include(r => r.WorkOrders)
+                    .ThenInclude(w => w.HandoverDocuments)
+                .FirstOrDefaultAsync(r => r.Id == requestId);
+
+            if (req == null) return NotFound();
+
+            var check = RequestWorkflowEngine.CanTransition(req, targetStatus);
             if (!check.IsAllowed)
             {
                 TempData["Error"] = check.ErrorMessage;
                 return RedirectToAction("Details", new { id = requestId });
             }
 
-            RequestWorkflowEngine.Transition(db, request, targetStatus, User.Identity.GetUserName(), string.IsNullOrEmpty(reason) ? "تحديث الحالة عبر النظام" : reason);
-            db.SaveChanges();
+            var oldStatus = req.Status;
+            req.Status = targetStatus;
+            req.UpdatedAt = DateTime.Now;
 
-            TempData["Success"] = $"تم تحديث حالة الطلب إلى [{targetStatus}] بنجاح!";
+            _context.RequestStatusHistories.Add(new RequestStatusHistory
+            {
+                KitchenRequestId = req.Id,
+                OldStatus = oldStatus,
+                NewStatus = targetStatus,
+                ChangedBy = User.Identity?.Name ?? "Admin",
+                Notes = reason ?? $"تغيير الحالة يدوياً من {oldStatus} إلى {targetStatus}"
+            });
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = $"تم تحديث حالة المشروع بنجاح إلى: {targetStatus}";
             return RedirectToAction("Details", new { id = requestId });
         }
 
-        // ──────────────────────────────────────────────
-        //  POST: /Requests/AddExpense  -  إضافة مصروف مباشر على مركز تكلفة المشروع
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult AddExpense(int kitchenRequestId, string expenseType, decimal amount, string paidTo = "", string receiptReference = "", string description = "")
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddExpense(int kitchenRequestId, string expenseType, decimal amount, string invoiceNumber, string notes)
         {
             if (amount <= 0)
             {
-                TempData["Error"] = "يجب أن يكون مبلغ المصروف أكبر من صفر.";
+                TempData["Error"] = "يجب أن تكون قيمة المصروف أكبر من الصفر.";
                 return RedirectToAction("Details", new { id = kitchenRequestId });
             }
 
-            db.ProjectExpenses.Add(new ProjectExpense
+            var expense = new ProjectExpense
             {
                 KitchenRequestId = kitchenRequestId,
                 ExpenseType = expenseType,
                 Amount = amount,
-                PaidTo = paidTo,
-                ReceiptReference = receiptReference,
-                Description = description,
-                ExpenseDate = DateTime.Now,
-                ApprovedBy = User.Identity.GetUserName()
-            });
+                ReceiptReference = invoiceNumber,
+                Description = notes,
+                ApprovedBy = User.Identity?.Name ?? "Admin",
+                ExpenseDate = DateTime.Now
+            };
 
-            db.SaveChanges();
-            TempData["Success"] = $"تم تسجيل المصروف بقيمة {amount:N3} د.ل وإضافته لتكاليف المشروع.";
+            _context.ProjectExpenses.Add(expense);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"تم قيد المصروف ({amount:N3} د.ل) بنجاح على مركز تكلفة المشروع.";
             return RedirectToAction("Details", new { id = kitchenRequestId });
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing) db.Dispose();
-            base.Dispose(disposing);
         }
     }
 }

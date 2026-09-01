@@ -1,100 +1,97 @@
-@model KOSS.Web.Models.KitchenRequest
+﻿@model KOSS.Web.Models.KitchenRequest
 @{
-    ViewBag.Title = "فتح طلب مطبخ جديد";
+    ViewData["Title"] = "فتح طلب مطبخ جديد";
+    var customers = ViewBag.Customers as List<KOSS.Web.Models.Customer> ?? new List<KOSS.Web.Models.Customer>();
 }
 
-<div class="page-header">
-    <h2>➕ فتح طلب مطبخ جديد
-        <small>(بدء دورة حياة المشروع المركزي)</small>
-    </h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-folder-plus text-primary me-2"></i> فتح وتسجيل طلب مطبخ / مشروع جديد</h3>
+        <p class="text-muted mb-0">المرحلة الثانية في مسار العمل (إنشاء رقم طلب رسمي وربطه بالعميل)</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-right me-1"></i> العودة للطلبات
+    </a>
 </div>
 
 <div class="row">
-    <div class="col-md-8">
-        <div class="panel panel-default">
-            <div class="panel-heading"><h4>بيانات الطلب والموقع</h4></div>
-            <div class="panel-body">
-                @using (Html.BeginForm("Create", "Requests", FormMethod.Post, new { @class = "form-horizontal" }))
-                {
+    <div class="col-lg-8">
+        <div class="card card-custom">
+            <div class="card-header card-header-custom">
+                <i class="fa-solid fa-file-pen text-primary me-1"></i> بيانات الطلب والموقع
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
                     @Html.AntiForgeryToken()
-                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
 
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">العميل</label>
-                        <div class="col-md-9">
-                            @if (ViewBag.CustomerId != null)
-                            {
-                                <input type="hidden" name="CustomerId" value="@ViewBag.CustomerId" />
-                                <input type="text" class="form-control" value="@ViewBag.CustomerName" disabled />
-                            }
-                            else
-                            {
-                                @Html.DropDownListFor(m => m.CustomerId, (SelectList)ViewBag.Customers, "--- اختر العميل ---", new { @class = "form-control" })
-                                @Html.ValidationMessageFor(m => m.CustomerId, "", new { @class = "text-danger" })
-                            }
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="RequestNumber" class="form-label fw-bold"></label>
+                            <input asp-for="RequestNumber" class="form-control fw-bold bg-light" readonly />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="CustomerId" class="form-label fw-bold"></label>
+                            <select asp-for="CustomerId" class="form-select">
+                                <option value="">--- اختر العميل ---</option>
+                                @foreach (var c in customers)
+                                {
+                                    <option value="@c.Id" selected="@(c.Id == Model.CustomerId ? "selected" : null)">@c.Name (@c.Phone)</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CustomerId" class="text-danger small"></span>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.Location, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-9">
-                            @Html.TextBoxFor(m => m.Location, new { @class = "form-control", placeholder = "العنوان والموقع التفصيلي لمكان تركيب المطبخ" })
-                            @Html.ValidationMessageFor(m => m.Location, "", new { @class = "text-danger" })
+                    <div class="mb-3">
+                        <label asp-for="Location" class="form-label fw-bold"></label>
+                        <input asp-for="Location" class="form-control" placeholder="عنوان وموقع المطبخ التفصيلي" required />
+                        <span asp-validation-for="Location" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="ProjectType" class="form-label fw-bold"></label>
+                            <select asp-for="ProjectType" asp-items="Html.GetEnumSelectList<ProjectType>()" class="form-select"></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LayoutType" class="form-label fw-bold"></label>
+                            <select asp-for="LayoutType" asp-items="Html.GetEnumSelectList<KitchenLayoutType>()" class="form-select"></select>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.ProjectType, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-4">
-                            @Html.EnumDropDownListFor(m => m.ProjectType, new { @class = "form-control" })
-                        </div>
-                        @Html.LabelFor(m => m.LayoutType, new { @class = "col-md-2 control-label" })
-                        <div class="col-md-3">
-                            @Html.EnumDropDownListFor(m => m.LayoutType, new { @class = "form-control" })
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="TargetDeliveryDate" class="form-label fw-bold"></label>
+                            <input asp-for="TargetDeliveryDate" type="date" class="form-control" />
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.AssignedSalesStaffId, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-4">
-                            @Html.DropDownListFor(m => m.AssignedSalesStaffId, (SelectList)ViewBag.Staff, "--- اختر مسؤول المبيعات ---", new { @class = "form-control" })
-                        </div>
-                        @Html.LabelFor(m => m.TargetDeliveryDate, new { @class = "col-md-2 control-label" })
-                        <div class="col-md-3">
-                            @Html.TextBoxFor(m => m.TargetDeliveryDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.Notes, new { @class = "col-md-3 control-label" })
-                        <div class="col-md-9">
-                            @Html.TextAreaFor(m => m.Notes, new { @class = "form-control", rows = 3, placeholder = "الاحتياجات الأولية، الألوان المفضلة، أي أجهزة خاصة..." })
-                        </div>
+                    <div class="mb-3">
+                        <label asp-for="Notes" class="form-label fw-bold"></label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="الاحتياجات الأولية وملاحظات العميل..."></textarea>
                     </div>
 
                     <hr />
-                    <div class="form-group">
-                        <div class="col-md-9 col-md-offset-3">
-                            <button type="submit" class="btn btn-warning btn-lg">
-                                💾 حفظ وفتح الطلب (Request Opened)
-                            </button>
-                            <a href="@Url.Action("Index")" class="btn btn-default btn-lg">إلغاء</a>
-                        </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-koss-primary px-4 py-2">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> حفظ الطلب والتحويل للمعاينة الميدانية
+                        </button>
+                        <a asp-action="Index" class="btn btn-light px-4 py-2">إلغاء</a>
                     </div>
-                }
+                </form>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="panel panel-info">
-            <div class="panel-heading"><h4>ℹ️ ما بعد إنشاء الطلب</h4></div>
-            <div class="panel-body">
-                <ol>
-                    <li>يتم توليد رقم رسمي للطلب مثل <code>REQ-2026-00001</code>.</li>
-                    <li>ينتقل الطلب إلى حالة <strong>طلب مفتوح (Request Opened)</strong>.</li>
-                    <li>الخطوة التالية هي <strong>جدولة المعاينة الميدانية</strong> لرفع القياسات الفعلية وفحص نقاط الكهرباء والسباكة.</li>
-                </ol>
+    <div class="col-lg-4">
+        <div class="card card-custom border-primary border-top border-4">
+            <div class="card-body">
+                <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-circle-info me-1"></i> إرشادات فتح الطلب</h5>
+                <ul class="text-muted small ps-3">
+                    <li class="mb-2">كل طلب مطبخ يمثل مشروعاً مستقلاً ومركز تكلفة مخصصاً.</li>
+                    <li class="mb-2">بعد الحفظ ينتقل الطلب تلقائياً إلى حالة <strong>"بانتظار المعاينة"</strong>.</li>
+                    <li class="mb-2">يمكن لمدير المبيعات أو العمليات تكليف المهندس وتحديد موعد الزيارة.</li>
+                </ul>
             </div>
         </div>
     </div>

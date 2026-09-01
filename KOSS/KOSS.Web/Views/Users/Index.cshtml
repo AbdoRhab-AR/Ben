@@ -1,0 +1,56 @@
+﻿@model IEnumerable<KOSS.Web.Models.User>
+@{
+    ViewData["Title"] = "إدارة المستخدمين والصلاحيات";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-user-gear text-primary me-2"></i> إدارة المستخدمين والصلاحيات</h3>
+        <p class="text-muted mb-0">التحكم في حسابات موظفي المنظومة وأدوارهم وصلاحيات الوصول</p>
+    </div>
+    <a asp-action="Create" class="btn btn-koss-primary">
+        <i class="fa-solid fa-user-plus me-1"></i> إضافة مستخدم جديد
+    </a>
+</div>
+
+<div class="card card-custom">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>اسم المستخدم</th>
+                        <th>الاسم الكامل</th>
+                        <th>الدور / الرتبة</th>
+                        <th>الصلاحيات الممنوحة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model)
+                    {
+                        <tr>
+                            <td>@u.UserId</td>
+                            <td><strong>@u.Username</strong></td>
+                            <td>@(u.FullName ?? "-")</td>
+                            <td><span class="badge bg-primary">@u.Role</span></td>
+                            <td>
+                                @if (u.UserPermissions != null && u.UserPermissions.Any())
+                                {
+                                    foreach (var p in u.UserPermissions)
+                                    {
+                                        <span class="badge bg-light text-dark border me-1">@p.Permission?.DisplayName</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">صلاحيات كاملة (Admin)</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

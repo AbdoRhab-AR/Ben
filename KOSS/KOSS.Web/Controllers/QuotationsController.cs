@@ -1,184 +1,140 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using KOSS.Web.Models;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
-using System.Net;
-using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using KOSS.Web.Helpers;
-using KOSS.Web.Models;
+using System.Threading.Tasks;
 
 namespace KOSS.Web.Controllers
 {
     [Authorize]
     public class QuotationsController : Controller
     {
-        private readonly KossDbContext db = new KossDbContext();
+        private readonly AppDbContext _context;
 
-        // ──────────────────────────────────────────────
-        //  GET: /Quotations  -  قائمة عروض الأسعار
-        // ──────────────────────────────────────────────
-        public ActionResult Index(QuotationStatus? status)
+        public QuotationsController(AppDbContext context)
         {
-            var query = db.Quotations
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index(QuotationStatus? status)
+        {
+            var query = _context.Quotations
                 .Include(q => q.KitchenRequest)
-                .Include(q => q.KitchenRequest.Customer)
+                    .ThenInclude(r => r.Customer)
                 .Include(q => q.DesignVersion)
+                .Include(q => q.Items)
                 .AsQueryable();
 
             if (status.HasValue)
                 query = query.Where(q => q.Status == status.Value);
 
-            var list = query.OrderByDescending(q => q.CreatedAt).ToList();
+            var list = await query.OrderByDescending(q => q.CreatedAt).ToListAsync();
             ViewBag.Status = status;
             return View(list);
         }
 
-        // ──────────────────────────────────────────────
-        //  GET: /Quotations/Create?requestId=5
-        // ──────────────────────────────────────────────
-        public ActionResult Create(int? requestId)
+        public async Task<IActionResult> Create(int requestId)
         {
-            if (requestId == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-
-            var request = db.KitchenRequests
+            var req = await _context.KitchenRequests
                 .Include(r => r.Customer)
                 .Include(r => r.DesignVersions)
-                .FirstOrDefault(r => r.Id == requestId.Value);
+                .FirstOrDefaultAsync(r => r.Id == requestId);
 
-            if (request == null) return HttpNotFound();
+            if (req == null) return NotFound();
 
-            var approvedDesign = request.ApprovedDesign ?? request.DesignVersions.OrderByDescending(d => d.Id).FirstOrDefault();
-            if (approvedDesign == null)
-            {
-                TempData["Error"] = "لا يمكن إعداد عرض سعر دون وجود إصدار تصميم معتمد للطلب.";
-                return RedirectToAction("Details", "Requests", new { id = requestId });
-            }
+            var approvedDesign = req.DesignVersions.FirstOrDefault(d => d.Status == DesignVersionStatus.ApprovedByCustomer)
+                                 ?? req.DesignVersions.LastOrDefault();
 
-            int lastId = db.Quotations.Any() ? db.Quotations.Max(q => q.Id) : 0;
-            string quoNum = $"QUO-{DateTime.Now.Year}-{(lastId + 1):D5}";
-
-            ViewBag.Request = request;
+            ViewBag.Request = req;
             ViewBag.Design = approvedDesign;
 
-            return View(new Quotation
+            var model = new Quotation
             {
-                KitchenRequestId = request.Id,
-                DesignVersionId = approvedDesign.Id,
-                QuotationNumber = quoNum,
+                KitchenRequestId = requestId,
+                DesignVersionId = approvedDesign?.Id,
+                QuotationNumber = $"Q-{DateTime.Now.Year}-{new Random().Next(1000, 9999)}",
                 ValidityDays = 15,
-                TotalAmount = (approvedDesign.EstimatedLinearMeters ?? 5) * 850m
-            });
+                Items = new List<QuotationItem>
+                {
+                    new QuotationItem { ItemName = "خزائن مطبخ سفلية وعلوية كاملة (خشب إسباني مقاوم)", Category = QuotationItemCategory.WoodMaterials, Quantity = approvedDesign?.EstimatedLinearMeters ?? 6, Unit = "متر طولي", UnitPrice = 850 },
+                    new QuotationItem { ItemName = "سطح رخام كوارتز طبيعي مع القص والتشطيب", Category = QuotationItemCategory.Countertops, Quantity = approvedDesign?.EstimatedLinearMeters ?? 6, Unit = "متر طولي", UnitPrice = 320 },
+                    new QuotationItem { ItemName = "إكسسوارات ومفصلات Blum هيدروليك نمساوي", Category = QuotationItemCategory.HardwareAndAccessories, Quantity = 1, Unit = "مجموعة", UnitPrice = 950 },
+                    new QuotationItem { ItemName = "أعمال التوريد والتركيب الميداني وضمان الجودة", Category = QuotationItemCategory.InstallationAndDelivery, Quantity = 1, Unit = "خدمة", UnitPrice = 600 }
+                }
+            };
+
+            model.SubTotal = model.Items.Sum(i => i.TotalPrice);
+            model.TotalAmount = model.SubTotal;
+
+            return View(model);
         }
 
-        // ──────────────────────────────────────────────
-        //  POST: /Quotations/Create
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult Create(Quotation quotation, List<QuotationItem> items)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Quotation model)
         {
-            if (quotation.TotalAmount <= 0 && items != null && items.Any())
+            if (ModelState.IsValid)
             {
-                quotation.SubTotal = items.Sum(i => i.Quantity * i.UnitPrice);
-                quotation.TotalAmount = quotation.SubTotal - quotation.Discount + quotation.TaxAmount;
-            }
+                model.CreatedAt = DateTime.Now;
+                model.CreatedBy = User.Identity?.Name ?? "Admin";
+                model.Status = QuotationStatus.Draft;
 
-            quotation.Status = QuotationStatus.Draft;
-            quotation.CreatedAt = DateTime.Now;
-            quotation.CreatedBy = User.Identity.GetUserName();
-
-            if (items != null)
-            {
-                foreach (var item in items)
+                if (model.Items != null && model.Items.Any())
                 {
-                    if (!string.IsNullOrEmpty(item.ItemName))
+                    foreach (var itm in model.Items)
                     {
-                        item.TotalPrice = (item.Quantity * item.UnitPrice) - item.Discount;
-                        quotation.Items.Add(item);
+                        itm.TotalPrice = Math.Max(0, (itm.Quantity * itm.UnitPrice) - itm.Discount);
                     }
+                    model.SubTotal = model.Items.Sum(i => i.TotalPrice);
                 }
+
+                model.TotalAmount = Math.Max(0, model.SubTotal - model.Discount + model.TaxAmount);
+
+                _context.Quotations.Add(model);
+
+                var req = await _context.KitchenRequests.FindAsync(model.KitchenRequestId);
+                if (req != null)
+                {
+                    req.Status = KitchenRequestStatus.QuotationSent;
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["Success"] = $"تم حفظ عرض السعر رقم ({model.QuotationNumber}) بنجاح.";
+                return RedirectToAction("Details", "Requests", new { id = model.KitchenRequestId });
             }
 
-            // بند افتراضي إذا لم يتم إدخال بنود مفصلة
-            if (!quotation.Items.Any())
+            ViewBag.Request = await _context.KitchenRequests.Include(r => r.Customer).FirstOrDefaultAsync(r => r.Id == model.KitchenRequestId);
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Accept(int quotationId)
+        {
+            var quo = await _context.Quotations.Include(q => q.KitchenRequest).FirstOrDefaultAsync(q => q.Id == quotationId);
+            if (quo == null) return NotFound();
+
+            quo.Status = QuotationStatus.Accepted;
+            var req = quo.KitchenRequest;
+            if (req != null)
             {
-                quotation.Items.Add(new QuotationItem
+                req.Status = KitchenRequestStatus.AwaitingContractAndDeposit;
+                _context.RequestStatusHistories.Add(new RequestStatusHistory
                 {
-                    Category = QuotationItemCategory.WoodMaterials,
-                    ItemName = "مطبخ متكامل حسب التصميم والمواصفات المعتمدة",
-                    Unit = "متر",
-                    Quantity = 1,
-                    UnitPrice = quotation.TotalAmount,
-                    TotalPrice = quotation.TotalAmount
+                    KitchenRequestId = req.Id,
+                    OldStatus = KitchenRequestStatus.QuotationSent,
+                    NewStatus = KitchenRequestStatus.AwaitingContractAndDeposit,
+                    ChangedBy = User.Identity?.Name ?? "Admin",
+                    Notes = $"وافق العميل رسمياً على عرض السعر {quo.QuotationNumber} بقيمة {quo.TotalAmount:N3} د.ل. تم التحويل لتحرير العقد وسداد العربون."
                 });
             }
 
-            db.Quotations.Add(quotation);
-            db.SaveChanges();
-
-            // تحديث حالة الطلب إلى قيد التسعير
-            var request = db.KitchenRequests.Find(quotation.KitchenRequestId);
-            if (request != null && request.Status <= KitchenRequestStatus.InPricing)
-            {
-                RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.InPricing, User.Identity.GetUserName(), $"إعداد عرض السعر {quotation.QuotationNumber}");
-            }
-
-            db.SaveChanges();
-            TempData["Success"] = $"تم حفظ مسودة عرض السعر {quotation.QuotationNumber} بنجاح!";
-            return RedirectToAction("Details", "Requests", new { id = quotation.KitchenRequestId });
-        }
-
-        // ──────────────────────────────────────────────
-        //  POST: /Quotations/SendToCustomer
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult SendToCustomer(int quotationId)
-        {
-            var quo = db.Quotations.Include(q => q.KitchenRequest).FirstOrDefault(q => q.Id == quotationId);
-            if (quo == null) return HttpNotFound();
-
-            quo.Status = QuotationStatus.SentToCustomer;
-            quo.SentToCustomerAt = DateTime.Now;
-
-            var request = quo.KitchenRequest;
-            if (request != null)
-            {
-                RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.QuotationSent, User.Identity.GetUserName(), $"إرسال عرض السعر {quo.QuotationNumber} للعميل بقيمة {quo.TotalAmount:N3} د.ل.");
-            }
-
-            db.SaveChanges();
-            TempData["Success"] = $"تم إرسال عرض السعر {quo.QuotationNumber} للعميل بنجاح.";
-            return RedirectToAction("Details", "Requests", new { id = quo.KitchenRequestId });
-        }
-
-        // ──────────────────────────────────────────────
-        //  POST: /Quotations/Accept  -  قبول العميل للعرض والانتقال لمرحلة التعاقد
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult Accept(int quotationId)
-        {
-            var quo = db.Quotations.Include(q => q.KitchenRequest).FirstOrDefault(q => q.Id == quotationId);
-            if (quo == null) return HttpNotFound();
-
-            quo.Status = QuotationStatus.Accepted;
-            quo.AcceptedAt = DateTime.Now;
-
-            var request = quo.KitchenRequest;
-            if (request != null)
-            {
-                RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.QuotationAccepted, User.Identity.GetUserName(), $"قبول العميل لعرض السعر {quo.QuotationNumber} بقيمة {quo.TotalAmount:N3} د.ل.");
-                RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.AwaitingContractAndDeposit, User.Identity.GetUserName(), "بانتظار توقيع العقد وسداد دفعة العربون (30%).");
-            }
-
-            db.SaveChanges();
-            TempData["Success"] = $"تم قبول عرض السعر بنجاح. الطلب الآن بانتظار توقيع العقد ودفع العربون.";
-            return RedirectToAction("Details", "Requests", new { id = quo.KitchenRequestId });
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing) db.Dispose();
-            base.Dispose(disposing);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "تم قبول عرض السعر بنجاح، والمشروع جاهز لتحرير العقد الرسمي وسداد العربون.";
+            return RedirectToAction("Create", "Contracts", new { requestId = quo.KitchenRequestId, quotationId = quo.Id });
         }
     }
 }

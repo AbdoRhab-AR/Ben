@@ -1,150 +1,94 @@
-using System;
-using System.Data.Entity;
-using System.Linq;
-using System.Net;
-using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using KOSS.Web.Helpers;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using KOSS.Web.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace KOSS.Web.Controllers
 {
     [Authorize]
     public class ManufacturingController : Controller
     {
-        private readonly KossDbContext db = new KossDbContext();
+        private readonly AppDbContext _context;
 
-        // ──────────────────────────────────────────────
-        //  GET: /Manufacturing  -  لوحة المصنع ومتابعة مراحل الإنتاج
-        // ──────────────────────────────────────────────
-        public ActionResult Index()
+        public ManufacturingController(AppDbContext context)
         {
-            var activeOrders = db.WorkOrders
-                .Include(w => w.KitchenRequest)
-                .Include(w => w.KitchenRequest.Customer)
-                .Include(w => w.Tasks)
-                .Include(w => w.QualityChecks.Select(qc => qc.SnagItems))
-                .Where(w => w.Status == WorkOrderStatus.Manufacturing || w.Status == WorkOrderStatus.QualityInspection)
-                .OrderBy(w => w.ExpectedEndDate)
-                .ToList();
-
-            return View(activeOrders);
+            _context = context;
         }
 
-        // ──────────────────────────────────────────────
-        //  POST: /Manufacturing/CompleteTask  -  إنجاز مرحلة تصنيع
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult CompleteTask(int taskId, string technicianName, string notes)
+        public async Task<IActionResult> Index()
         {
-            var task = db.ManufacturingTasks.Include(t => t.WorkOrder).FirstOrDefault(t => t.Id == taskId);
-            if (task == null) return HttpNotFound();
+            var orders = await _context.WorkOrders
+                .Include(w => w.KitchenRequest)
+                    .ThenInclude(r => r.Customer)
+                .Include(w => w.Tasks)
+                .Include(w => w.QualityChecks)
+                .Where(w => w.Status == WorkOrderStatus.Manufacturing || w.Status == WorkOrderStatus.Planning)
+                .OrderByDescending(w => w.CreatedAt)
+                .ToListAsync();
+
+            return View(orders);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CompleteTask(int taskId, int workOrderId)
+        {
+            var task = await _context.ManufacturingTasks.FindAsync(taskId);
+            if (task == null) return NotFound();
 
             task.Status = "Completed";
-            task.TechnicianName = technicianName ?? User.Identity.GetUserName();
             task.CompletedAt = DateTime.Now;
-            task.Notes = notes;
 
-            // إذا اكتملت جميع المهام، يتم الانتقال إلى مرحلة فحص الجودة
-            var wo = task.WorkOrder;
-            if (wo != null && wo.Tasks.All(t => t.Status == "Completed"))
-            {
-                wo.Status = WorkOrderStatus.QualityInspection;
-            }
-
-            db.SaveChanges();
-            TempData["Success"] = $"تم تسجيل إنجاز مرحلة [{task.TaskName}] بنجاح.";
-            return RedirectToAction("Details", "WorkOrders", new { id = task.WorkOrderId });
+            await _context.SaveChangesAsync();
+            TempData["Success"] = $"تم اكتمال مرحلة ({task.TaskName}) بنجاح.";
+            return RedirectToAction("Details", "WorkOrders", new { id = workOrderId });
         }
 
-        // ──────────────────────────────────────────────
-        //  POST: /Manufacturing/PerformQualityCheck  -  تنفيذ فحص الجودة والمطابقة
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult PerformQualityCheck(int workOrderId, bool dimensionsMatched, bool surfacesFlawless, bool hardwareSmooth, bool packagingSecured, string notes, string snagDescription)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PerformQualityCheck(int workOrderId, bool isPassed, string notes)
         {
-            var wo = db.WorkOrders.Include(w => w.KitchenRequest).FirstOrDefault(w => w.Id == workOrderId);
-            if (wo == null) return HttpNotFound();
-
-            bool allPassed = dimensionsMatched && surfacesFlawless && hardwareSmooth && packagingSecured && string.IsNullOrEmpty(snagDescription);
-
-            int lastQcId = db.QualityChecks.Any() ? db.QualityChecks.Max(q => q.Id) : 0;
-            string reportNo = $"QC-{DateTime.Now.Year}-{(lastQcId + 1):D5}";
+            var wo = await _context.WorkOrders.Include(w => w.KitchenRequest).FirstOrDefaultAsync(w => w.Id == workOrderId);
+            if (wo == null) return NotFound();
 
             var qc = new QualityCheck
             {
                 WorkOrderId = workOrderId,
-                ReportNumber = reportNo,
+                ReportNumber = $"QC-{DateTime.Now.Year}-{new Random().Next(1000, 9999)}",
                 InspectionDate = DateTime.Now,
-                InspectorName = User.Identity.GetUserName(),
-                DimensionsMatched = dimensionsMatched,
-                SurfacesFlawless = surfacesFlawless,
-                HardwareWorkingSmoothly = hardwareSmooth,
-                PackagingSecured = packagingSecured,
-                Passed = allPassed,
+                InspectorName = User.Identity?.Name ?? "Quality Manager",
+                Passed = isPassed,
                 Notes = notes
             };
 
-            // تسجيل ملاحظة/نقص إن وجد
-            if (!string.IsNullOrEmpty(snagDescription))
-            {
-                qc.SnagItems.Add(new SnagItem
-                {
-                    KitchenRequestId = wo.KitchenRequestId,
-                    Description = snagDescription,
-                    AssignedTo = "مشرف المصنع",
-                    LoggedAt = DateTime.Now,
-                    IsResolved = false
-                });
-            }
+            _context.QualityChecks.Add(qc);
 
-            db.QualityChecks.Add(qc);
-
-            var request = wo.KitchenRequest;
-            if (allPassed)
+            if (isPassed)
             {
-                wo.Status = WorkOrderStatus.ReadyForInstallation;
-                if (request != null)
+                wo.Status = WorkOrderStatus.Completed;
+                wo.ActualEndDate = DateTime.Now;
+
+                var req = wo.KitchenRequest;
+                if (req != null)
                 {
-                    RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.ReadyForInstallation, User.Identity.GetUserName(), $"اجتياز فحص الجودة والمطابقة بتقرير #{reportNo}. المطبخ جاهز للنقل والتركيب.");
+                    req.Status = KitchenRequestStatus.ReadyForInstallation;
+                    _context.RequestStatusHistories.Add(new RequestStatusHistory
+                    {
+                        KitchenRequestId = req.Id,
+                        OldStatus = KitchenRequestStatus.InManufacturing,
+                        NewStatus = KitchenRequestStatus.ReadyForInstallation,
+                        ChangedBy = User.Identity?.Name ?? "Admin",
+                        Notes = "اجتياز فحص الجودة والمطابقة بالمصنع بنجاح. المطبخ جاهز للنقل والتركيب."
+                    });
                 }
-                TempData["Success"] = $"تم اجتياز فحص الجودة بنجاح! تقرير #{reportNo} — المطبخ جاهز للجدولة والتركيب.";
-            }
-            else
-            {
-                wo.Status = WorkOrderStatus.SnagResolution;
-                if (request != null)
-                {
-                    RequestWorkflowEngine.Transition(db, request, KitchenRequestStatus.AwaitingSnagResolution, User.Identity.GetUserName(), $"فحص الجودة #{reportNo} رصد ملاحظات تحتاج معالجة بالمصنع.");
-                }
-                TempData["Warning"] = $"تم تسجيل تقرير فحص الجودة #{reportNo} ورصد ملاحظات تحتاج معالجة قبل السماح بالتركيب.";
             }
 
-            db.SaveChanges();
+            await _context.SaveChangesAsync();
+            TempData["Success"] = isPassed ? "تم اعتماد تقرير فحص الجودة بنجاح، والمشروع جاهز للتركيب." : "تم تسجيل ملاحظات الفحص ويلزم معالجتها قبل الشحن.";
             return RedirectToAction("Details", "WorkOrders", new { id = workOrderId });
-        }
-
-        // ──────────────────────────────────────────────
-        //  POST: /Manufacturing/ResolveSnag  -  معالجة ملاحظة / عيب
-        // ──────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult ResolveSnag(int snagId)
-        {
-            var snag = db.SnagItems.Include(s => s.KitchenRequest).FirstOrDefault(s => s.Id == snagId);
-            if (snag == null) return HttpNotFound();
-
-            snag.IsResolved = true;
-            snag.ResolvedAt = DateTime.Now;
-
-            db.SaveChanges();
-            TempData["Success"] = "تم تسجيل معالجة وإغلاق الملاحظة بنجاح.";
-            return RedirectToAction("Details", "Requests", new { id = snag.KitchenRequestId });
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing) db.Dispose();
-            base.Dispose(disposing);
         }
     }
 }

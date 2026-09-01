@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -7,59 +7,58 @@ using System.Linq;
 namespace KOSS.Web.Models
 {
     // ============================================================
-    //  طلب المطبخ / المشروع المركزي (KitchenRequest / Project Core)
+    //  Ø·Ù„Ø¨ Ø§Ù„Ù…Ø·Ø¨Ø® / Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ø§Ù„Ù…Ø±ÙƒØ²ÙŠ (KitchenRequest / Project Core)
     // ============================================================
     public class KitchenRequest
     {
         public int Id { get; set; }
 
-        [Display(Name = "رقم الطلب الرسمي")]
+        [Display(Name = "Ø±Ù‚Ù… Ø§Ù„Ø·Ù„Ø¨ Ø§Ù„Ø±Ø³Ù…ÙŠ")]
         [StringLength(50)]
-        [Index("IX_KitchenRequest_Number", IsUnique = true)]
         public string RequestNumber { get; set; }
 
         [Required]
-        [Display(Name = "العميل")]
+        [Display(Name = "Ø§Ù„Ø¹Ù…ÙŠÙ„")]
         public int CustomerId { get; set; }
 
-        [Display(Name = "عنوان وموقع المطبخ")]
-        [Required(ErrorMessage = "موقع المطبخ مطلوب"), StringLength(250)]
+        [Display(Name = "Ø¹Ù†ÙˆØ§Ù† ÙˆÙ…ÙˆÙ‚Ø¹ Ø§Ù„Ù…Ø·Ø¨Ø®")]
+        [Required(ErrorMessage = "Ù…ÙˆÙ‚Ø¹ Ø§Ù„Ù…Ø·Ø¨Ø® Ù…Ø·Ù„ÙˆØ¨"), StringLength(250)]
         public string Location { get; set; }
 
-        [Display(Name = "نوع المشروع")]
+        [Display(Name = "Ù†ÙˆØ¹ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹")]
         public ProjectType ProjectType { get; set; } = ProjectType.Villa;
 
-        [Display(Name = "تخطيط المطبخ")]
+        [Display(Name = "ØªØ®Ø·ÙŠØ· Ø§Ù„Ù…Ø·Ø¨Ø®")]
         public KitchenLayoutType LayoutType { get; set; } = KitchenLayoutType.Straight;
 
-        [Display(Name = "موظف المبيعات المسؤول")]
+        [Display(Name = "Ù…ÙˆØ¸Ù Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„")]
         public int? AssignedSalesStaffId { get; set; }
 
-        [Display(Name = "الموعد المتوقع للتسليم")]
+        [Display(Name = "Ø§Ù„Ù…ÙˆØ¹Ø¯ Ø§Ù„Ù…ØªÙˆÙ‚Ø¹ Ù„Ù„ØªØ³Ù„ÙŠÙ…")]
         public DateTime? TargetDeliveryDate { get; set; }
 
-        [Display(Name = "الحالة الراهنة")]
+        [Display(Name = "Ø§Ù„Ø­Ø§Ù„Ø© Ø§Ù„Ø±Ø§Ù‡Ù†Ø©")]
         public KitchenRequestStatus Status { get; set; } = KitchenRequestStatus.RequestOpened;
 
-        [Display(Name = "الملاحظات والاحتياجات الأولية")]
+        [Display(Name = "Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª ÙˆØ§Ù„Ø§Ø­ØªÙŠØ§Ø¬Ø§Øª Ø§Ù„Ø£ÙˆÙ„ÙŠØ©")]
         [StringLength(1000)]
         public string Notes { get; set; }
 
-        [Display(Name = "سبب الإلغاء / الرفض (إن وجد)")]
+        [Display(Name = "Ø³Ø¨Ø¨ Ø§Ù„Ø¥Ù„ØºØ§Ø¡ / Ø§Ù„Ø±ÙØ¶ (Ø¥Ù† ÙˆØ¬Ø¯)")]
         [StringLength(300)]
         public string CancellationReason { get; set; }
 
-        [Display(Name = "تاريخ الإنشاء")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¥Ù†Ø´Ø§Ø¡")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        [Display(Name = "تاريخ آخر تحديث")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø¢Ø®Ø± ØªØ­Ø¯ÙŠØ«")]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        [Display(Name = "أُنشئ بواسطة")]
+        [Display(Name = "Ø£ÙÙ†Ø´Ø¦ Ø¨ÙˆØ§Ø³Ø·Ø©")]
         public string CreatedBy { get; set; }
 
         // ============================================================
-        //  خصائص محسوبة للربط السريع
+        //  Ø®ØµØ§Ø¦Øµ Ù…Ø­Ø³ÙˆØ¨Ø© Ù„Ù„Ø±Ø¨Ø· Ø§Ù„Ø³Ø±ÙŠØ¹
         // ============================================================
         [NotMapped]
         public Contract ActiveContract => Contracts != null ? Contracts.FirstOrDefault(c => c.Status == ContractStatus.Active || c.Status == ContractStatus.Completed) : null;
@@ -77,7 +76,7 @@ namespace KOSS.Web.Models
         public WorkOrder CurrentWorkOrder => WorkOrders != null ? WorkOrders.FirstOrDefault(w => w.Status != WorkOrderStatus.Cancelled) : null;
 
         // ============================================================
-        //  العلاقات المتفرعة عن طلب المطبخ
+        //  Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª Ø§Ù„Ù…ØªÙØ±Ø¹Ø© Ø¹Ù† Ø·Ù„Ø¨ Ø§Ù„Ù…Ø·Ø¨Ø®
         // ============================================================
         public virtual Customer Customer { get; set; }
         public virtual StaffMember AssignedSalesStaff { get; set; }
@@ -92,7 +91,7 @@ namespace KOSS.Web.Models
     }
 
     // ============================================================
-    //  سجل الحالات التاريخي للطلب (RequestStatusHistory)
+    //  Ø³Ø¬Ù„ Ø§Ù„Ø­Ø§Ù„Ø§Øª Ø§Ù„ØªØ§Ø±ÙŠØ®ÙŠ Ù„Ù„Ø·Ù„Ø¨ (RequestStatusHistory)
     // ============================================================
     public class RequestStatusHistory
     {
@@ -101,23 +100,24 @@ namespace KOSS.Web.Models
         [Required]
         public int KitchenRequestId { get; set; }
 
-        [Display(Name = "الحالة السابقة")]
+        [Display(Name = "Ø§Ù„Ø­Ø§Ù„Ø© Ø§Ù„Ø³Ø§Ø¨Ù‚Ø©")]
         public KitchenRequestStatus OldStatus { get; set; }
 
-        [Display(Name = "الحالة الجديدة")]
+        [Display(Name = "Ø§Ù„Ø­Ø§Ù„Ø© Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø©")]
         public KitchenRequestStatus NewStatus { get; set; }
 
-        [Display(Name = "سبب الانتقال / الملاحظات")]
+        [Display(Name = "Ø³Ø¨Ø¨ Ø§Ù„Ø§Ù†ØªÙ‚Ø§Ù„ / Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª")]
         [StringLength(500)]
         public string Notes { get; set; }
 
-        [Display(Name = "تاريخ ووقت التغيير")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® ÙˆÙˆÙ‚Øª Ø§Ù„ØªØºÙŠÙŠØ±")]
         public DateTime ChangedAt { get; set; } = DateTime.Now;
 
-        [Display(Name = "المستخدم الذي نفذ التغيير")]
+        [Display(Name = "Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø§Ù„Ø°ÙŠ Ù†ÙØ° Ø§Ù„ØªØºÙŠÙŠØ±")]
         public string ChangedBy { get; set; }
 
-        // العلاقة
+        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø©
         public virtual KitchenRequest KitchenRequest { get; set; }
     }
 }
+

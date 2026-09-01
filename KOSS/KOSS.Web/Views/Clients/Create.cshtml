@@ -1,109 +1,55 @@
-﻿@model KOSS.Web.Models.Client
+﻿@model KOSS.Web.Models.Customer
 @{
-    ViewBag.Title = "تسجيل عميل جديد";
+    ViewData["Title"] = "تسجيل عميل جديد";
 }
 
-<div class="page-header">
-    <h2>➕ تسجيل عميل جديد</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-user-plus text-primary me-2"></i> تسجيل عميل جديد</h3>
+        <p class="text-muted mb-0">إضافة بيانات العميل إلى قاعدة البيانات المركزية</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-right me-1"></i> العودة لدليل العملاء
+    </a>
 </div>
 
-<div class="row">
-    <div class="col-md-7">
-        <div class="panel panel-default">
-            <div class="panel-heading"><h4>بيانات العميل</h4></div>
-            <div class="panel-body">
+<div class="card card-custom" style="max-width: 700px;">
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
 
-                @using (Html.BeginForm("Create", "Clients", FormMethod.Post, new { @class = "form-horizontal" }))
-                {
-                    @Html.AntiForgeryToken()
-                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.Name, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "الاسم الكامل للعميل", autofocus = "autofocus" })
-                            @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.Phone, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.TextBoxFor(m => m.Phone, new { @class = "form-control", placeholder = "09xxxxxxxx", dir = "ltr" })
-                            @Html.ValidationMessageFor(m => m.Phone, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.Phone2, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.TextBoxFor(m => m.Phone2, new { @class = "form-control", placeholder = "اختياري", dir = "ltr" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.District, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.TextBoxFor(m => m.District, new { @class = "form-control", placeholder = "مثال: طريق المطار، الأندلس..." })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.Address, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.TextAreaFor(m => m.Address, new { @class = "form-control", rows = 2, placeholder = "العنوان التفصيلي" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.Status, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            <div class="btn-group" data-toggle="buttons">
-                                <label class="btn btn-success active">
-                                    <input type="radio" name="Status" value="1" checked /> ✅ مهتم
-                                </label>
-                                <label class="btn btn-default">
-                                    <input type="radio" name="Status" value="2" /> ❌ غير مهتم
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        @Html.LabelFor(m => m.Notes, new { @class = "col-md-4 control-label" })
-                        <div class="col-md-8">
-                            @Html.TextAreaFor(m => m.Notes, new { @class = "form-control", rows = 2, placeholder = "ملاحظات إضافية" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="col-md-8 col-md-offset-4">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                💾 حفظ العميل
-                            </button>
-                            <a href="@Url.Action("Index")" class="btn btn-default btn-lg">إلغاء</a>
-                        </div>
-                    </div>
-                }
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label fw-bold"></label>
+                <input asp-for="Name" class="form-control" placeholder="الاسم ثلاثي" required />
+                <span asp-validation-for="Name" class="text-danger small"></span>
             </div>
-        </div>
-    </div>
 
-    <div class="col-md-4 col-md-offset-1">
-        <div class="panel panel-info">
-            <div class="panel-heading"><h4>ℹ️ تعليمات</h4></div>
-            <div class="panel-body">
-                <ul>
-                    <li>اختر <strong>مهتم</strong> إذا أبدى العميل اهتماماً بالشراء</li>
-                    <li>اختر <strong>غير مهتم</strong> إذا لم يقتنع أو رفض</li>
-                    <li>عند اختيار <strong>مهتم</strong> سيتم توجيهك فوراً لإنشاء العقد</li>
-                    <li>رقم الهاتف مطلوب للتواصل مع العميل</li>
-                </ul>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="Phone" class="form-label fw-bold"></label>
+                    <input asp-for="Phone" class="form-control" placeholder="09xxxxxxxx" required />
+                    <span asp-validation-for="Phone" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="District" class="form-label fw-bold"></label>
+                    <input asp-for="District" class="form-control" placeholder="المدينة أو المنطقة" />
+                </div>
             </div>
-        </div>
+
+            <div class="mb-3">
+                <label asp-for="Address" class="form-label fw-bold"></label>
+                <input asp-for="Address" class="form-control" placeholder="العنوان التفصيلي أو أقرب نقطة دالة" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label fw-bold"></label>
+                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="ملاحظات عامة حول العميل..."></textarea>
+            </div>
+
+            <hr />
+            <button type="submit" class="btn btn-koss-primary px-4 py-2">
+                <i class="fa-solid fa-floppy-disk me-1"></i> حفظ العميل
+            </button>
+        </form>
     </div>
 </div>
-
-@section scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-}

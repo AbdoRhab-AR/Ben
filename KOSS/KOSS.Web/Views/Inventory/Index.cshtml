@@ -1,90 +1,75 @@
-@model IEnumerable<KOSS.Web.Models.StockItem>
+﻿@model IEnumerable<KOSS.Web.Models.ItemMaster>
 @{
-    ViewBag.Title = "المخازن والأرصدة";
+    ViewData["Title"] = "المستودعات والخامات";
 }
 
-<div class="page-header">
-    <div class="row">
-        <div class="col-md-8">
-            <h2>📦 المستودعات والأرصدة المخزنية
-                <small>(الرصيد الفعلي، المحجوز، والرصيد المتاح)</small>
-            </h2>
-        </div>
-        <div class="col-md-4 text-left">
-            <a href="@Url.Action("StockIssues")" class="btn btn-default btn-lg">📋 سجل سندات الصرف للمشاريع</a>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-boxes-stacked text-primary me-2"></i> المستودعات ودليل الخامات والأصناف</h3>
+        <p class="text-muted mb-0">متابعة أرصدة الأخشاب، الرخام، المفصلات، والإكسسوارات وسندات الصرف للمشاريع</p>
     </div>
+    <a asp-action="StockIssues" class="btn btn-outline-primary">
+        <i class="fa-solid fa-file-lines me-1"></i> سجل سندات الصرف
+    </a>
 </div>
 
-<!-- تصفية وبحث المخزون -->
-<div class="panel panel-default">
-    <div class="panel-body">
-        @using (Html.BeginForm("Index", "Inventory", FormMethod.Get, new { @class = "form-inline" }))
-        {
-            <div class="form-group">
-                <input type="text" name="search" class="form-control" placeholder="بحث باسم الصنف أو الكود..." value="@ViewBag.Search" style="width:250px;" />
-            </div>
-            <div class="form-group">
-                @Html.DropDownList("warehouseId", (SelectList)ViewBag.Warehouses, "--- كافة المستودعات ---", new { @class = "form-control" })
-            </div>
-            <button type="submit" class="btn btn-primary">🔍 تصفية</button>
-            <a href="@Url.Action("Index")" class="btn btn-default">إلغاء</a>
-        }
-    </div>
-</div>
-
-<!-- جدول الأرصدة المخزنية -->
-<div class="panel panel-default">
-    <div class="panel-heading"><h4>📊 أرصدة الأصناف والخامات في المخازن (@Model.Count())</h4></div>
-    <div class="panel-body table-responsive">
-        <table class="table table-striped table-hover table-bordered">
-            <thead class="thead-koss">
-                <tr>
-                    <th>كود الصنف</th>
-                    <th>اسم الصنف / الخامة</th>
-                    <th>الفئة</th>
-                    <th>المستودع</th>
-                    <th>الرصيد الفعلي</th>
-                    <th>المحجوز للمشاريع</th>
-                    <th>الرصيد المتاح للصرف</th>
-                    <th>حد الطلب الأدنى</th>
-                    <th>متوسط التكلفة</th>
-                    <th>حالة المخزون</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr><td colspan="10" class="text-center text-muted" style="padding:25px;">لا توجد أصناف مسجلة بالمستودع.</td></tr>
-                }
-                @foreach (var s in Model)
-                {
-                    bool isLow = s.AvailableQuantity <= s.ItemMaster.ReorderLevel;
-                    <tr class="@(isLow ? "warning" : "")">
-                        <td><code>#@s.ItemMaster.ItemCode</code></td>
-                        <td><strong>@s.ItemMaster.Name</strong></td>
-                        <td>@s.ItemMaster.Category</td>
-                        <td>@(s.Warehouse != null ? s.Warehouse.Name : "-")</td>
-                        <td><strong>@s.PhysicalQuantity</strong> @s.ItemMaster.Unit</td>
-                        <td class="text-warning">@s.ReservedQuantity @s.ItemMaster.Unit</td>
-                        <td class="text-success" style="font-size:1.1em; font-weight:bold;">
-                            @s.AvailableQuantity @s.ItemMaster.Unit
-                        </td>
-                        <td>@s.ItemMaster.ReorderLevel @s.ItemMaster.Unit</td>
-                        <td>@s.WeightedAverageCost.ToString("N3") د.ل</td>
-                        <td>
-                            @if (isLow)
-                            {
-                                <span class="label label-danger">⚠️ تحت حد الطلب</span>
-                            }
-                            else
-                            {
-                                <span class="label label-success">✅ متوفر كافٍ</span>
-                            }
-                        </td>
+<div class="card card-custom">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>كود الصنف</th>
+                        <th>اسم الخامة / الصنف</th>
+                        <th>الفئة</th>
+                        <th>الوحدة</th>
+                        <th>التكلفة القياسية</th>
+                        <th>سعر البيع القياسي</th>
+                        <th>الرصيد المتوفر بالمخازن</th>
+                        <th>حد إعادة الطلب</th>
+                        <th>الحالة</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="9" class="text-center py-4 text-muted">لا توجد أصناف معرفة حالياً في المخازن.</td></tr>
+                    }
+                    @foreach (var i in Model)
+                    {
+                        var totalStock = i.StockItems?.Sum(s => s.AvailableQuantity) ?? 0;
+                        <tr>
+                            <td><strong class="text-secondary">@i.ItemCode</strong></td>
+                            <td><strong>@i.Name</strong></td>
+                            <td><span class="badge bg-light text-dark border">@i.Category</span></td>
+                            <td>@i.Unit</td>
+                            <td>@i.StandardCost.ToString("N3") د.ل</td>
+                            <td>@i.StandardSalePrice.ToString("N3") د.ل</td>
+                            <td>
+                                @if (totalStock <= i.ReorderLevel)
+                                {
+                                    <span class="badge bg-danger fs-6">@totalStock @i.Unit (منخفض)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success fs-6">@totalStock @i.Unit</span>
+                                }
+                            </td>
+                            <td>@i.ReorderLevel @i.Unit</td>
+                            <td>
+                                @if (i.IsActive)
+                                {
+                                    <span class="badge bg-success">نشط</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">غير نشط</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

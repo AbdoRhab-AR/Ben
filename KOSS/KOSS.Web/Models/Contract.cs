@@ -7,138 +7,137 @@ using System.Linq;
 namespace KOSS.Web.Models
 {
     // ============================================================
-    //  حالة العقد
+    //  Ø­Ø§Ù„Ø© Ø§Ù„Ø¹Ù‚Ø¯
     // ============================================================
     public enum ContractStatus
     {
-        [Display(Name = "جديد")]
+        [Display(Name = "Ø¬Ø¯ÙŠØ¯")]
         New = 1,
 
-        [Display(Name = "تمت المعاينة")]
+        [Display(Name = "ØªÙ…Øª Ø§Ù„Ù…Ø¹Ø§ÙŠÙ†Ø©")]
         Measured = 2,
 
-        [Display(Name = "تم دفع رسوم التصميم")]
+        [Display(Name = "ØªÙ… Ø¯ÙØ¹ Ø±Ø³ÙˆÙ… Ø§Ù„ØªØµÙ…ÙŠÙ…")]
         FeePaid = 3,
 
-        [Display(Name = "تم التصميم")]
+        [Display(Name = "ØªÙ… Ø§Ù„ØªØµÙ…ÙŠÙ…")]
         Designed = 4,
 
-        [Display(Name = "تم دفع العربون")]
+        [Display(Name = "ØªÙ… Ø¯ÙØ¹ Ø§Ù„Ø¹Ø±Ø¨ÙˆÙ†")]
         DepositPaid = 5,
 
-        [Display(Name = "قيد التصنيع")]
+        [Display(Name = "Ù‚ÙŠØ¯ Ø§Ù„ØªØµÙ†ÙŠØ¹")]
         UnderProduction = 6,
 
-        [Display(Name = "تم التصنيع")]
+        [Display(Name = "ØªÙ… Ø§Ù„ØªØµÙ†ÙŠØ¹")]
         Manufactured = 7,
 
-        [Display(Name = "تم التركيب")]
+        [Display(Name = "ØªÙ… Ø§Ù„ØªØ±ÙƒÙŠØ¨")]
         Installed = 8,
 
-        [Display(Name = "قيد التسليم")]
+        [Display(Name = "Ù‚ÙŠØ¯ Ø§Ù„ØªØ³Ù„ÙŠÙ…")]
         Commissioning = 9,
 
-        [Display(Name = "مكتمل")]
+        [Display(Name = "Ù…ÙƒØªÙ…Ù„")]
         Completed = 10,
 
-        [Display(Name = "ملغى")]
+        [Display(Name = "Ù…Ù„ØºÙ‰")]
         Cancelled = 11,
 
-        [Display(Name = "مسودة عقد")]
+        [Display(Name = "Ù…Ø³ÙˆØ¯Ø© Ø¹Ù‚Ø¯")]
         Draft = 12,
 
-        [Display(Name = "بانتظار سداد العربون")]
+        [Display(Name = "Ø¨Ø§Ù†ØªØ¸Ø§Ø± Ø³Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ø±Ø¨ÙˆÙ†")]
         AwaitingDeposit = 13,
 
-        [Display(Name = "عقد نشط وسارٍ")]
+        [Display(Name = "Ø¹Ù‚Ø¯ Ù†Ø´Ø· ÙˆØ³Ø§Ø±Ù")]
         Active = 14,
 
-        [Display(Name = "معلق / موقوف")]
+        [Display(Name = "Ù…Ø¹Ù„Ù‚ / Ù…ÙˆÙ‚ÙˆÙ")]
         Suspended = 15,
 
-        [Display(Name = "ملحق معدل")]
+        [Display(Name = "Ù…Ù„Ø­Ù‚ Ù…Ø¹Ø¯Ù„")]
         Amended = 16,
 
-        [Display(Name = "ملغى / منسوخ")]
+        [Display(Name = "Ù…Ù„ØºÙ‰ / Ù…Ù†Ø³ÙˆØ®")]
         Terminated = 17
     }
 
     // ============================================================
-    //  العقد الرسمي (Contract)
+    //  Ø§Ù„Ø¹Ù‚Ø¯ Ø§Ù„Ø±Ø³Ù…ÙŠ (Contract)
     // ============================================================
     public class Contract
     {
         public int Id { get; set; }
 
         [Required]
-        [Display(Name = "طلب المطبخ")]
+        [Display(Name = "Ø·Ù„Ø¨ Ø§Ù„Ù…Ø·Ø¨Ø®")]
         public int KitchenRequestId { get; set; }
 
-        [Display(Name = "العميل")]
+        [Display(Name = "Ø§Ù„Ø¹Ù…ÙŠÙ„")]
         public int? ClientId { get; set; }
 
-        [Display(Name = "عرض السعر المعتمد")]
+        [Display(Name = "Ø¹Ø±Ø¶ Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ù…Ø¹ØªÙ…Ø¯")]
         public int? QuotationId { get; set; }
 
-        [Display(Name = "إصدار التصميم المعتمد")]
+        [Display(Name = "Ø¥ØµØ¯Ø§Ø± Ø§Ù„ØªØµÙ…ÙŠÙ… Ø§Ù„Ù…Ø¹ØªÙ…Ø¯")]
         public int? DesignVersionId { get; set; }
 
-        [Display(Name = "رقم العقد")]
+        [Display(Name = "Ø±Ù‚Ù… Ø§Ù„Ø¹Ù‚Ø¯")]
         [StringLength(50)]
-        [Index("IX_Contract_Number", IsUnique = true)]
         public string ContractNumber { get; set; }
 
-        [Display(Name = "القيمة الإجمالية للعقد (د.ل)")]
+        [Display(Name = "Ø§Ù„Ù‚ÙŠÙ…Ø© Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠØ© Ù„Ù„Ø¹Ù‚Ø¯ (Ø¯.Ù„)")]
         public decimal TotalValue { get; set; }
 
-        [Display(Name = "العربون المطلوب للتفعيل (د.ل)")]
+        [Display(Name = "Ø§Ù„Ø¹Ø±Ø¨ÙˆÙ† Ø§Ù„Ù…Ø·Ù„ÙˆØ¨ Ù„Ù„ØªÙØ¹ÙŠÙ„ (Ø¯.Ù„)")]
         public decimal RequiredDeposit { get; set; }
 
-        [Display(Name = "إجمالي المقبوضات (د.ل)")]
+        [Display(Name = "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù…Ù‚Ø¨ÙˆØ¶Ø§Øª (Ø¯.Ù„)")]
         public decimal TotalPaid { get; set; } = 0;
 
-        [Display(Name = "المتبقي للتحصيل (د.ل)")]
+        [Display(Name = "Ø§Ù„Ù…ØªØ¨Ù‚ÙŠ Ù„Ù„ØªØ­ØµÙŠÙ„ (Ø¯.Ù„)")]
         public decimal RemainingBalance => Math.Max(0, TotalValue - TotalPaid);
 
-        [Display(Name = "نسبة السداد (%)")]
+        [Display(Name = "Ù†Ø³Ø¨Ø© Ø§Ù„Ø³Ø¯Ø§Ø¯ (%)")]
         public decimal PaymentPercentage => TotalValue > 0 ? (TotalPaid / TotalValue) * 100 : 0;
 
-        [Display(Name = "سعر المتر المعتمد (د.ل)")]
+        [Display(Name = "Ø³Ø¹Ø± Ø§Ù„Ù…ØªØ± Ø§Ù„Ù…Ø¹ØªÙ…Ø¯ (Ø¯.Ù„)")]
         public decimal PricePerMeter { get; set; }
 
-        [Display(Name = "إجمالي الأمتار المعتمدة")]
+        [Display(Name = "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø£Ù…ØªØ§Ø± Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø©")]
         public decimal TotalMeters { get; set; }
 
-        [Display(Name = "تاريخ توقيع العقد")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® ØªÙˆÙ‚ÙŠØ¹ Ø§Ù„Ø¹Ù‚Ø¯")]
         public DateTime? SignedDate { get; set; }
 
-        [Display(Name = "تاريخ التسليم المتفق عليه")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ³Ù„ÙŠÙ… Ø§Ù„Ù…ØªÙÙ‚ Ø¹Ù„ÙŠÙ‡")]
         public DateTime? TargetCompletionDate { get; set; }
 
-        [Display(Name = "الشرط الجزائي عن كل يوم تأخير (د.ل)")]
+        [Display(Name = "Ø§Ù„Ø´Ø±Ø· Ø§Ù„Ø¬Ø²Ø§Ø¦ÙŠ Ø¹Ù† ÙƒÙ„ ÙŠÙˆÙ… ØªØ£Ø®ÙŠØ± (Ø¯.Ù„)")]
         public decimal PenaltyPerDay { get; set; } = 0;
 
-        [Display(Name = "رابط ملف العقد الموقع الممسوح ضوئياً")]
+        [Display(Name = "Ø±Ø§Ø¨Ø· Ù…Ù„Ù Ø§Ù„Ø¹Ù‚Ø¯ Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø§Ù„Ù…Ù…Ø³ÙˆØ­ Ø¶ÙˆØ¦ÙŠØ§Ù‹")]
         [StringLength(500)]
         public string SignedContractFilePath { get; set; }
 
-        [Display(Name = "حالة العقد")]
+        [Display(Name = "Ø­Ø§Ù„Ø© Ø§Ù„Ø¹Ù‚Ø¯")]
         public ContractStatus Status { get; set; } = ContractStatus.Draft;
 
-        [Display(Name = "شروط وملاحظات العقد")]
+        [Display(Name = "Ø´Ø±ÙˆØ· ÙˆÙ…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ù„Ø¹Ù‚Ø¯")]
         [StringLength(1000)]
         public string Notes { get; set; }
 
-        [Display(Name = "تاريخ الإنشاء")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¥Ù†Ø´Ø§Ø¡")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        [Display(Name = "تاريخ آخر تعديل")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø¢Ø®Ø± ØªØ¹Ø¯ÙŠÙ„")]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        [Display(Name = "أُنشئ بواسطة")]
+        [Display(Name = "Ø£ÙÙ†Ø´Ø¦ Ø¨ÙˆØ§Ø³Ø·Ø©")]
         public string CreatedBy { get; set; }
 
-        // العلاقات
+        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª
         public virtual KitchenRequest KitchenRequest { get; set; }
         public virtual Client Client { get; set; }
         public virtual Quotation Quotation { get; set; }
@@ -146,18 +145,11 @@ namespace KOSS.Web.Models
 
         public virtual ICollection<PaymentSchedule> PaymentSchedules { get; set; } = new List<PaymentSchedule>();
         public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
-        public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
-        public virtual ICollection<PurchaseOrder> PurchaseOrders { get; set; } = new List<PurchaseOrder>();
-        public virtual ICollection<DesignFee> DesignFees { get; set; } = new List<DesignFee>();
-        public virtual ICollection<KitchenUnit> Units { get; set; } = new List<KitchenUnit>();
         public virtual ICollection<WorkOrder> WorkOrders { get; set; } = new List<WorkOrder>();
-
-        [NotMapped]
-        public DesignFee DesignFee => DesignFees?.FirstOrDefault();
     }
 
     // ============================================================
-    //  جدول الدفعات المجدولة للعقد (PaymentSchedule)
+    //  Ø¬Ø¯ÙˆÙ„ Ø§Ù„Ø¯ÙØ¹Ø§Øª Ø§Ù„Ù…Ø¬Ø¯ÙˆÙ„Ø© Ù„Ù„Ø¹Ù‚Ø¯ (PaymentSchedule)
     // ============================================================
     public class PaymentSchedule
     {
@@ -166,33 +158,34 @@ namespace KOSS.Web.Models
         [Required]
         public int ContractId { get; set; }
 
-        [Display(Name = "اسم الدفعة / المرحلة")]
+        [Display(Name = "Ø§Ø³Ù… Ø§Ù„Ø¯ÙØ¹Ø© / Ø§Ù„Ù…Ø±Ø­Ù„Ø©")]
         [Required, StringLength(100)]
-        public string StageName { get; set; } // مثال: عربون توقيع العقد (30%)، دفعة بدء التصنيع (40%)...
+        public string StageName { get; set; } // Ù…Ø«Ø§Ù„: Ø¹Ø±Ø¨ÙˆÙ† ØªÙˆÙ‚ÙŠØ¹ Ø§Ù„Ø¹Ù‚Ø¯ (30%)ØŒ Ø¯ÙØ¹Ø© Ø¨Ø¯Ø¡ Ø§Ù„ØªØµÙ†ÙŠØ¹ (40%)...
 
-        [Display(Name = "نسبة الدفعة (%)")]
+        [Display(Name = "Ù†Ø³Ø¨Ø© Ø§Ù„Ø¯ÙØ¹Ø© (%)")]
         public decimal Percentage { get; set; }
 
-        [Display(Name = "قيمة الدفعة (د.ل)")]
+        [Display(Name = "Ù‚ÙŠÙ…Ø© Ø§Ù„Ø¯ÙØ¹Ø© (Ø¯.Ù„)")]
         public decimal Amount { get; set; }
 
-        [Display(Name = "تاريخ الاستحقاق المتوقع")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ø³ØªØ­Ù‚Ø§Ù‚ Ø§Ù„Ù…ØªÙˆÙ‚Ø¹")]
         public DateTime? DueDate { get; set; }
 
-        [Display(Name = "شرط استحقاق الدفعة")]
+        [Display(Name = "Ø´Ø±Ø· Ø§Ø³ØªØ­Ù‚Ø§Ù‚ Ø§Ù„Ø¯ÙØ¹Ø©")]
         [StringLength(200)]
         public string Condition { get; set; }
 
-        [Display(Name = "هل تم سداد الدفعة؟")]
+        [Display(Name = "Ù‡Ù„ ØªÙ… Ø³Ø¯Ø§Ø¯ Ø§Ù„Ø¯ÙØ¹Ø©ØŸ")]
         public bool IsPaid { get; set; } = false;
 
-        [Display(Name = "تاريخ السداد الفعلي")]
+        [Display(Name = "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø³Ø¯Ø§Ø¯ Ø§Ù„ÙØ¹Ù„ÙŠ")]
         public DateTime? PaidAt { get; set; }
 
-        [Display(Name = "معرف إيصال القبض")]
+        [Display(Name = "Ù…Ø¹Ø±Ù Ø¥ÙŠØµØ§Ù„ Ø§Ù„Ù‚Ø¨Ø¶")]
         public int? CustomerReceiptId { get; set; }
 
-        // العلاقة
+        // Ø§Ù„Ø¹Ù„Ø§Ù‚Ø©
         public virtual Contract Contract { get; set; }
     }
 }
+

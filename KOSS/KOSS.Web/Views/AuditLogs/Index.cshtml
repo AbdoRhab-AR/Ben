@@ -1,0 +1,66 @@
+﻿@model IEnumerable<KOSS.Web.Models.AuditLog>
+@{
+    ViewData["Title"] = "سجل التدقيق وتتبع العمليات (Audit Trail)";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark"><i class="fa-solid fa-shield-halved text-danger me-2"></i> سجل التدقيق وتتبع العمليات (Audit Trail)</h3>
+        <p class="text-muted mb-0">تتبع آلي لكافة حركات الإضافة والتعديل والحذف وتصفح الشاشات عبر ChangeTracker</p>
+    </div>
+</div>
+
+<div class="card card-custom">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>المستخدم</th>
+                        <th>نوع الحركة</th>
+                        <th>الجدول / الشاشة</th>
+                        <th>التفاصيل والقيم القديمة والجديدة</th>
+                        <th>التاريخ والوقت</th>
+                        <th>عنوان IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="7" class="text-center py-4 text-muted">لا توجد سجلات تدقيق مسجلة حتى الآن.</td></tr>
+                    }
+                    @foreach (var log in Model)
+                    {
+                        <tr>
+                            <td>@log.Id</td>
+                            <td><span class="badge bg-secondary">@log.Username</span></td>
+                            <td>
+                                @if (log.Action == "Create")
+                                {
+                                    <span class="badge bg-success">إضافة جديدة</span>
+                                }
+                                else if (log.Action == "Update")
+                                {
+                                    <span class="badge bg-warning text-dark">تعديل بيانات</span>
+                                }
+                                else if (log.Action == "Delete")
+                                {
+                                    <span class="badge bg-danger">حذف</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info text-dark">تصفح</span>
+                                }
+                            </td>
+                            <td><strong>@log.EntityName</strong></td>
+                            <td><small class="text-muted" style="word-break:break-all;">@log.Description</small></td>
+                            <td dir="ltr" class="text-muted"><small>@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</small></td>
+                            <td><small class="badge bg-light text-dark">@(log.IpAddress ?? "Local")</small></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -172,7 +172,7 @@ namespace KOSS.Web.Helpers
         // ============================================================
         //  تنفيذ الانتقال وتسجيل السجل التاريخي
         // ============================================================
-        public static void Transition(KossDbContext db, KitchenRequest request, KitchenRequestStatus targetStatus, string userName, string reason)
+        public static void Transition(AppDbContext db, KitchenRequest request, KitchenRequestStatus targetStatus, string userName, string reason)
         {
             var oldStatus = request.Status;
             request.Status = targetStatus;
@@ -192,14 +192,12 @@ namespace KOSS.Web.Helpers
             // تسجيل في AuditLog العام
             db.AuditLogs.Add(new AuditLog
             {
-                TableName = "KitchenRequest",
-                RecordId = request.Id,
+                EntityName = "KitchenRequest",
+                EntityId = request.Id.ToString(),
                 Action = "StatusTransition",
-                OldValue = oldStatus.ToString(),
-                NewValue = targetStatus.ToString(),
-                Description = $"تغيير حالة الطلب {request.RequestNumber}: {reason}",
-                ChangedBy = userName,
-                ChangedAt = DateTime.Now
+                Description = $"تغيير حالة الطلب {request.RequestNumber} من {oldStatus} إلى {targetStatus}: {reason}",
+                Username = userName,
+                Timestamp = DateTime.Now
             });
         }
     }
