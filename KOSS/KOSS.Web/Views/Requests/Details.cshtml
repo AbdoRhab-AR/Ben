@@ -3,6 +3,7 @@
     ViewData["Title"] = $"مشروع مطبخ: {Model.RequestNumber}";
     var prof = ViewBag.Profitability as KOSS.Web.Helpers.ProjectProfitabilityReport;
     var closingCheck = ViewBag.ClosingCheck as KOSS.Web.Helpers.ProjectClosingCheckResult;
+    var pricing = ViewBag.PricingSummary as KOSS.Web.Helpers.ProjectPricingSummary;
 }
 
 <!-- رأس المشروع (Project Header & Status Banner) -->
@@ -82,6 +83,11 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="tab-overview-btn" data-bs-toggle="pill" data-bs-target="#tab-overview" type="button">
                     <i class="fa-solid fa-gauge-high me-1"></i> نظرة عامة والمسار
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-boxes-btn" data-bs-toggle="pill" data-bs-target="#tab-boxes" type="button">
+                    <i class="fa-solid fa-boxes-stacked me-1"></i> هندسة العِلَب وفروقات الأسعار (@(Model.CabinetUnits?.Count ?? 0))
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -232,6 +238,264 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+
+            <!-- تبويب هندسة العِلب وحاسبة فروقات الأسعار بالسوق الليبي -->
+            <div class="tab-pane fade" id="tab-boxes">
+                <!-- بطاقات المؤشرات السريعة للعلب والتسعير -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-2">
+                        <div class="card card-custom p-3 text-center border-start border-primary border-4">
+                            <small class="text-muted d-block">فئة العمل</small>
+                            <strong class="text-dark fs-6">@Model.Category.ToArabic()</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card card-custom p-3 text-center border-start border-info border-4">
+                            <small class="text-muted d-block">عدد العلب المسجلة</small>
+                            <strong class="text-primary fs-5">@(Model.CabinetUnits?.Count ?? 0) علبة</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card card-custom p-3 text-center border-start border-warning border-4">
+                            <small class="text-muted d-block">الأمتار الطولية الإجمالية</small>
+                            <strong class="text-dark fs-5">@(pricing?.TotalWidthLinearMeters.ToString("F1") ?? "0") م.ط</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 text-center border-start border-success border-4">
+                            <small class="text-muted d-block">إجمالي سعر بيع العلب (د.ل)</small>
+                            <strong class="text-success fs-5">@(pricing?.TotalModularBoxesSellingPrice.ToString("N0") ?? "0") د.ل</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 text-center border-start border-secondary border-4">
+                            <small class="text-muted d-block">متوسط سعر المتر الطولي المكافئ</small>
+                            <strong class="text-dark fs-5">@(pricing?.RunningMeterEquivalentPrice.ToString("N0") ?? "0") د.ل / م</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- شريط الإجراءات والتحكم بالعلب -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">
+                            <i class="fa-solid fa-boxes-stacked text-primary me-2"></i> كشف العِلَب والوحدات النمطية للمشروع (Modular Cabinet Breakdown)
+                        </h5>
+                        <small class="text-muted">تفصيل العلب السفلية والعلوية والأبراج وحجرات الملابس وفق المعايير المعمارية بالسوق الليبي</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <form asp-controller="CabinetUnits" asp-action="GenerateStandardBoxes" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="requestId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-outline-primary btn-sm fw-bold" onclick="return confirm('هل تريد توليد باقة العلب النمطية التلقائية لهذا المشروع؟');">
+                                <i class="fa-solid fa-magic-wand-sparkles me-1"></i> توليد باقة العلب النمطية تلقائياً
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-koss-primary btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#addBoxModal">
+                            <i class="fa-solid fa-plus me-1"></i> إضافة علبة / باكية جديدة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- جدول العلب المسجلة -->
+                <div class="table-responsive mb-4">
+                    <table class="table table-custom table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>كود العلبة</th>
+                                <th>اسم ومواصفة العلبة</th>
+                                <th>الفئة</th>
+                                <th>الأبعاد (عرض × ارتفاع × عمق)</th>
+                                <th>خامة الكاركاس الداخلي</th>
+                                <th>خامة الدرفة</th>
+                                <th>الميكانيزم والإكسسوار</th>
+                                <th>تكلفة التصنيع</th>
+                                <th>سعر البيع</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.CabinetUnits == null || !Model.CabinetUnits.Any())
+                            {
+                                <tr>
+                                    <td colspan="10" class="text-center py-5 text-muted">
+                                        <i class="fa-solid fa-box-open fa-2x mb-2 d-block text-secondary opacity-50"></i>
+                                        لم يتم تسجيل أي علب نمطية لهذا المشروع بعد. يمكنك النقر على زر <strong>"توليد باقة العلب النمطية تلقائياً"</strong> لإدراج كشف العلب المعتمدة آلياً.
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                foreach (var box in Model.CabinetUnits.OrderBy(b => b.Category).ThenBy(b => b.Id))
+                                {
+                                    <tr>
+                                        <td><strong class="text-primary font-monospace">@box.BoxCode</strong></td>
+                                        <td>
+                                            <strong class="text-dark d-block">@box.Name</strong>
+                                            @if (!string.IsNullOrEmpty(box.Notes))
+                                            {
+                                                <small class="text-muted">@box.Notes</small>
+                                            }
+                                        </td>
+                                        <td><span class="badge bg-light text-dark border">@box.Category.ToArabic()</span></td>
+                                        <td><span dir="ltr" class="badge bg-secondary">@box.WidthCm × @box.HeightCm × @box.DepthCm سم</span></td>
+                                        <td><small class="text-muted">@box.Carcass.ToArabic()</small></td>
+                                        <td><small class="fw-bold text-dark">@box.DoorType.ToArabic()</small></td>
+                                        <td>
+                                            <small class="badge bg-info text-dark">@box.Mechanism.ToArabic()</small>
+                                            @if (box.HasLedLighting)
+                                            {
+                                                <span class="badge bg-warning text-dark ms-1"><i class="fa-solid fa-lightbulb"></i> LED</span>
+                                            }
+                                            @if (box.HasGolaProfile)
+                                            {
+                                                <span class="badge bg-dark ms-1">Gola</span>
+                                            }
+                                        </td>
+                                        <td><span class="text-secondary">@box.ManufacturingCost.ToString("N0") د.ل</span></td>
+                                        <td><strong class="text-success">@box.SellingPrice.ToString("N0") د.ل</strong></td>
+                                        <td>
+                                            <form asp-controller="CabinetUnits" asp-action="DeleteBox" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@box.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm('هل أنت متأكد من حذف العلبة @box.BoxCode؟');">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- مصفوفة مقارنة وفروقات الأسعار بالسوق الليبي -->
+                @if (pricing != null)
+                {
+                    <div class="card card-custom border-top border-primary border-4 p-4 mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-0">
+                                    <i class="fa-solid fa-scale-balanced text-primary me-2"></i> مصفوفة مقارنة وفروقات الأسعار بالسوق الليبي (Price Variance Matrix)
+                                </h5>
+                                <p class="text-muted small mb-0">مقارنة دقيقة لتكلفة نفس المطبخ / الغرفة (مساحة: @pricing.TotalWidthLinearMeters م.ط) باختلاف خامات الواجهات، والميكانيزم، والأسطح</p>
+                            </div>
+                        </div>
+
+                        <!-- 1. جدول مقارنة خامات الدرف لنفس المشروع -->
+                        <h6 class="fw-bold text-secondary mb-2"><i class="fa-solid fa-layer-group me-1"></i> 1. فروقات خامات الدرف والواجهات لنفس المشروع (@pricing.TotalWidthLinearMeters متر طولي)</h6>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-hover align-middle table-sm border">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>خامة الدرفة والواجهة</th>
+                                        <th>الوصف والخصائص الفنية</th>
+                                        <th>التصنيف</th>
+                                        <th>سعر المتر التقديري</th>
+                                        <th>إجمالي تكلفة المطبخ</th>
+                                        <th>الفارق عن خيار الأساس</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var v in pricing.DoorFinishVariances)
+                                    {
+                                        <tr>
+                                            <td><strong>@v.MaterialName</strong></td>
+                                            <td><small class="text-muted">@v.Description</small></td>
+                                            <td><span class="badge bg-light text-dark border">@v.TierBadge</span></td>
+                                            <td><strong>@v.PricePerMeter.ToString("N0") د.ل</strong></td>
+                                            <td><strong class="text-primary">@v.TotalProjectEstimatedPrice.ToString("N0") د.ل</strong></td>
+                                            <td>
+                                                @if (v.PriceDifferenceFromBaseline > 0)
+                                                {
+                                                    <span class="badge bg-warning text-dark">+@v.PriceDifferenceFromBaseline.ToString("N0") د.ل</span>
+                                                }
+                                                else if (v.PriceDifferenceFromBaseline < 0)
+                                                {
+                                                    <span class="badge bg-success">@v.PriceDifferenceFromBaseline.ToString("N0") د.ل (توفير)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">سعر الأساس</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 2. جدول مقارنة الإكسسوارات والميكانيزم الهيدروليكي -->
+                        <h6 class="fw-bold text-secondary mb-2"><i class="fa-solid fa-wrench me-1"></i> 2. فروقات ميكانيزم وإكسسوارات الحركة الهيدروليكية المضافة للعلب</h6>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-hover align-middle table-sm border">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>نوع الإكسسوار / الميكانيزم</th>
+                                        <th>نطاق التطبيق في العلب</th>
+                                        <th>الميزة الهندسية</th>
+                                        <th>تكلفة الشراء</th>
+                                        <th>سعر البيع المضاف</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var m in pricing.HardwareVariances)
+                                    {
+                                        <tr>
+                                            <td><strong>@m.MechanismName</strong></td>
+                                            <td><small class="text-muted">@m.AppliedTo</small></td>
+                                            <td><small class="text-dark">@m.Advantage</small></td>
+                                            <td><span class="text-secondary">@m.UnitCost.ToString("N0") د.ل</span></td>
+                                            <td><strong class="text-success">@m.SellingPrice.ToString("N0") د.ل</strong></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 3. جدول مقارنة أسطح العمل (الرخام والكوارتز والبورسلان) -->
+                        <h6 class="fw-bold text-secondary mb-2"><i class="fa-solid fa-gem me-1"></i> 3. فروقات خامات أسطح العمل (الرخام والكوارتز) لنفس المطبخ</h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle table-sm border">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>نوع سطح العمل</th>
+                                        <th>الخصائص الفنية ومقاومة الحرارة والخدش</th>
+                                        <th>التصنيف</th>
+                                        <th>سعر المتر الطولي</th>
+                                        <th>إجمالي تكلفة السطح</th>
+                                        <th>الفارق المالي</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var c in pricing.CountertopVariances)
+                                    {
+                                        <tr>
+                                            <td><strong>@c.MaterialName</strong></td>
+                                            <td><small class="text-muted">@c.Description</small></td>
+                                            <td><span class="badge bg-light text-dark border">@c.TierBadge</span></td>
+                                            <td><strong>@c.PricePerMeter.ToString("N0") د.ل</strong></td>
+                                            <td><strong class="text-primary">@c.TotalProjectEstimatedPrice.ToString("N0") د.ل</strong></td>
+                                            <td>
+                                                @if (c.PriceDifferenceFromBaseline > 0)
+                                                {
+                                                    <span class="badge bg-warning text-dark">+@c.PriceDifferenceFromBaseline.ToString("N0") د.ل</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">سعر الأساس</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
             </div>
 
             <!-- 2. المعاينة والقياسات -->
@@ -781,3 +1045,144 @@
         </div>
     </div>
 </div>
+
+<!-- مودال إضافة علبة نمطية جديدة لمشروع -->
+<div class="modal fade" id="addBoxModal" tabindex="-1" aria-labelledby="addBoxModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-dark" id="addBoxModalLabel">
+                    <i class="fa-solid fa-box-open text-primary me-2"></i> إضافة علبة / باكية نمطية جديدة
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="CabinetUnits" asp-action="AddBox" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="KitchenRequestId" value="@Model.Id" />
+
+                <div class="modal-body p-4">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">فئة ونوع العلبة</label>
+                            <select name="Category" class="form-select" required>
+                                <optgroup label="عِلب المطابخ السفلية والعلوية">
+                                    <option value="BaseCabinet">علبة سفلية - مطبخ (Base Unit)</option>
+                                    <option value="WallCabinet">علبة علوية - مطبخ (Wall Unit)</option>
+                                    <option value="TallCabinet">برج طولي - أفران وبانتري (Tall Tower)</option>
+                                    <option value="IslandCabinet">علبة جزيرة وسطية (Island)</option>
+                                    <option value="LoftCabinet">علبة سقفية علوية (Loft Unit)</option>
+                                </optgroup>
+                                <optgroup label="باكيات وعِلب حجرات الملابس (Dressing Rooms)">
+                                    <option value="DressingLongHang">باكية تعليق طويل - عبايات وفساتين</option>
+                                    <option value="DressingShortHang">باكية تعليق قصير - بدل وقمصان</option>
+                                    <option value="DressingDrawersAndJewelry">باكية أدراج وساعات ومجوهرات</option>
+                                    <option value="DressingShelvesAndShoes">باكية أرفف ملابس وأحذية</option>
+                                    <option value="DressingIsland">جزيرة دريسنج روم وسطية</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">كود العلبة</label>
+                            <input type="text" name="BoxCode" class="form-control font-monospace" placeholder="B-SINK-90" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">العرض (سم)</label>
+                            <input type="number" step="1" name="WidthCm" class="form-control" value="60" required />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">اسم العلبة ومواصفاتها</label>
+                            <input type="text" name="Name" class="form-control" placeholder="مثال: علبة حوض معزولة ضد الماء" required />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">الارتفاع (سم)</label>
+                            <input type="number" step="1" name="HeightCm" class="form-control" value="85" required />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">العمق (سم)</label>
+                            <input type="number" step="1" name="DepthCm" class="form-control" value="60" required />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">خامة الكاركاس الداخلي</label>
+                            <select name="Carcass" class="form-select">
+                                <option value="WhiteMelamineMdf">MDF أبيض تركي مكسو ميلامين</option>
+                                <option value="MoistureResistantGreenHmr">MDF أخضر مقاوم للرطوبة HMR</option>
+                                <option value="MarinePlywoodUnderSink">كونتر Plywood معزول (للحوض)</option>
+                                <option value="Chipboard">خشب حبيبي معالج اقتصادي</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">خامة الواجهة والدرفة</label>
+                            <select name="DoorType" class="form-select">
+                                <option value="HighGlossAcrylic">أكريليك عالي اللمعان (Acrylic)</option>
+                                <option value="PolylacSuperMatt">بولي لاك وسوبر مات حراري</option>
+                                <option value="MelamineFormica">ميلامين / فورميكا اقتصادي</option>
+                                <option value="AluminiumFrameGlass">زجاج سموكي بإطار ألمنيوم</option>
+                                <option value="OpenWalkInNoDoors">مفتوحة بدون درف (Walk-in)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">الميكانيزم والإكسسوار</label>
+                            <select name="Mechanism" class="form-select">
+                                <option value="BlumSoftCloseHinges">مفصلات بلوم هيدروليك Soft-Close</option>
+                                <option value="StandardHinges">مفصلات عادية</option>
+                                <option value="BlumAventosDoubleLift">رافعة Aventos HF/HK مزدوجة</option>
+                                <option value="MagicCornerOrLeMans">سلة زاوية ذكية (Magic Corner)</option>
+                                <option value="TandemBoxDrawers">أدراج تاندم بوكس هيدروليك</option>
+                                <option value="VelvetJewelryOrganizer">منظم ساعات ومجوهرات مخمل</option>
+                                <option value="PullOutTrouserRack">علاقة بناطيل سحب</option>
+                                <option value="SpiceRackPullOut">سلة سحب بهارات وزيوت</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="form-check p-2 rounded bg-light border">
+                                <input class="form-check-input ms-2" type="checkbox" name="HasLedLighting" value="true" id="chkLed" />
+                                <label class="form-check-label fw-bold" for="chkLed">إنارة LED مخفية مدمجة بالعلبة</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check p-2 rounded bg-light border">
+                                <input class="form-check-input ms-2" type="checkbox" name="HasGolaProfile" value="true" id="chkGola" checked />
+                                <label class="form-check-label fw-bold" for="chkGola">بروفايل ألمنيوم غولا (فتح بدون مقبض)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label fw-bold">ملاحظات التصنيع والتركيب</label>
+                        <textarea name="Notes" class="form-control" rows="2" placeholder="ملاحظات حول أبعاد خاصة، تفريغ سباكة، أو حفر CNC..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-koss-primary px-4 fw-bold">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> إضافة واحتساب السعر تلقائياً
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var activeTab = urlParams.get('tab');
+        if (activeTab === 'boxes') {
+            var tabTrigger = document.querySelector('#tab-boxes-btn');
+            if (tabTrigger) {
+                var tab = new bootstrap.Tab(tabTrigger);
+                tab.show();
+            }
+        }
+    });
+</script>

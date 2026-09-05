@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using KOSS.Web.Models;
@@ -118,6 +118,7 @@ namespace KOSS.Web.Controllers
                     .ThenInclude(w => w.HandoverDocuments)
                 .Include(r => r.Expenses)
                 .Include(r => r.StatusHistories)
+                .Include(r => r.CabinetUnits)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (req == null) return NotFound();
@@ -125,6 +126,7 @@ namespace KOSS.Web.Controllers
             var profitability = ProfitabilityCalculator.Calculate(req);
             ViewBag.Profitability = profitability;
             ViewBag.ClosingCheck = RequestWorkflowEngine.VerifyClosingConditions(req);
+            ViewBag.PricingSummary = LibyanPricingEngine.GeneratePricingSummary(req);
 
             return View(req);
         }

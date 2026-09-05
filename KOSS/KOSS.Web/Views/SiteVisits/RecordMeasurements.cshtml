@@ -1,13 +1,13 @@
 ﻿@model KOSS.Web.Models.SiteVisit
 @{
-    ViewData["Title"] = "توثيق القياسات الميدانية 3D";
+    ViewData["Title"] = "توثيق القياسات الميدانية والفنية";
 }
 
 <div class="row justify-content-center">
-    <div class="col-lg-8">
+    <div class="col-lg-9">
         <div class="card card-custom">
             <div class="card-header card-header-custom">
-                <i class="fa-solid fa-pen-ruler text-primary me-2"></i> توثيق القياسات الهندسية وتقرير الموقع الميداني
+                <i class="fa-solid fa-pen-ruler text-primary me-2"></i> توثيق القياسات الهندسية وتقرير الموقع بالسوق الليبي
             </div>
             <div class="card-body p-4">
                 <form asp-action="RecordMeasurements" method="post">
@@ -15,37 +15,68 @@
                     <input type="hidden" asp-for="Id" />
                     <input type="hidden" asp-for="KitchenRequestId" />
 
-                    <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-arrows-up-down-left-right me-1"></i> الأبعاد الهندسية لجدران المطبخ (بالسنتيمتر)</h6>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
+                    <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-arrows-up-down-left-right me-1"></i> أبعاد الجدران والارتفاعات (بالسنتيمتر)</h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
                             <label asp-for="WallLength1Cm" class="form-label fw-bold">طول الجدار الرئيسي (سم)</label>
                             <input asp-for="WallLength1Cm" type="number" step="0.1" class="form-control" placeholder="مثال: 450" required />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label asp-for="WallLength2Cm" class="form-label fw-bold">طول الجدار الثاني (سم)</label>
                             <input asp-for="WallLength2Cm" type="number" step="0.1" class="form-control" placeholder="مثال: 320" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <label asp-for="WallLength3Cm" class="form-label fw-bold">طول الجدار الثالث (سم)</label>
+                            <input asp-for="WallLength3Cm" type="number" step="0.1" class="form-control" placeholder="مثال: 280" />
+                        </div>
+                        <div class="col-md-3">
                             <label asp-for="CeilingHeightCm" class="form-label fw-bold">ارتفاع السقف (سم)</label>
                             <input asp-for="CeilingHeightCm" type="number" step="0.1" class="form-control" placeholder="مثال: 290" required />
                         </div>
                     </div>
 
-                    <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-faucet-drip me-1"></i> تمديدات وتغذية الموقع</h6>
+                    <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-draw-polygon me-1"></i> فحص استقامة الزوايا (الشطرة) وجلسات النوافذ</h6>
                     <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label asp-for="PlumbingNotes" class="form-label fw-bold">تقرير تمديدات السباكة والصرف</label>
-                            <input asp-for="PlumbingNotes" type="text" class="form-control" placeholder="موقع مخرج المياه والصرف، فتحات التغذية..." />
+                        <div class="col-md-4">
+                            <label asp-for="CornerAngleDegrees" class="form-label fw-bold">زاوية شطرة الجدار (درجة)</label>
+                            <input asp-for="CornerAngleDegrees" type="number" step="0.1" class="form-control" value="90" />
                         </div>
-                        <div class="col-md-6">
-                            <label asp-for="ElectricalNotes" class="form-label fw-bold">تقرير نقاط الكهرباء والأفياش</label>
-                            <input asp-for="ElectricalNotes" type="text" class="form-control" placeholder="مواقع مقابس 220V، مخرج الشفاط، الإنارة المخفية..." />
+                        <div class="col-md-4">
+                            <label asp-for="WindowSillHeightCm" class="form-label fw-bold">ارتفاع جلسة النافذة (سم)</label>
+                            <input asp-for="WindowSillHeightCm" type="number" step="0.1" class="form-control" placeholder="مثال: 105" />
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="form-check p-2 rounded bg-light border w-100">
+                                <input asp-for="HasSquareCorners" class="form-check-input ms-2" type="checkbox" id="hasSquareCorners" />
+                                <label class="form-check-label fw-bold" for="hasSquareCorners">الزوايا قائمة 90° بدون شطرة</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-faucet-drip me-1"></i> تمديدات الموقع ونقاط الخدمة</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label asp-for="PlumbingNotes" class="form-label fw-bold">نقاط السباكة والصرف للحوض</label>
+                            <input asp-for="PlumbingNotes" type="text" class="form-control" placeholder="مخرج المياه والصرف، غسالة صحون..." />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ElectricalNotes" class="form-label fw-bold">نقاط الكهرباء والشفاط</label>
+                            <input asp-for="ElectricalNotes" type="text" class="form-control" placeholder="مخرج 220V، مفتاح الشفاط، إنارة LED..." />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ApplianceOutletsNotes" class="form-label fw-bold">فيش الأجهزة المدمجة</label>
+                            <input asp-for="ApplianceOutletsNotes" type="text" class="form-control" placeholder="فرن بيلت-إن، مايكروويف، ثلاجة..." />
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label asp-for="StructuralObstacles" class="form-label fw-bold">العوائق الإنشائية والبروزات (أعمدة، كمرات، نوافذ)</label>
-                        <textarea asp-for="StructuralObstacles" class="form-control" rows="2" placeholder="أي بروز معماري أو عائق يؤثر على تركيب الخزائن..."></textarea>
+                        <label asp-for="StructuralObstacles" class="form-label fw-bold">العوائق الإنشائية والبروزات (أعمدة، كمرات، مواسير غاز)</label>
+                        <textarea asp-for="StructuralObstacles" class="form-control" rows="2" placeholder="أي بروز معماري أو عائق يؤثر على تركيب العلب والكبائن..."></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="SurveyorReport" class="form-label fw-bold">التقرير والتوصيات الهندسية الميدانية للمصمم</label>
+                        <textarea asp-for="SurveyorReport" class="form-control" rows="2" placeholder="توصيات مهندس المساحة لخط التصميم 3D وتوزيع العلب..."></textarea>
                     </div>
 
                     <div class="d-flex justify-content-between">
@@ -53,7 +84,7 @@
                             <i class="fa-solid fa-arrow-right me-1"></i> رجوع
                         </a>
                         <button type="submit" class="btn btn-success px-4 fw-bold">
-                            <i class="fa-solid fa-floppy-disk me-1"></i> حفظ القياسات والتقرير
+                            <i class="fa-solid fa-floppy-disk me-1"></i> حفظ واعتماد القياسات الميدانية
                         </button>
                     </div>
                 </form>

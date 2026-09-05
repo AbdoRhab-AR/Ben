@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -57,6 +57,21 @@ namespace KOSS.Web.Models
     }
 
     // ============================================================
+    //  طريقة التسعير بالسوق الليبي
+    // ============================================================
+    public enum PricingMethod
+    {
+        [Display(Name = "بالمتر الطولي (Running Meter)")]
+        RunningMeter = 1,
+
+        [Display(Name = "بالمتر المربع (Square Meter)")]
+        SquareMeter = 2,
+
+        [Display(Name = "تسعير تجميعي بالعلبة (Modular Box Pricing)")]
+        ModularBoxPricing = 3
+    }
+
+    // ============================================================
     //  عروض الأسعار (Quotation)
     // ============================================================
     public class Quotation
@@ -98,6 +113,13 @@ namespace KOSS.Web.Models
         [Display(Name = "شروط الدفع المتفق عليها")]
         [StringLength(500)]
         public string PaymentTerms { get; set; } = "30% عربون عند التعاقد، 40% عند بدء التصنيع، 20% عند الجاهزية للتركيب، 10% عند التسليم النهائي.";
+
+        [Display(Name = "طريقة التسعير المعتمدة")]
+        public PricingMethod Method { get; set; } = PricingMethod.RunningMeter;
+
+        [Display(Name = "ملاحظات وتفصيل فروقات الأسعار")]
+        [StringLength(1000)]
+        public string PriceVarianceNotes { get; set; }
 
         [Display(Name = "حالة عرض السعر")]
         public QuotationStatus Status { get; set; } = QuotationStatus.Draft;

@@ -30,7 +30,7 @@ namespace KOSS.Web.Models
         public int Id { get; set; }
 
         [Required]
-        [Display(Name = "طلب المطبخ")]
+        [Display(Name = "طلب المطبخ / المشروع")]
         public int KitchenRequestId { get; set; }
 
         [Display(Name = "مهندس المعاينة المكلف")]
@@ -57,13 +57,26 @@ namespace KOSS.Web.Models
         [Display(Name = "المساحة الإجمالية المقدرة (م²)")]
         public decimal EstimatedAreaM2 { get; set; } = 0;
 
+        [Display(Name = "زاوية الجدران (درجة)")]
+        public decimal CornerAngleDegrees { get; set; } = 90;
+
+        [Display(Name = "هل الزوايا قائمة 90° بدون شطرة؟")]
+        public bool HasSquareCorners { get; set; } = true;
+
+        [Display(Name = "ارتفاع جلسة النافذة عن الأرض (سم)")]
+        public decimal? WindowSillHeightCm { get; set; }
+
         [Display(Name = "موقع نقطة تصريف المياه والسباكة")]
         [StringLength(200)]
         public string PlumbingNotes { get; set; }
 
-        [Display(Name = "مواقع مقابس وتغذية الكهرباء")]
+        [Display(Name = "مواقع مقابس وتغذية الكهرباء والشفاط")]
         [StringLength(200)]
         public string ElectricalNotes { get; set; }
+
+        [Display(Name = "توزيع فيش الأجهزة المدمجة (فرن، غسالة، ثلاجة)")]
+        [StringLength(300)]
+        public string ApplianceOutletsNotes { get; set; }
 
         [Display(Name = "مواقع النوافذ والأبواب والأعمدة")]
         [StringLength(300)]
@@ -73,31 +86,27 @@ namespace KOSS.Web.Models
         [StringLength(300)]
         public string ObstaclesNotes { get; set; }
 
-        [Display(Name = "تقرير المهندس والملاحظات")]
+        [Display(Name = "التقرير الهندسي الميداني")]
         [StringLength(1000)]
         public string SurveyorReport { get; set; }
 
-        [Display(Name = "رابط ملف المخطط / الصور المرفقة")]
+        [Display(Name = "ملاحظات المعاينة")]
         [StringLength(500)]
-        public string AttachmentsPath { get; set; }
-
-        [Display(Name = "تقرير المهندس والملاحظات")]
-        [StringLength(1000)]
         public string Notes { get; set; }
 
-        [Display(Name = "حالة المعاينة")]
-        public SiteVisitStatus Status { get; set; } = SiteVisitStatus.Scheduled;
-
-        [Display(Name = "المعتمد")]
+        [Display(Name = "معتمد القياسات")]
+        [StringLength(100)]
         public string ApprovedBy { get; set; }
 
         [Display(Name = "تاريخ الاعتماد")]
         public DateTime? ApprovedAt { get; set; }
 
+        [Display(Name = "حالة المعاينة والقياسات")]
+        public SiteVisitStatus Status { get; set; } = SiteVisitStatus.Scheduled;
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public string CreatedBy { get; set; }
 
-        // العلاقات
         public virtual KitchenRequest KitchenRequest { get; set; }
         public virtual StaffMember AssignedSurveyor { get; set; }
     }

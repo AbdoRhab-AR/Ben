@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using KOSS.Web.Models;
 
 namespace KOSS.Web.Helpers
@@ -31,10 +31,22 @@ namespace KOSS.Web.Helpers
                 KitchenRequestStatus.ReadyForHandover => "20. جاهز للتسليم النهائي",
                 KitchenRequestStatus.HandoverCompleted => "21. تم التسليم وتوقيع المحضر",
                 KitchenRequestStatus.AwaitingFinalBalance => "22. بانتظار سداد المخالصة النهائية",
-                KitchenRequestStatus.Closed => "23. مغلق ومكتمل نهائياً",
+                KitchenRequestStatus.Closed => "23. مشروع مغلق ومكتمل نهائياً",
                 KitchenRequestStatus.CancelledOrRejected => "24. ملغى أو مرفوض",
                 KitchenRequestStatus.Suspended => "موقوف مؤقتاً",
                 _ => status.ToString()
+            };
+        }
+
+        public static string ToArabic(this CarpentryCategory category)
+        {
+            return category switch
+            {
+                CarpentryCategory.Kitchen => "مطبخ حديث (Modern Kitchen)",
+                CarpentryCategory.DressingRoom => "حجرة ملابس (Dressing Room)",
+                CarpentryCategory.Wardrobe => "دولاب حائط مدمج (Built-in Wardrobe)",
+                CarpentryCategory.Combined => "مطبخ ودواليب متعددة (Combined)",
+                _ => category.ToString()
             };
         }
 
@@ -59,7 +71,81 @@ namespace KOSS.Web.Helpers
                 KitchenLayoutType.UShaped => "حرف U",
                 KitchenLayoutType.Parallel => "مطبخ متوازي (Galley)",
                 KitchenLayoutType.Island => "مطبخ مع جزيرة وسطية (Island)",
+                KitchenLayoutType.OpenWalkIn => "دريسنج روم مفتوح بدون درف (Walk-in)",
+                KitchenLayoutType.SlidingWardrobe => "دولاب درف سحاب (Sliding)",
+                KitchenLayoutType.HingedAluminiumGlass => "دواليب درف زجاج وإطار ألمنيوم",
+                KitchenLayoutType.IslandDressing => "دريسنج روم مع جزيرة ساعات ومجوهرات",
                 _ => layout.ToString()
+            };
+        }
+
+        public static string ToArabic(this CabinetUnitCategory category)
+        {
+            return category switch
+            {
+                CabinetUnitCategory.BaseCabinet => "علبة سفلية (Base)",
+                CabinetUnitCategory.WallCabinet => "علبة علوية (Wall)",
+                CabinetUnitCategory.TallCabinet => "برج طولي (Tall Tower)",
+                CabinetUnitCategory.IslandCabinet => "علبة جزيرة وسطية (Island)",
+                CabinetUnitCategory.LoftCabinet => "علبة سقفية علوية (Loft)",
+                CabinetUnitCategory.DressingLongHang => "باكية تعليق طويل (Long Hang)",
+                CabinetUnitCategory.DressingShortHang => "باكية تعليق قصير (Short Hang)",
+                CabinetUnitCategory.DressingDrawersAndJewelry => "باكية أدراج وساعات ومجوهرات",
+                CabinetUnitCategory.DressingShelvesAndShoes => "باكية أرفف ملابس وأحذية",
+                CabinetUnitCategory.DressingIsland => "جزيرة دريسنج روم وسطية",
+                _ => category.ToString()
+            };
+        }
+
+        public static string ToArabic(this CarcassMaterial mat)
+        {
+            return mat switch
+            {
+                CarcassMaterial.WhiteMelamineMdf => "MDF أبيض تركي مكسو ميلامين",
+                CarcassMaterial.MoistureResistantGreenHmr => "MDF أخضر مقاوم للرطوبة (HMR)",
+                CarcassMaterial.MarinePlywoodUnderSink => "خشب كونتر معزول مقاوم للماء (للحوض)",
+                CarcassMaterial.Chipboard => "خشب حبيبي معالج اقتصادي (Chipboard)",
+                _ => mat.ToString()
+            };
+        }
+
+        public static string ToArabic(this FrontDoorType door)
+        {
+            return door switch
+            {
+                FrontDoorType.HighGlossAcrylic => "أكريليك عالي اللمعان (High Gloss)",
+                FrontDoorType.PolylacSuperMatt => "بولي لاك وسوبر مات حراري (Polylac)",
+                FrontDoorType.MelamineFormica => "ميلامين / فورميكا اقتصادي (HPL)",
+                FrontDoorType.AluminiumFrameGlass => "زجاج سموكي عاكس بإطار بروفايل ألمنيوم",
+                FrontDoorType.OpenWalkInNoDoors => "مفتوحة بدون درف (Open Concept)",
+                _ => door.ToString()
+            };
+        }
+
+        public static string ToArabic(this MechanismType mech)
+        {
+            return mech switch
+            {
+                MechanismType.StandardHinges => "مفصلات عادية",
+                MechanismType.BlumSoftCloseHinges => "مفصلات بلوم هيدروليك Soft-Close",
+                MechanismType.BlumAventosDoubleLift => "رافعة هيدروليكية مزدوجة (Blum Aventos)",
+                MechanismType.MagicCornerOrLeMans => "سلة زاوية ذكية (Magic Corner / LeMans)",
+                MechanismType.TandemBoxDrawers => "أدراج تاندم بوكس هيدروليك",
+                MechanismType.VelvetJewelryOrganizer => "منظم ساعات ومجوهرات زجاجي مبطن مخمل",
+                MechanismType.PullOutTrouserRack => "علاقة بناطيل سحب هيدروليكية",
+                MechanismType.SpiceRackPullOut => "سلة سحب بهارات وزيوت",
+                _ => mech.ToString()
+            };
+        }
+
+        public static string ToArabic(this PricingMethod method)
+        {
+            return method switch
+            {
+                PricingMethod.RunningMeter => "بالمتر الطولي (Running Meter)",
+                PricingMethod.SquareMeter => "بالمتر المربع (Square Meter)",
+                PricingMethod.ModularBoxPricing => "تسعير تجميعي بالعلبة (Modular Box)",
+                _ => method.ToString()
             };
         }
 

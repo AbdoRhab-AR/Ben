@@ -1,13 +1,13 @@
 ﻿@model KOSS.Web.Models.KitchenRequest
 @{
-    ViewData["Title"] = "فتح طلب مطبخ جديد";
+    ViewData["Title"] = "فتح وتسجيل طلب مشروع جديد";
 }
 
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card card-custom">
             <div class="card-header card-header-custom">
-                <i class="fa-solid fa-folder-plus text-primary me-2"></i> فتح وتسجيل طلب مطبخ ومشروع جديد
+                <i class="fa-solid fa-folder-plus text-primary me-2"></i> فتح وتسجيل طلب مشروع جديد (مطبخ / حجرة ملابس)
             </div>
             <div class="card-body p-4">
                 <form asp-action="Create" method="post">
@@ -28,13 +28,22 @@
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Location" class="form-label fw-bold">موقع وعنوان تركيب المطبخ</label>
+                        <label asp-for="Location" class="form-label fw-bold">موقع وعنوان تركيب المشروع</label>
                         <input asp-for="Location" class="form-control" placeholder="المدينة، المنطقة، رقم الشارع، الفيلا..." required />
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label asp-for="ProjectType" class="form-label fw-bold">نوع المشروع</label>
+                            <label asp-for="Category" class="form-label fw-bold">فئة العمل والأعمال الخشبية</label>
+                            <select asp-for="Category" class="form-select">
+                                <option value="Kitchen">مطبخ حديث (Modern Kitchen)</option>
+                                <option value="DressingRoom">حجرة ملابس (Dressing Room)</option>
+                                <option value="Wardrobe">دولاب حائط مدمج (Built-in Wardrobe)</option>
+                                <option value="Combined">مطبخ ودواليب متعددة (Combined)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ProjectType" class="form-label fw-bold">نوع العقار</label>
                             <select asp-for="ProjectType" class="form-select">
                                 <option value="Villa">فيلا سكنية</option>
                                 <option value="Apartment">شقة سكنية</option>
@@ -42,16 +51,25 @@
                                 <option value="Chalet">شاليه / استراحة</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label asp-for="LayoutType" class="form-label fw-bold">شكل وتخطيط المطبخ</label>
-                            <select asp-for="LayoutType" class="form-select">
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="LayoutType" class="form-label fw-bold">شكل وتخطيط المطبخ أو حجرة الملابس</label>
+                        <select asp-for="LayoutType" class="form-select">
+                            <optgroup label="تخطيطات المطابخ الحديثة">
                                 <option value="Straight">خطي مستقيم (Straight)</option>
                                 <option value="LShaped">حرف L (L-Shaped)</option>
                                 <option value="UShaped">حرف U (U-Shaped)</option>
                                 <option value="Parallel">متوازي (Galley / Parallel)</option>
                                 <option value="Island">مطبخ مع جزيرة وسطية (Island)</option>
-                            </select>
-                        </div>
+                            </optgroup>
+                            <optgroup label="تخطيطات حجرات الملابس والدواليب">
+                                <option value="OpenWalkIn">دريسنج روم مفتوح بدون درف (Open Walk-in)</option>
+                                <option value="SlidingWardrobe">دولاب درف سحاب (Sliding Wardrobe)</option>
+                                <option value="HingedAluminiumGlass">دواليب درف زجاج وإطار بروفايل ألمنيوم</option>
+                                <option value="IslandDressing">دريسنج روم مع جزيرة ساعات ومجوهرات</option>
+                            </optgroup>
+                        </select>
                     </div>
 
                     <div class="row g-3 mb-3">
@@ -76,7 +94,7 @@
 
                     <div class="mb-4">
                         <label asp-for="Notes" class="form-label fw-bold">الملاحظات والاشتراطات الأولية للعميل</label>
-                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="الألوان المفضلة، نوع المقابض، نوع الأسطح، الأجهزة المدمجة..."></textarea>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="الألوان المفضلة، نوع الدرف (أكريليك/بولي لاك)، نوع الرخام، الأجهزة المدمجة..."></textarea>
                     </div>
 
                     <div class="d-flex justify-content-between">

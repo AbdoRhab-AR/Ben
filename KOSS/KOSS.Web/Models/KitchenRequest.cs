@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -6,6 +6,21 @@ using System.Linq;
 
 namespace KOSS.Web.Models
 {
+    public enum CarpentryCategory
+    {
+        [Display(Name = "مطبخ حديث (Modern Kitchen)")]
+        Kitchen = 1,
+
+        [Display(Name = "حجرة ملابس (Dressing Room)")]
+        DressingRoom = 2,
+
+        [Display(Name = "دولاب حائط مدمج (Built-in Wardrobe)")]
+        Wardrobe = 3,
+
+        [Display(Name = "مطبخ ودواليب متعددة (Combined)")]
+        Combined = 4
+    }
+
     public enum ProjectType
     {
         [Display(Name = "فيلا سكنية")]
@@ -36,7 +51,19 @@ namespace KOSS.Web.Models
         Parallel = 4,
 
         [Display(Name = "مع جزيرة وسطية (Island)")]
-        Island = 5
+        Island = 5,
+
+        [Display(Name = "دريسنج روم مفتوح بدون درف (Open Walk-in)")]
+        OpenWalkIn = 6,
+
+        [Display(Name = "دولاب درف سحاب (Sliding Wardrobe)")]
+        SlidingWardrobe = 7,
+
+        [Display(Name = "دواليب درف زجاج وإطار ألمنيوم (Aluminium Glass)")]
+        HingedAluminiumGlass = 8,
+
+        [Display(Name = "دريسنج روم مع جزيرة ساعات ومجوهرات")]
+        IslandDressing = 9
     }
 
     public enum KitchenRequestStatus
@@ -133,10 +160,13 @@ namespace KOSS.Web.Models
         [Required(ErrorMessage = "موقع المطبخ مطلوب"), StringLength(250)]
         public string Location { get; set; }
 
+        [Display(Name = "فئة العمل والأعمال الخشبية")]
+        public CarpentryCategory Category { get; set; } = CarpentryCategory.Kitchen;
+
         [Display(Name = "نوع المشروع")]
         public ProjectType ProjectType { get; set; } = ProjectType.Villa;
 
-        [Display(Name = "تخطيط المطبخ")]
+        [Display(Name = "تخطيط المطبخ / الغرفة")]
         public KitchenLayoutType LayoutType { get; set; } = KitchenLayoutType.Straight;
 
         [Display(Name = "موظف المبيعات المسؤول")]
@@ -170,6 +200,7 @@ namespace KOSS.Web.Models
         public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
         public virtual ICollection<WorkOrder> WorkOrders { get; set; } = new List<WorkOrder>();
         public virtual ICollection<ProjectExpense> Expenses { get; set; } = new List<ProjectExpense>();
+        public virtual ICollection<CabinetUnit> CabinetUnits { get; set; } = new List<CabinetUnit>();
 
         [NotMapped]
         public Contract ActiveContract => Contracts?.FirstOrDefault(c => c.Status == ContractStatus.Active) ?? Contracts?.LastOrDefault();

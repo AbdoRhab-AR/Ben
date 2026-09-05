@@ -32,6 +32,7 @@ namespace KOSS.Web.Models
         public DbSet<Customer> Customers { get; set; }
         public DbSet<CustomerInquiry> CustomerInquiries { get; set; }
         public DbSet<KitchenRequest> KitchenRequests { get; set; }
+        public DbSet<CabinetUnit> CabinetUnits { get; set; }
         public DbSet<RequestStatusHistory> RequestStatusHistories { get; set; }
 
         // ============================================================
