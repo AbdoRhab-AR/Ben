@@ -41,8 +41,9 @@ namespace KOSS.Web.Controllers
                 unit.Name = unit.Category.ToArabic();
             }
 
-            // احتساب التكلفة وسعر البيع آلياً
-            var (cost, price) = LibyanPricingEngine.CalculateBoxCostAndPrice(unit);
+            // احتساب التكلفة وسعر البيع آلياً بالاعتماد على أسعار المنظومة المركزية
+            var settings = await _context.PricingSettings.FirstOrDefaultAsync();
+            var (cost, price) = LibyanPricingEngine.CalculateBoxCostAndPrice(unit, settings);
             unit.ManufacturingCost = cost;
             unit.SellingPrice = price;
             unit.CreatedBy = User?.Identity?.Name ?? "المشرف الفني";
@@ -87,7 +88,8 @@ namespace KOSS.Web.Controllers
 
             if (request == null) return NotFound("طلب المشروع غير موجود.");
 
-            var templateBoxes = LibyanPricingEngine.GenerateDefaultTemplateBoxes(requestId, request.Category);
+            var settings = await _context.PricingSettings.FirstOrDefaultAsync();
+            var templateBoxes = LibyanPricingEngine.GenerateDefaultTemplateBoxes(requestId, request.Category, settings);
             _context.CabinetUnits.AddRange(templateBoxes);
             await _context.SaveChangesAsync();
 

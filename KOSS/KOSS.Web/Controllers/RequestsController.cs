@@ -126,7 +126,8 @@ namespace KOSS.Web.Controllers
             var profitability = ProfitabilityCalculator.Calculate(req);
             ViewBag.Profitability = profitability;
             ViewBag.ClosingCheck = RequestWorkflowEngine.VerifyClosingConditions(req);
-            ViewBag.PricingSummary = LibyanPricingEngine.GeneratePricingSummary(req);
+            var pricingSettings = await _context.PricingSettings.FirstOrDefaultAsync();
+            ViewBag.PricingSummary = LibyanPricingEngine.GeneratePricingSummary(req, pricingSettings);
 
             return View(req);
         }

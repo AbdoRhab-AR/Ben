@@ -1,0 +1,315 @@
+﻿@model KOSS.Web.Models.PricingSetting
+@{
+    ViewData["Title"] = "إعدادات وأسعار المنظومة المركزية";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-calculator text-primary me-2"></i> لوحة إعدادات وأسعار المنظومة المركزية
+        </h3>
+        <p class="text-muted mb-0">تعديل أسعار الأمتار، وتكاليف خامات التصنيع، والإكسسوارات الهيدروليكية، ونسب الربح المعتمدة بالسوق الليبي</p>
+    </div>
+    <div class="d-flex gap-2">
+        <form asp-action="ResetToDefaults" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('هل أنت متأكد من استعادة أسعار السوق الليبي القياسية الافتراضية؟');">
+                <i class="fa-solid fa-rotate-left me-1"></i> استعادة الأسعار الافتراضية
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="alert alert-light border d-flex justify-content-between align-items-center py-2 px-3 mb-4 rounded-3">
+    <div class="small">
+        <i class="fa-solid fa-clock-rotate-left text-primary me-1"></i>
+        <strong>آخر تحديث للأسعار:</strong> @Model.LastUpdatedAt.ToString("yyyy/MM/dd - HH:mm")
+        <span class="mx-2">|</span>
+        <strong>بواسطة:</strong> @Model.UpdatedBy
+    </div>
+    <span class="badge bg-success px-3 py-2"><i class="fa-solid fa-check-circle me-1"></i> الأسعار فعالة ونشطة</span>
+</div>
+
+<form asp-action="Update" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <!-- 1. أسعار الأمتار الأساسية بالسوق الليبي -->
+    <div class="card card-custom mb-4">
+        <div class="card-header card-header-custom">
+            <i class="fa-solid fa-ruler-horizontal text-primary me-2"></i> 1. أسعار الأمتار الطولية والمربعة للواجهات (دينار ليبي د.ل / متر)
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="MeterRateMelamine" class="form-label fw-bold">سعر متر الميلامين / فورميكا (د.ل / م.ط)</label>
+                    <div class="input-group">
+                        <input asp-for="MeterRateMelamine" type="number" step="1" class="form-control fw-bold" required />
+                        <span class="input-group-text">د.ل / م</span>
+                    </div>
+                    <small class="text-muted">الخيار الاقتصادي المتين</small>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="MeterRateAcrylic" class="form-label fw-bold text-primary">سعر متر الأكريليك عالي اللمعان (د.ل / م.ط)</label>
+                    <div class="input-group">
+                        <input asp-for="MeterRateAcrylic" type="number" step="1" class="form-control fw-bold border-primary" required />
+                        <span class="input-group-text bg-primary text-white">د.ل / م</span>
+                    </div>
+                    <small class="text-primary fw-bold">الخامة الأكثر طلباً (سعر الأساس للمقارنات)</small>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="MeterRatePolylac" class="form-label fw-bold">سعر متر البولي لاك وسوبر مات (د.ل / م.ط)</label>
+                    <div class="input-group">
+                        <input asp-for="MeterRatePolylac" type="number" step="1" class="form-control fw-bold" required />
+                        <span class="input-group-text">د.ل / م</span>
+                    </div>
+                    <small class="text-muted">خامة حرارية مقاومة للبصمات</small>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="MeterRateAlumGlass" class="form-label fw-bold">سعر متر درف زجاج وإطار ألمنيوم وليد (د.ل / م.ط)</label>
+                    <div class="input-group">
+                        <input asp-for="MeterRateAlumGlass" type="number" step="1" class="form-control fw-bold" required />
+                        <span class="input-group-text">د.ل / م</span>
+                    </div>
+                    <small class="text-muted">VIP فندقي راقٍ بدرف زجاج سموكي عاكس</small>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="MeterRateOpenDressing" class="form-label fw-bold">سعر متر حجرة ملابس مفتوحة بدون درف (د.ل / م.ط)</label>
+                    <div class="input-group">
+                        <input asp-for="MeterRateOpenDressing" type="number" step="1" class="form-control fw-bold" required />
+                        <span class="input-group-text">د.ل / م</span>
+                    </div>
+                    <small class="text-muted">Open Walk-in Closet تعتمد على الباكيات والأرفف</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. تكاليف خامات الكاركاس الداخلي والدرف للمصنع -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card card-custom h-100">
+                <div class="card-header card-header-custom">
+                    <i class="fa-solid fa-cubes text-secondary me-2"></i> 2. تكاليف خامات الكاركاس الداخلي (د.ل / م محيطي)
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label asp-for="CarcassRateWhiteMdf" class="form-label fw-bold">MDF أبيض تركي مكسو ميلامين</label>
+                        <div class="input-group">
+                            <input asp-for="CarcassRateWhiteMdf" type="number" step="1" class="form-control" required />
+                            <span class="input-group-text">د.ل</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="CarcassRateGreenHmr" class="form-label fw-bold">MDF أخضر تركي مقاوم للرطوبة HMR</label>
+                        <div class="input-group">
+                            <input asp-for="CarcassRateGreenHmr" type="number" step="1" class="form-control" required />
+                            <span class="input-group-text">د.ل</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="CarcassRatePlywood" class="form-label fw-bold">خشب كونتر Plywood معزول (للحوض)</label>
+                        <div class="input-group">
+                            <input asp-for="CarcassRatePlywood" type="number" step="1" class="form-control" required />
+                            <span class="input-group-text">د.ل</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label asp-for="CarcassRateChipboard" class="form-label fw-bold">خشب حبيبي معالج اقتصادي</label>
+                        <div class="input-group">
+                            <input asp-for="CarcassRateChipboard" type="number" step="1" class="form-control" required />
+                            <span class="input-group-text">د.ل</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card card-custom h-100">
+                <div class="card-header card-header-custom">
+                    <i class="fa-solid fa-layer-group text-secondary me-2"></i> 3. تكاليف تصنيع خامات الدرف (د.ل / متر مربع م²)
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label asp-for="DoorRateAcrylic" class="form-label fw-bold text-primary">درف أكريليك عالي اللمعان</label>
+                        <div class="input-group">
+                            <input asp-for="DoorRateAcrylic" type="number" step="1" class="form-control fw-bold border-primary" required />
+                            <span class="input-group-text bg-primary text-white">د.ل / م²</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="DoorRatePolylac" class="form-label fw-bold">درف بولي لاك وسوبر مات حراري</label>
+                        <div class="input-group">
+                            <input asp-for="DoorRatePolylac" type="number" step="1" class="form-control" required />
+                            <span class="input-group-text">د.ل / م²</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="DoorRateMelamine" class="form-label fw-bold">درف ميلامين / فورميكا اقتصادي</label>
+                        <div class="input-group">
+                            <input asp-for="DoorRateMelamine" type="number" step="1" class="form-control" required />
+                            <span class="input-group-text">د.ل / م²</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label asp-for="DoorRateAlumGlass" class="form-label fw-bold">درف زجاج سموكي بإطار بروفايل ألمنيوم</label>
+                        <div class="input-group">
+                            <input asp-for="DoorRateAlumGlass" type="number" step="1" class="form-control" required />
+                            <span class="input-group-text">د.ل / م²</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. أسعار بيع الميكانيزم والإكسسوارات الهيدروليكية -->
+    <div class="card card-custom mb-4">
+        <div class="card-header card-header-custom">
+            <i class="fa-solid fa-wrench text-info me-2"></i> 4. أسعار بيع الميكانيزم والإكسسوارات الهيدروليكية المضافة (دينار ليبي د.ل / قطعة)
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label asp-for="PriceBlumSoftClose" class="form-label fw-bold text-dark">مفصلات بلوم Soft-Close</label>
+                    <div class="input-group">
+                        <input asp-for="PriceBlumSoftClose" type="number" step="1" class="form-control fw-bold" required />
+                        <span class="input-group-text">د.ل</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="PriceBlumAventos" class="form-label fw-bold text-primary">رافعة Blum Aventos HF/HK</label>
+                    <div class="input-group">
+                        <input asp-for="PriceBlumAventos" type="number" step="1" class="form-control fw-bold border-primary" required />
+                        <span class="input-group-text bg-primary text-white">د.ل</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="PriceMagicCorner" class="form-label fw-bold text-dark">سلة زاوية LeMans / Magic Corner</label>
+                    <div class="input-group">
+                        <input asp-for="PriceMagicCorner" type="number" step="1" class="form-control fw-bold" required />
+                        <span class="input-group-text">د.ل</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="PriceTandemBox" class="form-label fw-bold text-dark">أدراج تاندم بوكس هيدروليك</label>
+                    <div class="input-group">
+                        <input asp-for="PriceTandemBox" type="number" step="1" class="form-control fw-bold" required />
+                        <span class="input-group-text">د.ل</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="PriceJewelryOrganizer" class="form-label fw-bold text-dark">منظم ساعات ومجوهرات مخمل</label>
+                    <div class="input-group">
+                        <input asp-for="PriceJewelryOrganizer" type="number" step="1" class="form-control fw-bold" required />
+                        <span class="input-group-text">د.ل</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="PriceTrouserRack" class="form-label fw-bold text-dark">علاقة بناطيل سحب</label>
+                    <div class="input-group">
+                        <input asp-for="PriceTrouserRack" type="number" step="1" class="form-control" required />
+                        <span class="input-group-text">د.ل</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="PriceSpiceRack" class="form-label fw-bold text-dark">سلة سحب بهارات وزيوت</label>
+                    <div class="input-group">
+                        <input asp-for="PriceSpiceRack" type="number" step="1" class="form-control" required />
+                        <span class="input-group-text">د.ل</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="PriceStandardHinges" class="form-label fw-bold text-muted">مفصلات عادية تجارية</label>
+                    <div class="input-group">
+                        <input asp-for="PriceStandardHinges" type="number" step="1" class="form-control text-muted" required />
+                        <span class="input-group-text">د.ل</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. أسعار أسطح العمل (الرخام والكوارتز والبورسلان) -->
+    <div class="card card-custom mb-4">
+        <div class="card-header card-header-custom">
+            <i class="fa-solid fa-gem text-warning me-2"></i> 5. أسعار بيع أسطح العمل (الرخام والكوارتز - دينار ليبي د.ل / متر طولي)
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label asp-for="PriceCountertopArtificial" class="form-label fw-bold">رخام صناعي أكريليك (Solid Surface)</label>
+                    <div class="input-group">
+                        <input asp-for="PriceCountertopArtificial" type="number" step="1" class="form-control" required />
+                        <span class="input-group-text">د.ل / م</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="PriceCountertopQuartz" class="form-label fw-bold text-primary">كوارتز ألماني / تركي 93%</label>
+                    <div class="input-group">
+                        <input asp-for="PriceCountertopQuartz" type="number" step="1" class="form-control fw-bold border-primary" required />
+                        <span class="input-group-text bg-primary text-white">د.ل / م</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="PriceCountertopDekton" class="form-label fw-bold">بورسلان مضغوط عالي التحمل (Dekton)</label>
+                    <div class="input-group">
+                        <input asp-for="PriceCountertopDekton" type="number" step="1" class="form-control" required />
+                        <span class="input-group-text">د.ل / م</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="PriceCountertopGranite" class="form-label fw-bold">جرانيت طبيعي (جلاكسي دبل بلاك)</label>
+                    <div class="input-group">
+                        <input asp-for="PriceCountertopGranite" type="number" step="1" class="form-control" required />
+                        <span class="input-group-text">د.ل / م</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. نسبة هامش الربح المعياري والإضافات -->
+    <div class="card card-custom border-primary border-2 mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="fa-solid fa-percent me-2"></i> 6. نسبة هامش الربح المعياري للعلب وإضافات الإنارة والمقابض
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="ProfitMarginPercentage" class="form-label fw-bold text-success fs-6">نسبة هامش الربح العام على العلب (%)</label>
+                    <div class="input-group">
+                        <input asp-for="ProfitMarginPercentage" type="number" step="0.1" class="form-control fw-bold fs-5 text-success border-success" required />
+                        <span class="input-group-text bg-success text-white fw-bold">%</span>
+                    </div>
+                    <small class="text-muted">المعيار الصناعي: 40% (تضرب التكلفة الفعلية في 1.40 لحساب سعر البيع)</small>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="PriceLedAddon" class="form-label fw-bold">سعر إضافة إنارة LED مخفية للعلبة</label>
+                    <div class="input-group">
+                        <input asp-for="PriceLedAddon" type="number" step="1" class="form-control" required />
+                        <span class="input-group-text">د.ل / علبة</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="PriceGolaAddon" class="form-label fw-bold">سعر إضافة بروفايل غولا Gola بدون مقبض</label>
+                    <div class="input-group">
+                        <input asp-for="PriceGolaAddon" type="number" step="1" class="form-control" required />
+                        <span class="input-group-text">د.ل / علبة</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- أزرار الحفظ -->
+    <div class="d-flex justify-content-end gap-3 mb-5">
+        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary px-4">
+            <i class="fa-solid fa-arrow-right me-1"></i> رجوع للرئيسية
+        </a>
+        <button type="submit" class="btn btn-koss-primary px-5 py-2 fw-bold fs-6">
+            <i class="fa-solid fa-floppy-disk me-2"></i> حفظ وتعميم أسعار المنظومة
+        </button>
+    </div>
+</form>

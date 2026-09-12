@@ -52,68 +52,68 @@ namespace KOSS.Web.Helpers
     // ============================================================
     public static class LibyanPricingEngine
     {
-        // أسعار الأساس القياسية بالسوق الليبي (دينار ليبي د.ل)
-        private const decimal BaseMeterRateMelamine = 750m;
-        private const decimal BaseMeterRateAcrylic = 1100m;
-        private const decimal BaseMeterRatePolylac = 1350m;
-        private const decimal BaseMeterRateAlumGlass = 1750m;
-        private const decimal BaseMeterRateOpenDressing = 650m;
-
         // ============================================================
         //  حساب تكلفة وسعر بيع العلبة الواحدة (Modular Box Pricing)
         // ============================================================
-        public static (decimal cost, decimal price) CalculateBoxCostAndPrice(CabinetUnit box)
+        public static (decimal cost, decimal price) CalculateBoxCostAndPrice(CabinetUnit box, PricingSetting settings = null)
         {
             if (box == null) return (0, 0);
+            settings ??= new PricingSetting();
 
             decimal widthMeter = box.WidthCm / 100m;
             decimal heightMeter = box.HeightCm / 100m;
             decimal depthMeter = box.DepthCm / 100m;
             decimal faceAreaM2 = widthMeter * heightMeter;
+            decimal perimeterM = (widthMeter * 2 + heightMeter * 2 + depthMeter * 2);
 
-            // 1. تكلفة خامة الكاركاس الداخلي
-            decimal carcassBaseCost = box.Carcass switch
+            // 1. تكلفة خامة الكاركاس الداخلي (ديناميكي من الإعدادات)
+            decimal carcassRate = box.Carcass switch
             {
-                CarcassMaterial.WhiteMelamineMdf => 95m * (widthMeter * 2 + heightMeter * 2 + depthMeter * 2),
-                CarcassMaterial.MoistureResistantGreenHmr => 135m * (widthMeter * 2 + heightMeter * 2 + depthMeter * 2),
-                CarcassMaterial.MarinePlywoodUnderSink => 180m * (widthMeter * 2 + heightMeter * 2 + depthMeter * 2),
-                CarcassMaterial.Chipboard => 70m * (widthMeter * 2 + heightMeter * 2 + depthMeter * 2),
-                _ => 100m
+                CarcassMaterial.WhiteMelamineMdf => settings.CarcassRateWhiteMdf,
+                CarcassMaterial.MoistureResistantGreenHmr => settings.CarcassRateGreenHmr,
+                CarcassMaterial.MarinePlywoodUnderSink => settings.CarcassRatePlywood,
+                CarcassMaterial.Chipboard => settings.CarcassRateChipboard,
+                _ => settings.CarcassRateWhiteMdf
             };
+            decimal carcassBaseCost = carcassRate * perimeterM;
 
-            // 2. تكلفة خامة الواجهة / الدرفة
-            decimal doorCost = box.DoorType switch
+            // 2. تكلفة خامة الواجهة / الدرفة (ديناميكي من الإعدادات)
+            decimal doorRate = box.DoorType switch
             {
-                FrontDoorType.HighGlossAcrylic => faceAreaM2 * 180m,
-                FrontDoorType.PolylacSuperMatt => faceAreaM2 * 230m,
-                FrontDoorType.MelamineFormica => faceAreaM2 * 90m,
-                FrontDoorType.AluminiumFrameGlass => faceAreaM2 * 320m,
+                FrontDoorType.HighGlossAcrylic => settings.DoorRateAcrylic,
+                FrontDoorType.PolylacSuperMatt => settings.DoorRatePolylac,
+                FrontDoorType.MelamineFormica => settings.DoorRateMelamine,
+                FrontDoorType.AluminiumFrameGlass => settings.DoorRateAlumGlass,
                 FrontDoorType.OpenWalkInNoDoors => 0m,
-                _ => faceAreaM2 * 120m
+                _ => settings.DoorRateMelamine
             };
+            decimal doorCost = faceAreaM2 * doorRate;
 
-            // 3. تكلفة الميكانيزم والإكسسوارات
-            decimal mechanismCost = box.Mechanism switch
+            // 3. تكلفة الميكانيزم والإكسسوارات (تكلفة الشراء التقديرية ~ 70% من سعر البيع)
+            decimal mechanismSellingPrice = box.Mechanism switch
             {
-                MechanismType.StandardHinges => 20m,
-                MechanismType.BlumSoftCloseHinges => 65m,
-                MechanismType.BlumAventosDoubleLift => 320m,
-                MechanismType.MagicCornerOrLeMans => 550m,
-                MechanismType.TandemBoxDrawers => 220m,
-                MechanismType.VelvetJewelryOrganizer => 180m,
-                MechanismType.PullOutTrouserRack => 150m,
-                MechanismType.SpiceRackPullOut => 95m,
-                _ => 30m
+                MechanismType.StandardHinges => settings.PriceStandardHinges,
+                MechanismType.BlumSoftCloseHinges => settings.PriceBlumSoftClose,
+                MechanismType.BlumAventosDoubleLift => settings.PriceBlumAventos,
+                MechanismType.MagicCornerOrLeMans => settings.PriceMagicCorner,
+                MechanismType.TandemBoxDrawers => settings.PriceTandemBox,
+                MechanismType.VelvetJewelryOrganizer => settings.PriceJewelryOrganizer,
+                MechanismType.PullOutTrouserRack => settings.PriceTrouserRack,
+                MechanismType.SpiceRackPullOut => settings.PriceSpiceRack,
+                _ => settings.PriceStandardHinges
             };
+            decimal mechanismCost = Math.Round(mechanismSellingPrice * 0.70m, 2);
 
             // 4. إضافات الإنارة والبروفايل
             decimal addOnCost = 0m;
-            if (box.HasLedLighting) addOnCost += 45m;
-            if (box.HasGolaProfile) addOnCost += 35m;
+            if (box.HasLedLighting) addOnCost += Math.Round(settings.PriceLedAddon * 0.70m, 2);
+            if (box.HasGolaProfile) addOnCost += Math.Round(settings.PriceGolaAddon * 0.70m, 2);
 
             decimal totalCost = Math.Round(carcassBaseCost + doorCost + mechanismCost + addOnCost, 2);
-            // هامش ربح معياري للصناعة 35% إلى 45%
-            decimal sellingPrice = Math.Round(totalCost * 1.40m, 0);
+
+            // هامش ربح معياري ديناميكي من الإعدادات
+            decimal marginMultiplier = 1.0m + (settings.ProfitMarginPercentage / 100m);
+            decimal sellingPrice = Math.Round(totalCost * marginMultiplier, 0);
 
             return (totalCost, sellingPrice);
         }
@@ -121,8 +121,10 @@ namespace KOSS.Web.Helpers
         // ============================================================
         //  توليد ملخص المشروع ومصفوفة مقارنة وفروقات الأسعار
         // ============================================================
-        public static ProjectPricingSummary GeneratePricingSummary(KitchenRequest request)
+        public static ProjectPricingSummary GeneratePricingSummary(KitchenRequest request, PricingSetting settings = null)
         {
+            settings ??= new PricingSetting();
+
             var summary = new ProjectPricingSummary
             {
                 KitchenRequestId = request.Id,
@@ -136,7 +138,6 @@ namespace KOSS.Web.Helpers
             // حساب الأمتار الطولية الإجمالية
             if (boxes.Any())
             {
-                // نجمع عرض العلب السفلية أو الطولية أو عِلب الدريسنج
                 var mainUnits = boxes.Where(b => b.Category == CabinetUnitCategory.BaseCabinet ||
                                                  b.Category == CabinetUnitCategory.TallCabinet ||
                                                  b.Category == CabinetUnitCategory.DressingLongHang ||
@@ -150,7 +151,6 @@ namespace KOSS.Web.Helpers
             }
             else
             {
-                // في حال عدم إدخال علب بعد، نستند للقياس الميداني الافتراضي 6 متر
                 var sv = request.SiteVisits?.FirstOrDefault(s => s.Status == SiteVisitStatus.Approved) ?? request.SiteVisits?.LastOrDefault();
                 summary.TotalWidthLinearMeters = sv != null && (sv.WallLength1Cm + sv.WallLength2Cm) > 0
                     ? Math.Round((sv.WallLength1Cm + sv.WallLength2Cm) / 100m, 2)
@@ -165,7 +165,7 @@ namespace KOSS.Web.Helpers
             }
             else
             {
-                summary.RunningMeterEquivalentPrice = BaseMeterRateAcrylic;
+                summary.RunningMeterEquivalentPrice = settings.MeterRateAcrylic;
                 summary.TotalModularBoxesSellingPrice = summary.RunningMeterEquivalentPrice * summary.TotalWidthLinearMeters;
             }
 
@@ -173,28 +173,29 @@ namespace KOSS.Web.Helpers
                 ? Math.Round(summary.TotalModularBoxesSellingPrice / summary.TotalEstimatedSquareMeters, 0)
                 : 450m;
 
-            // ========================================================
-            //  1. مصفوفة فروقات خامات الدرف والواجهات في نفس المطبخ
-            // ========================================================
             decimal linearM = summary.TotalWidthLinearMeters > 0 ? summary.TotalWidthLinearMeters : 6.0m;
+            decimal baselineRate = settings.MeterRateAcrylic;
 
+            // ========================================================
+            //  1. مصفوفة مقارنة خامات الدرف والواجهات (ديناميكي من الإعدادات)
+            // ========================================================
             summary.DoorFinishVariances = new List<MaterialVarianceOption>
             {
                 new MaterialVarianceOption
                 {
                     MaterialName = "ميلامين / فورميكا اقتصادي (Melamine / HPL)",
                     Description = "خامة عملية واقتصادية متينة مقاومة للخدوش البسيطة، متوفرة بألوان وأخشاب متعددة.",
-                    PricePerMeter = BaseMeterRateMelamine,
-                    TotalProjectEstimatedPrice = Math.Round(linearM * BaseMeterRateMelamine, 0),
-                    PriceDifferenceFromBaseline = Math.Round((BaseMeterRateMelamine - BaseMeterRateAcrylic) * linearM, 0),
+                    PricePerMeter = settings.MeterRateMelamine,
+                    TotalProjectEstimatedPrice = Math.Round(linearM * settings.MeterRateMelamine, 0),
+                    PriceDifferenceFromBaseline = Math.Round((settings.MeterRateMelamine - baselineRate) * linearM, 0),
                     TierBadge = "الخيار الاقتصادي"
                 },
                 new MaterialVarianceOption
                 {
                     MaterialName = "أكريليك عالي اللمعان (High Gloss Acrylic)",
                     Description = "الخامة الأكثر طلباً وشعبية بالسوق الليبي، لمعان زجاجي فائق 95 Gloss ومقاومة للبخار والرطوبة.",
-                    PricePerMeter = BaseMeterRateAcrylic,
-                    TotalProjectEstimatedPrice = Math.Round(linearM * BaseMeterRateAcrylic, 0),
+                    PricePerMeter = settings.MeterRateAcrylic,
+                    TotalProjectEstimatedPrice = Math.Round(linearM * settings.MeterRateAcrylic, 0),
                     PriceDifferenceFromBaseline = 0m,
                     TierBadge = "الأكثر طلباً (الأساس)"
                 },
@@ -202,24 +203,24 @@ namespace KOSS.Web.Helpers
                 {
                     MaterialName = "بولي لاك وسوبر مات حراري (Polylac / Super Matt)",
                     Description = "تقنية حرارية أوروبية مقاومة للبصمات (Anti-Fingerprint) والخدش بدرجة 3H ومقاومة للحرارة.",
-                    PricePerMeter = BaseMeterRatePolylac,
-                    TotalProjectEstimatedPrice = Math.Round(linearM * BaseMeterRatePolylac, 0),
-                    PriceDifferenceFromBaseline = Math.Round((BaseMeterRatePolylac - BaseMeterRateAcrylic) * linearM, 0),
+                    PricePerMeter = settings.MeterRatePolylac,
+                    TotalProjectEstimatedPrice = Math.Round(linearM * settings.MeterRatePolylac, 0),
+                    PriceDifferenceFromBaseline = Math.Round((settings.MeterRatePolylac - baselineRate) * linearM, 0),
                     TierBadge = "فاخر وعصري"
                 },
                 new MaterialVarianceOption
                 {
                     MaterialName = "زجاج سموكي عاكس بإطار بروفايل ألمنيوم وإضاءة LED",
                     Description = "درف زجاج مقسى (Tempered Glass) محاطة بإطار ألمنيوم أسود أو ذهبي مطفي مع إضاءة داخلية لكل رف.",
-                    PricePerMeter = BaseMeterRateAlumGlass,
-                    TotalProjectEstimatedPrice = Math.Round(linearM * BaseMeterRateAlumGlass, 0),
-                    PriceDifferenceFromBaseline = Math.Round((BaseMeterRateAlumGlass - BaseMeterRateAcrylic) * linearM, 0),
+                    PricePerMeter = settings.MeterRateAlumGlass,
+                    TotalProjectEstimatedPrice = Math.Round(linearM * settings.MeterRateAlumGlass, 0),
+                    PriceDifferenceFromBaseline = Math.Round((settings.MeterRateAlumGlass - baselineRate) * linearM, 0),
                     TierBadge = "VIP فندقي راقٍ"
                 }
             };
 
             // ========================================================
-            //  2. مصفوفة فروقات الإكسسوارات والميكانيزم الهيدروليكي
+            //  2. مصفوفة مقارنة الإكسسوارات والميكانيزم (ديناميكي من الإعدادات)
             // ========================================================
             summary.HardwareVariances = new List<MechanismVarianceOption>
             {
@@ -227,46 +228,46 @@ namespace KOSS.Web.Helpers
                 {
                     MechanismName = "مفصلات عادية (Standard Non-Hydraulic)",
                     AppliedTo = "كافة الدرف العادية",
-                    UnitCost = 15m,
-                    SellingPrice = 25m,
+                    UnitCost = Math.Round(settings.PriceStandardHinges * 0.60m, 0),
+                    SellingPrice = settings.PriceStandardHinges,
                     Advantage = "تكلفة اقتصادية منخفضة، لا تدعم الإغلاق الهادئ."
                 },
                 new MechanismVarianceOption
                 {
                     MechanismName = "مفصلات بلوم النمساوية هيدروليك (Blum Soft-Close)",
                     AppliedTo = "الدرف والمطابخ الحديثة",
-                    UnitCost = 55m,
-                    SellingPrice = 85m,
+                    UnitCost = Math.Round(settings.PriceBlumSoftClose * 0.65m, 0),
+                    SellingPrice = settings.PriceBlumSoftClose,
                     Advantage = "إغلاق سلس صامت مدى الحياة مع ضمان 100,000 فتحة وإغلاق."
                 },
                 new MechanismVarianceOption
                 {
                     MechanismName = "رافعة أبواب علوية مزدوجة (Blum Aventos HF/HK)",
                     AppliedTo = "العلب العلوية وخزانة المطبقية",
-                    UnitCost = 280m,
-                    SellingPrice = 420m,
+                    UnitCost = Math.Round(settings.PriceBlumAventos * 0.70m, 0),
+                    SellingPrice = settings.PriceBlumAventos,
                     Advantage = "تفتح الدرف للأعلى بزاوية حرة تمنع اصطدام الرأس وتتحمل أوزان الدرف الثقيلة."
                 },
                 new MechanismVarianceOption
                 {
                     MechanismName = "سلة زاوية ذكية (Magic Corner / LeMans Tray)",
                     AppliedTo = "علب الزوايا العمياء (Blind Corner)",
-                    UnitCost = 550m,
-                    SellingPrice = 850m,
+                    UnitCost = Math.Round(settings.PriceMagicCorner * 0.70m, 0),
+                    SellingPrice = settings.PriceMagicCorner,
                     Advantage = "استغلال 100% من عمق الزاوية الميتة مع إخراج الرفوف كاملة للخارج بسلاسة."
                 },
                 new MechanismVarianceOption
                 {
                     MechanismName = "منظم ساعات ومجوهرات زجاجي مبطن مخمل",
                     AppliedTo = "أدراج حجرات الملابس والجزيرة",
-                    UnitCost = 160m,
-                    SellingPrice = 260m,
+                    UnitCost = Math.Round(settings.PriceJewelryOrganizer * 0.65m, 0),
+                    SellingPrice = settings.PriceJewelryOrganizer,
                     Advantage = "تقسيمات داخلية مخملية فخمة مع واجهة زجاجية لعرض الساعات والخواتم."
                 }
             };
 
             // ========================================================
-            //  3. مصفوفة فروقات أسطح العمل (الرخام والكوارتز)
+            //  3. مصفوفة مقارنة أسطح العمل (الرخام والكوارتز)
             // ========================================================
             summary.CountertopVariances = new List<MaterialVarianceOption>
             {
@@ -274,8 +275,8 @@ namespace KOSS.Web.Helpers
                 {
                     MaterialName = "رخام صناعي أكريليك (Solid Surface)",
                     Description = "سطح متصل بدون لحامات ظاهرة، غير مسامي وسهل التلميع والإصلاح.",
-                    PricePerMeter = 450m,
-                    TotalProjectEstimatedPrice = Math.Round(linearM * 450m, 0),
+                    PricePerMeter = settings.PriceCountertopArtificial,
+                    TotalProjectEstimatedPrice = Math.Round(linearM * settings.PriceCountertopArtificial, 0),
                     PriceDifferenceFromBaseline = 0m,
                     TierBadge = "عملي ومتصل"
                 },
@@ -283,27 +284,27 @@ namespace KOSS.Web.Helpers
                 {
                     MaterialName = "كوارتز ألماني / تركي (Quartz 93% Natural)",
                     Description = "مقاوم فائق للخدش والبقع والسكاكين، صلابة عالية ببريق بلوري فاخر.",
-                    PricePerMeter = 680m,
-                    TotalProjectEstimatedPrice = Math.Round(linearM * 680m, 0),
-                    PriceDifferenceFromBaseline = Math.Round((680m - 450m) * linearM, 0),
+                    PricePerMeter = settings.PriceCountertopQuartz,
+                    TotalProjectEstimatedPrice = Math.Round(linearM * settings.PriceCountertopQuartz, 0),
+                    PriceDifferenceFromBaseline = Math.Round((settings.PriceCountertopQuartz - settings.PriceCountertopArtificial) * linearM, 0),
                     TierBadge = "الأعلى تحملاً وفخامة"
                 },
                 new MaterialVarianceOption
                 {
                     MaterialName = "بورسلان مضغوط (Dekton / Compact Porcelain)",
                     Description = "مقاوم للحرارة المباشرة (النار والقدور الساخنة) والخدش والبهتان فوق البنفسجي.",
-                    PricePerMeter = 950m,
-                    TotalProjectEstimatedPrice = Math.Round(linearM * 950m, 0),
-                    PriceDifferenceFromBaseline = Math.Round((950m - 450m) * linearM, 0),
+                    PricePerMeter = settings.PriceCountertopDekton,
+                    TotalProjectEstimatedPrice = Math.Round(linearM * settings.PriceCountertopDekton, 0),
+                    PriceDifferenceFromBaseline = Math.Round((settings.PriceCountertopDekton - settings.PriceCountertopArtificial) * linearM, 0),
                     TierBadge = "أعلى معايير المقاومة"
                 },
                 new MaterialVarianceOption
                 {
                     MaterialName = "جرانيت طبيعي (جلاكسي / دبل بلاك إفريقي)",
                     Description = "حجر طبيعي صلب بلمعان أسود ملكي حبيبي مقاوم للصدمات.",
-                    PricePerMeter = 550m,
-                    TotalProjectEstimatedPrice = Math.Round(linearM * 550m, 0),
-                    PriceDifferenceFromBaseline = Math.Round((550m - 450m) * linearM, 0),
+                    PricePerMeter = settings.PriceCountertopGranite,
+                    TotalProjectEstimatedPrice = Math.Round(linearM * settings.PriceCountertopGranite, 0),
+                    PriceDifferenceFromBaseline = Math.Round((settings.PriceCountertopGranite - settings.PriceCountertopArtificial) * linearM, 0),
                     TierBadge = "حجر طبيعي كلاسيكي"
                 }
             };
@@ -314,13 +315,13 @@ namespace KOSS.Web.Helpers
         // ============================================================
         //  توليد باقة علب افتراضية متكاملة بنقرة زر (Smart Generator)
         // ============================================================
-        public static List<CabinetUnit> GenerateDefaultTemplateBoxes(int kitchenRequestId, CarpentryCategory category)
+        public static List<CabinetUnit> GenerateDefaultTemplateBoxes(int kitchenRequestId, CarpentryCategory category, PricingSetting settings = null)
         {
+            settings ??= new PricingSetting();
             var list = new List<CabinetUnit>();
 
             if (category == CarpentryCategory.DressingRoom)
             {
-                // باقة علب حجرة ملابس نموذجية
                 list.Add(new CabinetUnit
                 {
                     KitchenRequestId = kitchenRequestId,
@@ -388,7 +389,6 @@ namespace KOSS.Web.Helpers
             }
             else
             {
-                // باقة علب مطبخ حديث نموذجية
                 list.Add(new CabinetUnit
                 {
                     KitchenRequestId = kitchenRequestId,
@@ -481,10 +481,9 @@ namespace KOSS.Web.Helpers
                 });
             }
 
-            // احتساب التكلفة وسعر البيع لكل علبة
             foreach (var b in list)
             {
-                var (cost, price) = CalculateBoxCostAndPrice(b);
+                var (cost, price) = CalculateBoxCostAndPrice(b, settings);
                 b.ManufacturingCost = cost;
                 b.SellingPrice = price;
             }
